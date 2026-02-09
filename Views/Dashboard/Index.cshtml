@@ -1,0 +1,58 @@
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<h1>Dashboard</h1>
+<p>Welcome to your paper trading dashboard.</p>
+
+<div class="dashboard-container">
+    <div class="portfolio-summary">
+        <h2>Portfolio Summary</h2>
+        <p><strong>Total Value:</strong> $100,000.00</p>
+        <p><strong>Today's Gain/Loss:</strong> +$1,250.00 (1.25%)</p>
+        <p><strong>Overall Gain/Loss:</strong> +$5,000.00 (5.00%)</p>
+    </div>
+
+    <div class="recent-trades">
+        <h2>Recent Trades</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Symbol</th>
+                    <th>Action</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>2023-10-27</td>
+                    <td>AAPL</td>
+                    <td>BUY</td>
+                    <td>10</td>
+                    <td>$150.00</td>
+                    <td>$1,500.00</td>
+                </tr>
+                <tr>
+                    <td>2023-10-26</td>
+                    <td>MSFT</td>
+                    <td>SELL</td>
+                    <td>5</td>
+                    <td>$300.00</td>
+                    <td>$1,500.00</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="watchlist">
+        <h2>Watchlist</h2>
+        <ul>
+            <li>AAPL - $150.00</li>
+            <li>MSFT - $300.00</li>
+            <li>GOOGL - $120.00</li>
+        </ul>
+    </div>
+</div>
