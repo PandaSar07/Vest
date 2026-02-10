@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "/Users/ezmoney/vest/Vest.csproj": {}
+    "C:\\Users\\rahmo\\Documents\\Projects\\Vest\\Vest\\Vest.csproj": {}
   },
   "projects": {
-    "/Users/ezmoney/vest/Vest.csproj": {
+    "C:\\Users\\rahmo\\Documents\\Projects\\Vest\\Vest\\Vest.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/ezmoney/vest/Vest.csproj",
+        "projectUniqueName": "C:\\Users\\rahmo\\Documents\\Projects\\Vest\\Vest\\Vest.csproj",
         "projectName": "Vest",
-        "projectPath": "/Users/ezmoney/vest/Vest.csproj",
-        "packagesPath": "/Users/ezmoney/.nuget/packages/",
-        "outputPath": "/Users/ezmoney/vest/obj/",
+        "projectPath": "C:\\Users\\rahmo\\Documents\\Projects\\Vest\\Vest\\Vest.csproj",
+        "packagesPath": "C:\\Users\\rahmo\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\rahmo\\Documents\\Projects\\Vest\\Vest\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/Users/ezmoney/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\rahmo\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -37,8 +37,7 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        },
-        "SdkAnalysisLevel": "10.0.100"
+        }
       },
       "frameworks": {
         "net8.0": {
@@ -62,7 +61,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.102/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.417/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
