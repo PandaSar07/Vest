@@ -1,30 +1,60 @@
-C:\Users\rahmo\Documents\Projects\Vest\Vest\bin\Debug\net8.0\appsettings.Development.json
-C:\Users\rahmo\Documents\Projects\Vest\Vest\bin\Debug\net8.0\appsettings.json
-C:\Users\rahmo\Documents\Projects\Vest\Vest\bin\Debug\net8.0\Vest.staticwebassets.runtime.json
-C:\Users\rahmo\Documents\Projects\Vest\Vest\bin\Debug\net8.0\Vest.exe
-C:\Users\rahmo\Documents\Projects\Vest\Vest\bin\Debug\net8.0\Vest.deps.json
-C:\Users\rahmo\Documents\Projects\Vest\Vest\bin\Debug\net8.0\Vest.runtimeconfig.json
-C:\Users\rahmo\Documents\Projects\Vest\Vest\bin\Debug\net8.0\Vest.dll
-C:\Users\rahmo\Documents\Projects\Vest\Vest\bin\Debug\net8.0\Vest.pdb
-C:\Users\rahmo\Documents\Projects\Vest\Vest\obj\Debug\net8.0\Vest.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\rahmo\Documents\Projects\Vest\Vest\obj\Debug\net8.0\Vest.AssemblyInfoInputs.cache
-C:\Users\rahmo\Documents\Projects\Vest\Vest\obj\Debug\net8.0\Vest.AssemblyInfo.cs
-C:\Users\rahmo\Documents\Projects\Vest\Vest\obj\Debug\net8.0\Vest.csproj.CoreCompileInputs.cache
-C:\Users\rahmo\Documents\Projects\Vest\Vest\obj\Debug\net8.0\Vest.MvcApplicationPartsAssemblyInfo.cache
-C:\Users\rahmo\Documents\Projects\Vest\Vest\obj\Debug\net8.0\Vest.RazorAssemblyInfo.cache
-C:\Users\rahmo\Documents\Projects\Vest\Vest\obj\Debug\net8.0\Vest.RazorAssemblyInfo.cs
-C:\Users\rahmo\Documents\Projects\Vest\Vest\obj\Debug\net8.0\staticwebassets.build.json
-C:\Users\rahmo\Documents\Projects\Vest\Vest\obj\Debug\net8.0\staticwebassets.development.json
-C:\Users\rahmo\Documents\Projects\Vest\Vest\obj\Debug\net8.0\staticwebassets\msbuild.Vest.Microsoft.AspNetCore.StaticWebAssets.props
-C:\Users\rahmo\Documents\Projects\Vest\Vest\obj\Debug\net8.0\staticwebassets\msbuild.build.Vest.props
-C:\Users\rahmo\Documents\Projects\Vest\Vest\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.Vest.props
-C:\Users\rahmo\Documents\Projects\Vest\Vest\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.Vest.props
-C:\Users\rahmo\Documents\Projects\Vest\Vest\obj\Debug\net8.0\staticwebassets.pack.json
-C:\Users\rahmo\Documents\Projects\Vest\Vest\obj\Debug\net8.0\scopedcss\Views\Shared\_Layout.cshtml.rz.scp.css
-C:\Users\rahmo\Documents\Projects\Vest\Vest\obj\Debug\net8.0\scopedcss\bundle\Vest.styles.css
-C:\Users\rahmo\Documents\Projects\Vest\Vest\obj\Debug\net8.0\scopedcss\projectbundle\Vest.bundle.scp.css
-C:\Users\rahmo\Documents\Projects\Vest\Vest\obj\Debug\net8.0\Vest.dll
-C:\Users\rahmo\Documents\Projects\Vest\Vest\obj\Debug\net8.0\refint\Vest.dll
-C:\Users\rahmo\Documents\Projects\Vest\Vest\obj\Debug\net8.0\Vest.pdb
-C:\Users\rahmo\Documents\Projects\Vest\Vest\obj\Debug\net8.0\Vest.genruntimeconfig.cache
-C:\Users\rahmo\Documents\Projects\Vest\Vest\obj\Debug\net8.0\ref\Vest.dll
+C:/Users/rahmo/Documents/Projects/Vest/Vest/bin/Debug/net8.0/appsettings.Development.json
+C:/Users/rahmo/Documents/Projects/Vest/Vest/bin/Debug/net8.0/appsettings.json
+C:/Users/rahmo/Documents/Projects/Vest/Vest/bin/Debug/net8.0/Vest.staticwebassets.runtime.json
+C:/Users/rahmo/Documents/Projects/Vest/Vest/bin/Debug/net8.0/Vest.exe
+C:/Users/rahmo/Documents/Projects/Vest/Vest/bin/Debug/net8.0/Vest.deps.json
+C:/Users/rahmo/Documents/Projects/Vest/Vest/bin/Debug/net8.0/Vest.runtimeconfig.json
+C:/Users/rahmo/Documents/Projects/Vest/Vest/bin/Debug/net8.0/Vest.dll
+C:/Users/rahmo/Documents/Projects/Vest/Vest/bin/Debug/net8.0/Vest.pdb
+C:/Users/rahmo/Documents/Projects/Vest/Vest/obj/Debug/net8.0/Vest.GeneratedMSBuildEditorConfig.editorconfig
+C:/Users/rahmo/Documents/Projects/Vest/Vest/obj/Debug/net8.0/Vest.AssemblyInfoInputs.cache
+C:/Users/rahmo/Documents/Projects/Vest/Vest/obj/Debug/net8.0/Vest.AssemblyInfo.cs
+C:/Users/rahmo/Documents/Projects/Vest/Vest/obj/Debug/net8.0/Vest.csproj.CoreCompileInputs.cache
+C:/Users/rahmo/Documents/Projects/Vest/Vest/obj/Debug/net8.0/Vest.MvcApplicationPartsAssemblyInfo.cache
+C:/Users/rahmo/Documents/Projects/Vest/Vest/obj/Debug/net8.0/Vest.RazorAssemblyInfo.cache
+C:/Users/rahmo/Documents/Projects/Vest/Vest/obj/Debug/net8.0/Vest.RazorAssemblyInfo.cs
+C:/Users/rahmo/Documents/Projects/Vest/Vest/obj/Debug/net8.0/staticwebassets.build.json
+C:/Users/rahmo/Documents/Projects/Vest/Vest/obj/Debug/net8.0/staticwebassets.development.json
+C:/Users/rahmo/Documents/Projects/Vest/Vest/obj/Debug/net8.0/staticwebassets/msbuild.Vest.Microsoft.AspNetCore.StaticWebAssets.props
+C:/Users/rahmo/Documents/Projects/Vest/Vest/obj/Debug/net8.0/staticwebassets/msbuild.build.Vest.props
+C:/Users/rahmo/Documents/Projects/Vest/Vest/obj/Debug/net8.0/staticwebassets/msbuild.buildMultiTargeting.Vest.props
+C:/Users/rahmo/Documents/Projects/Vest/Vest/obj/Debug/net8.0/staticwebassets/msbuild.buildTransitive.Vest.props
+C:/Users/rahmo/Documents/Projects/Vest/Vest/obj/Debug/net8.0/staticwebassets.pack.json
+C:/Users/rahmo/Documents/Projects/Vest/Vest/obj/Debug/net8.0/scopedcss/Views/Shared/_Layout.cshtml.rz.scp.css
+C:/Users/rahmo/Documents/Projects/Vest/Vest/obj/Debug/net8.0/scopedcss/bundle/Vest.styles.css
+C:/Users/rahmo/Documents/Projects/Vest/Vest/obj/Debug/net8.0/scopedcss/projectbundle/Vest.bundle.scp.css
+C:/Users/rahmo/Documents/Projects/Vest/Vest/obj/Debug/net8.0/Vest.dll
+C:/Users/rahmo/Documents/Projects/Vest/Vest/obj/Debug/net8.0/refint/Vest.dll
+C:/Users/rahmo/Documents/Projects/Vest/Vest/obj/Debug/net8.0/Vest.pdb
+C:/Users/rahmo/Documents/Projects/Vest/Vest/obj/Debug/net8.0/Vest.genruntimeconfig.cache
+C:/Users/rahmo/Documents/Projects/Vest/Vest/obj/Debug/net8.0/ref/Vest.dll
+/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/obj/Debug/net8.0/Vest.GeneratedMSBuildEditorConfig.editorconfig
+/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/obj/Debug/net8.0/Vest.AssemblyInfoInputs.cache
+/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/obj/Debug/net8.0/Vest.AssemblyInfo.cs
+/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/obj/Debug/net8.0/Vest.csproj.CoreCompileInputs.cache
+/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/obj/Debug/net8.0/Vest.MvcApplicationPartsAssemblyInfo.cache
+/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/obj/Debug/net8.0/Vest.RazorAssemblyInfo.cache
+/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/obj/Debug/net8.0/Vest.RazorAssemblyInfo.cs
+/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/bin/Debug/net8.0/appsettings.Development.json
+/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/bin/Debug/net8.0/appsettings.json
+/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/bin/Debug/net8.0/Vest.staticwebassets.runtime.json
+/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/bin/Debug/net8.0/Vest
+/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/bin/Debug/net8.0/Vest.deps.json
+/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/bin/Debug/net8.0/Vest.runtimeconfig.json
+/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/bin/Debug/net8.0/Vest.dll
+/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/bin/Debug/net8.0/Vest.pdb
+/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/obj/Debug/net8.0/staticwebassets.build.json
+/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/obj/Debug/net8.0/staticwebassets.development.json
+/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/obj/Debug/net8.0/staticwebassets/msbuild.Vest.Microsoft.AspNetCore.StaticWebAssets.props
+/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/obj/Debug/net8.0/staticwebassets/msbuild.build.Vest.props
+/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/obj/Debug/net8.0/staticwebassets/msbuild.buildMultiTargeting.Vest.props
+/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/obj/Debug/net8.0/staticwebassets/msbuild.buildTransitive.Vest.props
+/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/obj/Debug/net8.0/staticwebassets.pack.json
+/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/obj/Debug/net8.0/scopedcss/Views/Shared/_Layout.cshtml.rz.scp.css
+/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/obj/Debug/net8.0/scopedcss/bundle/Vest.styles.css
+/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/obj/Debug/net8.0/scopedcss/projectbundle/Vest.bundle.scp.css
+/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/obj/Debug/net8.0/Vest.dll
+/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/obj/Debug/net8.0/refint/Vest.dll
+/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/obj/Debug/net8.0/Vest.pdb
+/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/obj/Debug/net8.0/Vest.genruntimeconfig.cache
+/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/obj/Debug/net8.0/ref/Vest.dll

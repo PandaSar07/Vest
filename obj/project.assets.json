@@ -8,19 +8,19 @@
     "net8.0": []
   },
   "packageFolders": {
-    "C:\\Users\\rahmo\\.nuget\\packages\\": {}
+    "/Users/babarbaloch/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\rahmo\\Documents\\Projects\\Vest\\Vest\\Vest.csproj",
+      "projectUniqueName": "/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/Vest.csproj",
       "projectName": "Vest",
-      "projectPath": "C:\\Users\\rahmo\\Documents\\Projects\\Vest\\Vest\\Vest.csproj",
-      "packagesPath": "C:\\Users\\rahmo\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\rahmo\\Documents\\Projects\\Vest\\Vest\\obj\\",
+      "projectPath": "/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/Vest.csproj",
+      "packagesPath": "/Users/babarbaloch/.nuget/packages/",
+      "outputPath": "/Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\rahmo\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "/Users/babarbaloch/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
@@ -67,7 +67,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.417/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.417/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
