@@ -58,3 +58,36 @@ C:/Users/rahmo/Documents/Projects/Vest/Vest/obj/Debug/net8.0/ref/Vest.dll
 /Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/obj/Debug/net8.0/Vest.pdb
 /Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/obj/Debug/net8.0/Vest.genruntimeconfig.cache
 /Users/babarbaloch/Desktop/Drexel Winter Quarter 2025/vest/obj/Debug/net8.0/ref/Vest.dll
+/Users/ezmoney/vest/bin/Debug/net8.0/appsettings.Development.json
+/Users/ezmoney/vest/bin/Debug/net8.0/appsettings.json
+/Users/ezmoney/vest/bin/Debug/net8.0/Vest.staticwebassets.runtime.json
+/Users/ezmoney/vest/bin/Debug/net8.0/Vest.staticwebassets.endpoints.json
+/Users/ezmoney/vest/bin/Debug/net8.0/Vest
+/Users/ezmoney/vest/bin/Debug/net8.0/Vest.deps.json
+/Users/ezmoney/vest/bin/Debug/net8.0/Vest.runtimeconfig.json
+/Users/ezmoney/vest/bin/Debug/net8.0/Vest.dll
+/Users/ezmoney/vest/bin/Debug/net8.0/Vest.pdb
+/Users/ezmoney/vest/obj/Debug/net8.0/rpswa.dswa.cache.json
+/Users/ezmoney/vest/obj/Debug/net8.0/Vest.GeneratedMSBuildEditorConfig.editorconfig
+/Users/ezmoney/vest/obj/Debug/net8.0/Vest.AssemblyInfoInputs.cache
+/Users/ezmoney/vest/obj/Debug/net8.0/Vest.AssemblyInfo.cs
+/Users/ezmoney/vest/obj/Debug/net8.0/Vest.csproj.CoreCompileInputs.cache
+/Users/ezmoney/vest/obj/Debug/net8.0/Vest.MvcApplicationPartsAssemblyInfo.cache
+/Users/ezmoney/vest/obj/Debug/net8.0/Vest.RazorAssemblyInfo.cache
+/Users/ezmoney/vest/obj/Debug/net8.0/Vest.RazorAssemblyInfo.cs
+/Users/ezmoney/vest/obj/Debug/net8.0/rjimswa.dswa.cache.json
+/Users/ezmoney/vest/obj/Debug/net8.0/rjsmrazor.dswa.cache.json
+/Users/ezmoney/vest/obj/Debug/net8.0/rjsmcshtml.dswa.cache.json
+/Users/ezmoney/vest/obj/Debug/net8.0/scopedcss/Views/Shared/_Layout.cshtml.rz.scp.css
+/Users/ezmoney/vest/obj/Debug/net8.0/scopedcss/bundle/Vest.styles.css
+/Users/ezmoney/vest/obj/Debug/net8.0/scopedcss/projectbundle/Vest.bundle.scp.css
+/Users/ezmoney/vest/obj/Debug/net8.0/staticwebassets.build.json
+/Users/ezmoney/vest/obj/Debug/net8.0/staticwebassets.build.json.cache
+/Users/ezmoney/vest/obj/Debug/net8.0/staticwebassets.development.json
+/Users/ezmoney/vest/obj/Debug/net8.0/staticwebassets.build.endpoints.json
+/Users/ezmoney/vest/obj/Debug/net8.0/swae.build.ex.cache
+/Users/ezmoney/vest/obj/Debug/net8.0/Vest.dll
+/Users/ezmoney/vest/obj/Debug/net8.0/refint/Vest.dll
+/Users/ezmoney/vest/obj/Debug/net8.0/Vest.pdb
+/Users/ezmoney/vest/obj/Debug/net8.0/Vest.genruntimeconfig.cache
+/Users/ezmoney/vest/obj/Debug/net8.0/ref/Vest.dll
