@@ -104,19 +104,15 @@ body {
   padding: 2rem 0;
 }
 
-.portfolio-summary,
-.recent-trades,
-.watchlist {
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-color);
+.card {
+  background-color: var(--bg-card) !important;
+  border: 1px solid var(--border-color) !important;
   border-radius: 12px;
   padding: 1.5rem;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.portfolio-summary:hover,
-.recent-trades:hover,
-.watchlist:hover {
+.card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
@@ -185,6 +181,17 @@ footer {
   border-top: 1px solid var(--border-color) !important;
   color: var(--text-secondary) !important;
   padding: 2rem 0;
+}
+
+.footer-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.footer-link:hover {
+  color: var(--text-primary);
+  text-decoration: none;
 }
 
 /* Buttons and Focus */
