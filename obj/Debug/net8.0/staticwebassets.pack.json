@@ -17,6 +17,14 @@
       "PackagePath": "staticwebassets\\images\\VestLogo.png"
     },
     {
+      "Id": "C:\\Users\\rahmo\\Documents\\Projects\\Vest\\Vest\\wwwroot\\images\\VestLogoFavicon.png",
+      "PackagePath": "staticwebassets\\images\\VestLogoFavicon.png"
+    },
+    {
+      "Id": "C:\\Users\\rahmo\\Documents\\Projects\\Vest\\Vest\\wwwroot\\images\\favicon-32x32.png",
+      "PackagePath": "staticwebassets\\images\\favicon-32x32.png"
+    },
+    {
       "Id": "C:\\Users\\rahmo\\Documents\\Projects\\Vest\\Vest\\wwwroot\\js\\site.js",
       "PackagePath": "staticwebassets\\js\\site.js"
     },

@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "fQNVI14Yz5CJW3Em9uaW7/Mq5T9LxqC5J/ZPYb0uG5o=",
+  "Hash": "c9Snu+Uz5gq2xL/fTt8XAEfLYwltyqSZ04cbgoM5zFA=",
   "Source": "Vest",
   "BasePath": "_content/Vest",
   "Mode": "Default",
@@ -93,6 +93,25 @@
       "OriginalItemSpec": "wwwroot\\favicon.ico"
     },
     {
+      "Identity": "C:\\Users\\rahmo\\Documents\\Projects\\Vest\\Vest\\wwwroot\\images\\favicon-32x32.png",
+      "SourceId": "Vest",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\rahmo\\Documents\\Projects\\Vest\\Vest\\wwwroot\\",
+      "BasePath": "_content/Vest",
+      "RelativePath": "images/favicon-32x32.png",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\images\\favicon-32x32.png"
+    },
+    {
       "Identity": "C:\\Users\\rahmo\\Documents\\Projects\\Vest\\Vest\\wwwroot\\images\\VestLogo.png",
       "SourceId": "Vest",
       "SourceType": "Discovered",
@@ -110,6 +129,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\images\\VestLogo.png"
+    },
+    {
+      "Identity": "C:\\Users\\rahmo\\Documents\\Projects\\Vest\\Vest\\wwwroot\\images\\VestLogoFavicon.png",
+      "SourceId": "Vest",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\rahmo\\Documents\\Projects\\Vest\\Vest\\wwwroot\\",
+      "BasePath": "_content/Vest",
+      "RelativePath": "images/VestLogoFavicon.png",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\images\\VestLogoFavicon.png"
     },
     {
       "Identity": "C:\\Users\\rahmo\\Documents\\Projects\\Vest\\Vest\\wwwroot\\js\\site.js",

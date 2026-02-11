@@ -35,5 +35,15 @@ namespace Vest.Services
 
             return null;
         }
+
+        public async Task<string> GetCandlesAsync(string symbol, string resolution, long from, long to)
+        {
+            var url = $"https://finnhub.io/api/v1/stock/candle?symbol={symbol}&resolution={resolution}&from={from}&to={to}&token={_apiKey}";
+
+            var response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadAsStringAsync();
+        }
     }
 }

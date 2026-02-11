@@ -1,0 +1,111 @@
+@{
+    ViewData["Title"] = "Stock Market Chart";
+}
+
+<div class="container mt-4">
+    <h2>Stock Market Chart</h2>
+    
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="input-group">
+                <input type="text" id="symbolInput" class="form-control" placeholder="Enter Stock Symbol (e.g. AAPL)" value="AAPL">
+                <button class="btn btn-primary" id="searchBtn">Search</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <canvas id="stockChart" style="width:100%; height:400px;"></canvas>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let chart;
+
+        async function fetchChartData(symbol) {
+            try {
+                const response = await fetch(`/market/candles?symbol=${symbol.toUpperCase()}&resolution=D`);
+                if (!response.ok) throw new Error('Failed to fetch data');
+                const data = await response.json();
+                
+                if (data.s !== 'ok') {
+                    alert('Symbol not found or no data available.');
+                    return;
+                }
+
+                renderChart(symbol, data);
+            } catch (error) {
+                console.error(error);
+                alert('An error occurred while fetching chart data.');
+            }
+        }
+
+        function renderChart(symbol, data) {
+            const ctx = document.getElementById('stockChart').getContext('2d');
+            
+            // Format timestamps to dates
+            const labels = data.t.map(timestamp => {
+                const date = new Date(timestamp * 1000);
+                return date.toLocaleDateString();
+            });
+
+            const prices = data.c; // Closing prices
+
+            if (chart) {
+                chart.destroy();
+            }
+
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: `${symbol.toUpperCase()} Price`,
+                        data: prices,
+                        borderColor: '#007bff',
+                        backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
+                    }
+                }
+            });
+        }
+
+        document.getElementById('searchBtn').addEventListener('click', () => {
+            const symbol = document.getElementById('symbolInput').value;
+            if (symbol) {
+                fetchChartData(symbol);
+            }
+        });
+
+        // Initial chart load
+        fetchChartData('AAPL');
+    </script>
+}

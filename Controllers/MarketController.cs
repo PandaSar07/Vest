@@ -30,5 +30,28 @@ namespace Vest.Controllers
 
             return Ok(new { symbol, price });
         }
+
+        [HttpGet("candles")]
+        public async Task<IActionResult> GetCandles(string symbol, string resolution = "D")
+        {
+            if (string.IsNullOrWhiteSpace(symbol))
+            {
+                return BadRequest("Symbol is required.");
+            }
+
+            try
+            {
+                // Default to last 30 days
+                long to = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                long from = DateTimeOffset.UtcNow.AddDays(-30).ToUnixTimeSeconds();
+
+                var data = await _finnhubService.GetCandlesAsync(symbol, resolution, from, to);
+                return Content(data, "application/json");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message, details = ex.InnerException?.Message });
+            }
+        }
     }
 }
