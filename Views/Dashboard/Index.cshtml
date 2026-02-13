@@ -2,57 +2,101 @@
     ViewData["Title"] = "Dashboard";
 }
 
-<h1>Dashboard</h1>
-<p>Welcome to your paper trading dashboard.</p>
+<div class="py-4">
+    <h1 class="display-5 mb-1">Dashboard</h1>
+    <p class="text-secondary mb-5">Welcome back. Here's your paper trading activity at a glance.</p>
 
-<div class="dashboard-container">
-    <div class="portfolio-summary">
-        <h2>Portfolio Summary</h2>
-        <p><strong>Total Value:</strong> $100,000.00</p>
-        <p><strong>Today's Gain/Loss:</strong> +$1,250.00 (1.25%)</p>
-        <p><strong>Overall Gain/Loss:</strong> +$5,000.00 (5.00%)</p>
-    </div>
+    <div class="dashboard-container">
+        <!-- Portfolio Summary -->
+        <div class="card portfolio-summary h-100">
+            <h2 class="h4 mb-4">Portfolio Summary</h2>
+            <div class="d-flex flex-column gap-3">
+                <div class="glass-panel p-3">
+                    <span class="text-secondary d-block small text-uppercase fw-bold">Total Value</span>
+                    <span class="h2 mb-0 fw-bold">$100,000.00</span>
+                </div>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="glass-panel p-3">
+                            <span class="text-secondary d-block small text-uppercase fw-bold">Today</span>
+                            <span class="text-success fw-bold">+$1,250.00</span>
+                            <span class="d-block small text-success">(1.25%)</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="glass-panel p-3">
+                            <span class="text-secondary d-block small text-uppercase fw-bold">Overall</span>
+                            <span class="text-success fw-bold">+$5,000.00</span>
+                            <span class="d-block small text-success">(5.00%)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    <div class="recent-trades">
-        <h2>Recent Trades</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Symbol</th>
-                    <th>Action</th>
-                    <th>Quantity</th>
-                    <th>Price</th>
-                    <th>Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>2023-10-27</td>
-                    <td>AAPL</td>
-                    <td>BUY</td>
-                    <td>10</td>
-                    <td>$150.00</td>
-                    <td>$1,500.00</td>
-                </tr>
-                <tr>
-                    <td>2023-10-26</td>
-                    <td>MSFT</td>
-                    <td>SELL</td>
-                    <td>5</td>
-                    <td>$300.00</td>
-                    <td>$1,500.00</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+        <!-- Recent Trades -->
+        <div class="card recent-trades">
+            <h2 class="h4 mb-4">Recent Trades</h2>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Symbol</th>
+                            <th>Action</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="small">2023-10-27</td>
+                            <td class="fw-bold">AAPL</td>
+                            <td><span class="badge badge-buy">BUY</span></td>
+                            <td>10</td>
+                            <td>$150.00</td>
+                            <td class="fw-bold">$1,500.00</td>
+                        </tr>
+                        <tr>
+                            <td class="small">2023-10-26</td>
+                            <td class="fw-bold">MSFT</td>
+                            <td><span class="badge badge-sell">SELL</span></td>
+                            <td>5</td>
+                            <td>$300.00</td>
+                            <td class="fw-bold">$1,500.00</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-    <div class="watchlist">
-        <h2>Watchlist</h2>
-        <ul>
-            <li>AAPL - $150.00</li>
-            <li>MSFT - $300.00</li>
-            <li>GOOGL - $120.00</li>
-        </ul>
+        <!-- Watchlist -->
+        <div class="card watchlist">
+            <h2 class="h4 mb-4">Watchlist</h2>
+            <ul class="d-flex flex-column gap-2">
+                <li>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-primary rounded-circle" style="width: 8px; height: 8px;"></div>
+                        <span class="fw-bold">AAPL</span>
+                    </div>
+                    <span class="fw-bold">$150.00</span>
+                </li>
+                <li>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-primary rounded-circle" style="width: 8px; height: 8px;"></div>
+                        <span class="fw-bold">MSFT</span>
+                    </div>
+                    <span class="fw-bold">$300.00</span>
+                </li>
+                <li>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-primary rounded-circle" style="width: 8px; height: 8px;"></div>
+                        <span class="fw-bold">GOOGL</span>
+                    </div>
+                    <span class="fw-bold">$120.00</span>
+                </li>
+            </ul>
+        </div>
     </div>
 </div>
