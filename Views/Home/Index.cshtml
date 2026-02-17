@@ -1,9 +1,145 @@
 @{
-    ViewData["Title"] = "Vest";
+    ViewData["Title"] = "Vest | Invest Smarter";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Vest - Invest Smart</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<style>
+    .hero {
+        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+        color: white;
+        padding: 80px 20px;
+    }
+
+    .hero h1 {
+        font-size: 3rem;
+        font-weight: 700;
+    }
+
+    .hero p {
+        font-size: 1.25rem;
+        margin-top: 15px;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .section {
+        padding: 70px 20px;
+    }
+
+    .section-title {
+        font-weight: 700;
+        margin-bottom: 40px;
+    }
+
+    .feature-box {
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        background-color: white;
+        height: 100%;
+    }
+
+    .cta {
+        background-color: #f8f9fa;
+        padding: 60px 20px;
+    }
+
+    .cta a {
+        padding: 12px 28px;
+        font-size: 1.1rem;
+    }
+</style>
+
+<!-- HERO -->
+<div class="hero text-center">
+    <h1>Vest</h1>
+    <h3 class="mt-3">Invest Smarter</h3>
+    <p>
+        Vest helps new investors understand the stock and crypto markets using
+        data-driven insights, quantitative analysis, and clear explanations —
+        no hype, no guesswork.
+    </p>
 </div>
-@*Index page made by Benson Xue*@
+
+<!-- WHAT WE DO -->
+<div class="section text-center">
+    <h2 class="section-title">What Is Vest?</h2>
+    <p class="mx-auto" style="max-width: 800px;">
+        Vest is an educational, quantitative investing platform designed for beginners.
+        We break down market data, trends, and strategies so you can learn how markets work
+        before making real decisions.
+    </p>
+</div>
+
+<!-- WHY VEST -->
+<div class="section bg-light">
+    <div class="container">
+        <h2 class="section-title text-center">Why Vest?</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-box">
+                    <h4>Quantitative Focus</h4>
+                    <p>
+                        Learn how data, statistics, and models are used to analyze markets —
+                        the same tools professionals rely on.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-box">
+                    <h4>Beginner Friendly</h4>
+                    <p>
+                        No prior investing knowledge required. Concepts are explained clearly
+                        with real-world examples.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-box">
+                    <h4>Smarter Decisions</h4>
+                    <p>
+                        Vest focuses on understanding risk, probability, and long-term thinking —
+                        not short-term speculation.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FEATURES PREVIEW -->
+<div class="section text-center">
+    <h2 class="section-title">What You'll Find on Vest</h2>
+    <div class="row g-4 justify-content-center">
+        <div class="col-md-3 feature-box">
+            Market Data Visualizations
+        </div>
+        <div class="col-md-3 feature-box">
+            Quant Models & Indicators
+        </div>
+        <div class="col-md-3 feature-box">
+            Beginner Investing Guides
+        </div>
+        <div class="col-md-3 feature-box">
+            Risk & Volatility Education
+        </div>
+    </div>
+</div>
+
+<!-- CALL TO ACTION -->
+<div class="cta text-center">
+    <h2>New to Investing?</h2>
+    <p class="mb-4">
+        Start by learning how markets work before risking real money.
+    </p>
+    <a class="btn btn-dark" asp-controller="Learn" asp-action="Index">
+        Start Learning
+    </a>
+</div>
+
+<!-- FOOTER -->
+<footer class="text-center mt-5 mb-3 text-muted">
+    © @DateTime.Now.Year Vest • Educational purposes only • Not financial advice
+</footer>
+
+@* Homepage designed by Benson Xue *@

@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\rahmo\\Documents\\Projects\\Vest\\Vest\\Vest.csproj": {}
+    "/Users/bensonxue/Downloads/Vest/Vest.csproj": {}
   },
   "projects": {
-    "C:\\Users\\rahmo\\Documents\\Projects\\Vest\\Vest\\Vest.csproj": {
+    "/Users/bensonxue/Downloads/Vest/Vest.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\rahmo\\Documents\\Projects\\Vest\\Vest\\Vest.csproj",
+        "projectUniqueName": "/Users/bensonxue/Downloads/Vest/Vest.csproj",
         "projectName": "Vest",
-        "projectPath": "C:\\Users\\rahmo\\Documents\\Projects\\Vest\\Vest\\Vest.csproj",
-        "packagesPath": "C:\\Users\\rahmo\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\rahmo\\Documents\\Projects\\Vest\\Vest\\obj\\",
+        "projectPath": "/Users/bensonxue/Downloads/Vest/Vest.csproj",
+        "packagesPath": "/Users/bensonxue/.nuget/packages/",
+        "outputPath": "/Users/bensonxue/Downloads/Vest/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\rahmo\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "/Users/bensonxue/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -37,7 +37,8 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        }
+        },
+        "SdkAnalysisLevel": "10.0.100"
       },
       "frameworks": {
         "net8.0": {
@@ -53,6 +54,20 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[8.0.23, 8.0.23]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Host.osx-arm64",
+              "version": "[8.0.23, 8.0.23]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[8.0.23, 8.0.23]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.AspNetCore.App": {
               "privateAssets": "none"
@@ -61,7 +76,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.418/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.102/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
