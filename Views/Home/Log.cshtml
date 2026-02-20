@@ -20,8 +20,16 @@
         <input type="password" class="form-control" id="password" name="password" required>
     </div>
     <p> </p>
-    <a type="submit" class="btn btn-primary">Sign In</a>
-    <p> </p>
-    <a asp-controller="Home" asp-action="Signup" class="btn btn-primary">Sign Up</a>
+    
+    <!-- Buttons row - evenly split -->
+    <div class="row">
+        <div class="col-6 pr-6">
+            <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+        </div>
+        <div class="col-6 pr-6">
+            <a asp-controller="Home" asp-action="Signup" class="btn btn-primary btn-block">Sign Up</a>
+        </div>
+    </div>
 </form>
-@*Log in Page made by Babar Baloch*@
+
+@* Log in Page made by Babar Baloch and Benson Xue*@
