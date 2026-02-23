@@ -10,12 +10,26 @@
 <form method="post">
     <div class="form-group">
         <label for="username">Username</label>
+        <p> </p>
         <input type="text" class="form-control" id="username" name="username" required>
     </div>
     <div class="form-group">
+        <p> </p>
         <label for="password">Password</label>
+        <p> </p>
         <input type="password" class="form-control" id="password" name="password" required>
     </div>
-    <button type="submit" class="btn btn-primary">Sign In</button>
+    <p> </p>
+    
+    <!-- Buttons row - evenly split -->
+    <div class="row">
+        <div class="col-6 pr-6">
+            <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+        </div>
+        <div class="col-6 pr-6">
+            <a asp-controller="Home" asp-action="Signup" class="btn btn-primary btn-block">Sign Up</a>
+        </div>
+    </div>
 </form>
-@*Log in Page made by Babar Baloch*@
+
+@* Log in Page made by Babar Baloch and Benson Xue*@
