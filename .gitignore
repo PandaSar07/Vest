@@ -1,3 +1,36 @@
-appsettings.Development.json
+## Build outputs
 bin/
 obj/
+
+## Secrets / local config
+appsettings.Development.json
+appsettings.*.json
+!appsettings.json
+
+## Logs
+*.txt
+*.log
+
+## OS files
+.DS_Store
+Thumbs.db
+
+## Visual Studio / Rider
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.idea/
+
+## Rider
+*.DotSettings.user
+
+## NuGet
+*.nupkg
+*.snupkg
+packages/
+!packages/repositories.config
+
+## Publish output
+publish/
