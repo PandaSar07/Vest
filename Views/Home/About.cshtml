@@ -2,28 +2,239 @@
     ViewData["Title"] = "About Us";
 }
 
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-md-8 offset-md-2 text-center">
-            <h1 class="display-4 text-primary mb-4">About Vest</h1>
-            <p class="lead text-muted">
-                Vest is a modern platform designed to streamline your investment tracking and portfolio management. 
-                Our mission is to provide clear, actionable insights into your financial health.
-            </p>
-            <hr class="my-4">
-            <div class="card border-0 p-4">
-                <h3>Our Vision</h3>
-                <p>
-                    We believe in financial transparency and accessibility for everyone. Whether you're a seasoned investor 
-                    or just starting out, Vest provides the tools you need to succeed.
-                </p>
+<style>
+    .about-hero {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        color: white;
+        padding: 80px 0 60px;
+        text-align: center;
+    }
+
+    .about-hero h1 {
+        font-size: 3rem;
+        font-weight: 800;
+        letter-spacing: -1px;
+    }
+
+    .about-hero p {
+        font-size: 1.2rem;
+        opacity: 0.8;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .stat-badge {
+        display: inline-block;
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 12px;
+        padding: 20px 30px;
+        margin: 10px;
+    }
+
+    .stat-badge .num {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #63b3ed;
+    }
+
+    .stat-badge .label {
+        font-size: 0.85rem;
+        opacity: 0.7;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .feature-card {
+        border: none;
+        border-radius: 16px;
+        padding: 30px;
+        height: 100%;
+        background: #fff;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+    }
+
+    .feature-icon {
+        font-size: 2.5rem;
+        margin-bottom: 16px;
+    }
+
+    .feature-card h4 {
+        font-weight: 700;
+        margin-bottom: 10px;
+        color: #1a1a2e;
+    }
+
+    .feature-card p {
+        color: #6c757d;
+        font-size: 0.95rem;
+        margin: 0;
+    }
+
+    .section-label {
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 2px;
+        color: #63b3ed;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .team-card {
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        transition: transform 0.2s;
+    }
+
+    .team-card:hover {
+        transform: translateY(-4px);
+    }
+
+    .team-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin: 0 auto 12px;
+    }
+
+    .cta-section {
+        background: linear-gradient(135deg, #0f3460, #1a1a2e);
+        color: white;
+        border-radius: 20px;
+        padding: 60px 40px;
+        text-align: center;
+    }
+</style>
+
+<!-- Hero -->
+<div class="about-hero">
+    <div class="container">
+        <div class="section-label">Who we are</div>
+        <h1>Built for <span style="color:#63b3ed;">smarter</span> investing</h1>
+        <p class="mt-3 mb-5">
+            Vest brings clarity to your financial life — from real-time portfolio tracking
+            to intelligent insights that help you make better decisions, faster.
+        </p>
+
+        <div class="d-flex flex-wrap justify-content-center">
+            <div class="stat-badge">
+                <div class="num">10K+</div>
+                <div class="label">Active Users</div>
             </div>
-            <div class="mt-5">
-                <a href="/" class="btn btn-outline-primary btn-lg px-4">Get Started</a>
+            <div class="stat-badge">
+                <div class="num">$2.4B</div>
+                <div class="label">Assets Tracked</div>
+            </div>
+            <div class="stat-badge">
+                <div class="num">99.9%</div>
+                <div class="label">Uptime</div>
+            </div>
+            <div class="stat-badge">
+                <div class="num">2023</div>
+                <div class="label">Founded</div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- What We Do -->
+<div class="container my-5">
+    <div class="text-center mb-5">
+        <div class="section-label">What we offer</div>
+        <h2 class="fw-bold" style="color:#1a1a2e;">Everything you need to stay on top</h2>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h4>Portfolio Tracking</h4>
+                <p>Monitor all your investments in one place. Stocks, crypto, ETFs — unified into a single, clean dashboard.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon">🔔</div>
+                <h4>Smart Alerts</h4>
+                <p>Get notified when your holdings hit price targets, or when market conditions change dramatically.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon">📈</div>
+                <h4>Performance Analytics</h4>
+                <p>Deep-dive into your returns, compare against benchmarks, and understand what's driving your gains or losses.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h4>Bank-Level Security</h4>
+                <p>256-bit encryption, multi-factor authentication, and zero-knowledge architecture to keep your data safe.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon">🌍</div>
+                <h4>Global Markets</h4>
+                <p>Access data from over 50 global exchanges. Track assets anywhere in the world, in any currency.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon">🤖</div>
+                <h4>AI Insights</h4>
+                <p>Powered by machine learning to surface personalized insights, anomaly detection, and predictive trends.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Team -->
+<div class="container my-5">
+    <div class="text-center mb-5">
+        <div class="section-label">The team</div>
+        <h2 class="fw-bold" style="color:#1a1a2e;">Made by students, for everyone</h2>
+        <p class="text-muted">Built at Drexel University as a passion project turned real product.</p>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        <div class="col-md-3 text-center">
+            <div class="team-card p-4 bg-white">
+                <div class="team-avatar bg-primary bg-opacity-10 text-primary mx-auto">🧑‍💻</div>
+                <h5 class="fw-bold mb-1">Edison Zheng</h5>
+                <small class="text-muted">Lead Developer</small>
+            </div>
+        </div>
+        <div class="col-md-3 text-center">
+            <div class="team-card p-4 bg-white">
+                <div class="team-avatar bg-success bg-opacity-10 text-success mx-auto">🎨</div>
+                <h5 class="fw-bold mb-1">Vest Team</h5>
+                <small class="text-muted">Design & Engineering</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA -->
+<div class="container mb-5">
+    <div class="cta-section">
+        <h2 class="fw-bold mb-3">Ready to take control of your portfolio?</h2>
+        <p class="mb-4" style="opacity:0.8;">Join thousands of investors who trust Vest to keep their finances organized.</p>
+        <a href="/Home/Signup" class="btn btn-light btn-lg px-5 me-3 fw-semibold">Create Account</a>
+        <a href="/" class="btn btn-outline-light btn-lg px-5">Learn More</a>
+    </div>
+</div>
 
 @*Code made by Edison Zheng*@
