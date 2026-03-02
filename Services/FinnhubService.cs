@@ -16,34 +16,86 @@ namespace Vest.Services
                       ?? throw new Exception("Finnhub API key not found");
         }
 
-        public async Task<decimal?> GetQuoteAsync(string symbol)
+        /// <summary>Full real-time quote: c, d, dp, h, l, o, pc, t</summary>
+        public async Task<JsonElement?> GetFullQuoteAsync(string symbol)
         {
-            var url = $"https://finnhub.io/api/v1/quote?symbol={symbol}&token={_apiKey}";
+            var url = $"https://finnhub.io/api/v1/quote?symbol={Uri.EscapeDataString(symbol)}&token={_apiKey}";
+            var response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadAsStringAsync();
+            using var doc = JsonDocument.Parse(json);
+
+            // Clone so we can return after doc is disposed
+            return doc.RootElement.Clone();
+        }
+
+        /// <summary>Company profile: name, logo, exchange, industry, currency, market cap, etc.</summary>
+        public async Task<JsonElement?> GetCompanyProfileAsync(string symbol)
+        {
+            var url = $"https://finnhub.io/api/v1/stock/profile2?symbol={Uri.EscapeDataString(symbol)}&token={_apiKey}";
+            var response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadAsStringAsync();
+            using var doc = JsonDocument.Parse(json);
+            return doc.RootElement.Clone();
+        }
+
+        /// <summary>Latest company/market news headlines.</summary>
+        public async Task<JsonElement?> GetCompanyNewsAsync(string symbol)
+        {
+            // Finnhub requires a date range for company news
+            var to = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd");
+            var from = DateTimeOffset.UtcNow.AddDays(-7).ToString("yyyy-MM-dd");
+            var url = $"https://finnhub.io/api/v1/company-news?symbol={Uri.EscapeDataString(symbol)}&from={from}&to={to}&token={_apiKey}";
 
             var response = await _httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
 
             var json = await response.Content.ReadAsStringAsync();
-
             using var doc = JsonDocument.Parse(json);
-
-            // "c" = current price
-            if (doc.RootElement.TryGetProperty("c", out var price))
-            {
-                return price.GetDecimal();
-            }
-
-            return null;
+            return doc.RootElement.Clone();
         }
 
-        public async Task<string> GetCandlesAsync(string symbol, string resolution, long from, long to)
+        /// <summary>
+        /// Historical OHLCV data via Yahoo Finance (free, no key needed).
+        /// range: 1d | 5d | 1mo | 3mo | 6mo | 1y | 2y | 5y | max
+        /// interval: 1m | 5m | 15m | 30m | 1h | 1d | 1wk | 1mo
+        /// Returns a normalised object: { timestamps: long[], closes: decimal[] }
+        /// </summary>
+        public async Task<object> GetHistoricalDataAsync(string symbol, string range, string interval)
         {
-            var url = $"https://finnhub.io/api/v1/stock/candle?symbol={symbol}&resolution={resolution}&from={from}&to={to}&token={_apiKey}";
+            var url = $"https://query1.finance.yahoo.com/v8/finance/chart/{Uri.EscapeDataString(symbol)}" +
+                      $"?interval={interval}&range={range}&includePrePost=false";
 
-            var response = await _httpClient.GetAsync(url);
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            // Yahoo Finance requires a browser-like User-Agent
+            request.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
+            request.Headers.Add("Accept", "application/json");
+
+            var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
 
-            return await response.Content.ReadAsStringAsync();
+            var json = await response.Content.ReadAsStringAsync();
+            using var doc = JsonDocument.Parse(json);
+
+            var result = doc.RootElement
+                .GetProperty("chart")
+                .GetProperty("result")[0];
+
+            var timestamps = result.GetProperty("timestamp").EnumerateArray()
+                .Select(t => t.GetInt64()).ToArray();
+
+            var closes = result
+                .GetProperty("indicators")
+                .GetProperty("quote")[0]
+                .GetProperty("close")
+                .EnumerateArray()
+                .Select(v => v.ValueKind == JsonValueKind.Null ? (decimal?)null : v.GetDecimal())
+                .ToArray();
+
+            return new { timestamps, closes };
         }
     }
 }

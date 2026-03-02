@@ -14,43 +14,75 @@ namespace Vest.Controllers
             _finnhubService = finnhubService;
         }
 
-        [HttpGet("quote")]
-        public async Task<IActionResult> GetQuote(string symbol)
+        /// <summary>Full real-time quote with change, % change, high, low, open, prev-close.</summary>
+        [HttpGet("fullquote")]
+        public async Task<IActionResult> GetFullQuote(string symbol)
         {
             if (string.IsNullOrWhiteSpace(symbol))
-            {
                 return BadRequest("Symbol is required.");
-            }
-
-            var price = await _finnhubService.GetQuoteAsync(symbol);
-            if (price == null)
-            {
-                return NotFound($"Quote for symbol '{symbol}' not found.");
-            }
-
-            return Ok(new { symbol, price });
-        }
-
-        [HttpGet("candles")]
-        public async Task<IActionResult> GetCandles(string symbol, string resolution = "D")
-        {
-            if (string.IsNullOrWhiteSpace(symbol))
-            {
-                return BadRequest("Symbol is required.");
-            }
 
             try
             {
-                // Default to last 30 days
-                long to = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                long from = DateTimeOffset.UtcNow.AddDays(-30).ToUnixTimeSeconds();
-
-                var data = await _finnhubService.GetCandlesAsync(symbol, resolution, from, to);
-                return Content(data, "application/json");
+                var quote = await _finnhubService.GetFullQuoteAsync(symbol.ToUpper());
+                return Ok(quote);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = ex.Message, details = ex.InnerException?.Message });
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
+        /// <summary>Company profile (name, logo, exchange, industry, currency, market cap).</summary>
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetProfile(string symbol)
+        {
+            if (string.IsNullOrWhiteSpace(symbol))
+                return BadRequest("Symbol is required.");
+
+            try
+            {
+                var profile = await _finnhubService.GetCompanyProfileAsync(symbol.ToUpper());
+                return Ok(profile);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
+        /// <summary>Latest company news headlines (last 7 days).</summary>
+        [HttpGet("news")]
+        public async Task<IActionResult> GetNews(string symbol)
+        {
+            if (string.IsNullOrWhiteSpace(symbol))
+                return BadRequest("Symbol is required.");
+
+            try
+            {
+                var news = await _finnhubService.GetCompanyNewsAsync(symbol.ToUpper());
+                return Ok(news);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
+        /// <summary>Historical close prices via Yahoo Finance (free, no key needed).</summary>
+        [HttpGet("history")]
+        public async Task<IActionResult> GetHistory(string symbol, string range = "1mo", string interval = "1d")
+        {
+            if (string.IsNullOrWhiteSpace(symbol))
+                return BadRequest("Symbol is required.");
+
+            try
+            {
+                var data = await _finnhubService.GetHistoricalDataAsync(symbol.ToUpper(), range, interval);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
             }
         }
     }
