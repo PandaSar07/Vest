@@ -147,6 +147,9 @@
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Watchlist" asp-action="Index" id="navWatchlist">Watchlist <span id="wlNavBadge" style="display:none;background:var(--accent-color);color:#05070a;border-radius:9999px;font-size:0.65rem;font-weight:800;padding:1px 7px;margin-left:3px;vertical-align:middle;">0</span></a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Screener" asp-action="Index">Screener</a>
+                        </li>
                         @if (Context.Session.GetString("UserId") != null)
                         {
                             <li class="nav-item">
@@ -237,15 +240,20 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script>
-        // Update watchlist badge count in nav
-        (function () {
+        // Update watchlist badge — prefer server data when logged in
+        (async function () {
             const badge = document.getElementById('wlNavBadge');
             if (!badge) return;
-            const list = JSON.parse(localStorage.getItem('vest_watchlist') || '[]');
-            if (list.length > 0) {
-                badge.textContent = list.length;
-                badge.style.display = 'inline';
-            }
+            try {
+                const r = await fetch('/watchlist');
+                if (r.ok) {
+                    const list = await r.json();
+                    if (list.length > 0) { badge.textContent = list.length; badge.style.display = 'inline'; }
+                    return;
+                }
+            } catch { /* not logged in — fall through */ }
+            const local = JSON.parse(localStorage.getItem('vest_watchlist') || '[]');
+            if (local.length > 0) { badge.textContent = local.length; badge.style.display = 'inline'; }
         })();
     </script>
     @await RenderSectionAsync("Scripts", required: false)

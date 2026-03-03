@@ -553,7 +553,10 @@
     <!-- Trade panel -->
     <div class="trade-card mb-4" id="tradePanel">
         <div id="tradeLoggedIn">
-            <p class="section-header mb-3">Trade</p>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
+                <p class="section-header mb-0">Trade</p>
+                <span id="marketBadge" style="font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:9999px;letter-spacing:0.5px;">—</span>
+            </div>
             <!-- Account info row -->
             <div class="trade-info-row">
                 <div class="trade-info-item">
@@ -569,14 +572,16 @@
                     <span class="trade-info-value" id="tradeAvgCost">—</span>
                 </div>
             </div>
-            <!-- Buy / Sell tabs -->
+            <!-- Buy / Sell / Limit tabs -->
             <div class="trade-tabs">
-                <button class="trade-tab buy active" id="tabBuy" onclick="switchTab('buy')">BUY</button>
-                <button class="trade-tab sell" id="tabSell" onclick="switchTab('sell')">SELL</button>
+                <button class="trade-tab buy active" id="tabBuy"  onclick="switchTab('buy')">BUY</button>
+                <button class="trade-tab sell"       id="tabSell" onclick="switchTab('sell')">SELL</button>
+                <button class="trade-tab" style="border-color:rgba(251,191,36,0.4);color:#fbbf24;" id="tabLimit" onclick="switchTab('limit')">LIMIT</button>
             </div>
             <!-- Input row -->
             <div class="trade-row">
                 <input type="number" class="trade-input" id="sharesInput" min="0.0001" step="1" placeholder="Shares" value="1" />
+                <input type="number" class="trade-input" id="limitPriceInput" min="0.01" step="0.01" placeholder="Limit $" style="display:none;" />
                 <button class="trade-submit buy-btn" id="tradeSubmitBtn" onclick="submitTrade()">Buy</button>
             </div>
             <div class="trade-est" id="tradeEst">Est. cost: —</div>
@@ -864,7 +869,31 @@
             }
         }
 
-        // ── Watchlist helpers ──────────────────────────────────────────────
+        // ── Market hours ───────────────────────────────────────────────────
+        function isMarketOpen() {
+            const now  = new Date();
+            const et   = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+            const day  = et.getDay();   // 0=Sun,6=Sat
+            const h    = et.getHours();
+            const m    = et.getMinutes();
+            const mins = h * 60 + m;
+            return day >= 1 && day <= 5 && mins >= 570 && mins < 960; // 9:30–16:00 ET
+        }
+
+        function updateMarketBadge() {
+            const el = document.getElementById('marketBadge');
+            if (!el) return;
+            const open = isMarketOpen();
+            el.textContent = open ? '🟢 Market Open' : '🔴 Market Closed';
+            el.style.background = open ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.12)';
+            el.style.color      = open ? '#10b981' : '#ef4444';
+            el.style.border     = `1px solid ${open ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.25)'}`;
+        }
+
+        updateMarketBadge();
+        setInterval(updateMarketBadge, 60000);
+
+        // ── Watchlist helpers (server-aware) ───────────────────────────────
         const WL_KEY = 'vest_watchlist';
         const getWL  = () => JSON.parse(localStorage.getItem(WL_KEY) || '[]');
         const saveWL = arr => localStorage.setItem(WL_KEY, JSON.stringify(arr));
@@ -876,21 +905,49 @@
             btn.classList.toggle('active', inList);
         }
 
-        function toggleWatchlist(symbol) {
+        async function toggleWatchlist(symbol) {
+            const inList = getWL().includes(symbol);
+            // Try server API first
+            try {
+                const method = inList ? 'DELETE' : 'POST';
+                const url    = inList ? `/watchlist/${encodeURIComponent(symbol)}` : '/watchlist';
+                const r = await fetch(url, {
+                    method,
+                    headers: inList ? {} : { 'Content-Type': 'application/json' },
+                    body:    inList ? undefined : JSON.stringify({ symbol })
+                });
+                if (r.status === 401) throw new Error('guest');
+                if (!r.ok) throw new Error('api');
+                // Also sync localStorage for badge fallback
+                let list = getWL();
+                list = inList ? list.filter(s => s !== symbol) : [...list, symbol];
+                saveWL(list);
+                syncWlButton(symbol);
+                const badge = document.getElementById('wlNavBadge');
+                if (badge) { badge.textContent = list.length; badge.style.display = list.length > 0 ? 'inline' : 'none'; }
+                return;
+            } catch { /* fall through to localStorage */ }
+            // Guest fallback
             let list = getWL();
-            if (list.includes(symbol)) {
-                list = list.filter(s => s !== symbol);
-            } else {
-                list.push(symbol);
-            }
+            list = inList ? list.filter(s => s !== symbol) : [...list, symbol];
             saveWL(list);
             syncWlButton(symbol);
-            // Update nav badge
             const badge = document.getElementById('wlNavBadge');
-            if (badge) {
-                badge.textContent = list.length;
-                badge.style.display = list.length > 0 ? 'inline' : 'none';
-            }
+            if (badge) { badge.textContent = list.length; badge.style.display = list.length > 0 ? 'inline' : 'none'; }
+        }
+
+        async function syncWlButtonFromServer(symbol) {
+            try {
+                const r = await fetch('/watchlist');
+                if (r.ok) {
+                    const list = await r.json();
+                    const btn  = document.getElementById('wlToggleBtn');
+                    if (btn) btn.classList.toggle('active', list.includes(symbol));
+                    saveWL(list); // keep localStorage in sync
+                    return;
+                }
+            } catch { }
+            syncWlButton(symbol); // localStorage fallback
         }
 
         // ── Trade panel ───────────────────────────────────────────────────
@@ -922,11 +979,23 @@
 
         function switchTab(mode) {
             tradeMode = mode;
-            document.getElementById('tabBuy').classList.toggle('active', mode === 'buy');
+            const isLimit = mode === 'limit';
+            const isBuy   = mode === 'buy';
+            document.getElementById('tabBuy').classList.toggle('active', isBuy);
             document.getElementById('tabSell').classList.toggle('active', mode === 'sell');
+            document.getElementById('tabLimit').classList.toggle('active', isLimit);
             const btn = document.getElementById('tradeSubmitBtn');
-            btn.textContent = mode === 'buy' ? 'Buy' : 'Sell';
-            btn.className = 'trade-submit ' + (mode === 'buy' ? 'buy-btn' : 'sell-btn');
+            if (isLimit) {
+                btn.textContent = 'Place Limit Order';
+                btn.className   = 'trade-submit';
+                btn.style.background = 'linear-gradient(135deg,#f59e0b,#d97706)';
+                document.getElementById('limitPriceInput').style.display = 'block';
+            } else {
+                document.getElementById('limitPriceInput').style.display = 'none';
+                btn.style.background = '';
+                btn.textContent = isBuy ? 'Buy' : 'Sell';
+                btn.className   = 'trade-submit ' + (isBuy ? 'buy-btn' : 'sell-btn');
+            }
             updateEst();
         }
 
@@ -945,6 +1014,22 @@
         async function submitTrade() {
             const shares = parseFloat(document.getElementById('sharesInput').value);
             if (!shares || shares <= 0) { showToast('Enter a valid number of shares.', false); return; }
+
+            // LIMIT order path
+            if (tradeMode === 'limit') {
+                const limitPrice = parseFloat(document.getElementById('limitPriceInput').value);
+                if (!limitPrice || limitPrice <= 0) { showToast('Enter a valid limit price.', false); return; }
+                const action = livePriceForTrade > 0 && limitPrice < livePriceForTrade ? 'BUY' : 'SELL';
+                const r = await fetch('/portfolio/order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ symbol: currentSymbol, shares, limitPrice, action })
+                });
+                const data = await r.json();
+                showToast(r.ok ? data.message : (data.error || 'Failed.'), r.ok);
+                return;
+            }
+
             const btn = document.getElementById('tradeSubmitBtn');
             btn.disabled = true;
             const endpoint = tradeMode === 'buy' ? '/portfolio/buy' : '/portfolio/sell';

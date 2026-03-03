@@ -1,0 +1,296 @@
+@{
+    ViewData["Title"] = "Stock Screener";
+}
+
+<style>
+    .screener-hero { padding: 2.5rem 0 1rem; }
+
+    .filter-bar {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .sector-pill {
+        padding: 0.4rem 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 9999px;
+        background: transparent;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+
+    .sector-pill.active, .sector-pill:hover {
+        background: rgba(56,189,248,0.12);
+        border-color: var(--accent-color);
+        color: var(--accent-color);
+    }
+
+    .sort-select {
+        background: rgba(17,25,40,0.85);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        border-radius: var(--radius-sm);
+        padding: 0.4rem 0.8rem;
+        font-size: 0.82rem;
+        font-family: var(--font-family);
+        cursor: pointer;
+        margin-left: auto;
+    }
+
+    .sort-select:focus { outline: none; border-color: var(--accent-color); }
+
+    .screener-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 1rem;
+    }
+
+    .stock-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
+        backdrop-filter: var(--glass-blur);
+        padding: 1.2rem 1.3rem;
+        cursor: pointer;
+        transition: var(--transition);
+        text-decoration: none;
+        display: block;
+        animation: fadeIn 0.4s ease;
+    }
+
+    .stock-card:hover {
+        border-color: var(--accent-color);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(56,189,248,0.1);
+    }
+
+    .card-symbol { font-size: 1.1rem; font-weight: 800; color: var(--accent-color); font-family: var(--font-brand); }
+    .card-name   { font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-price  { font-size: 1.4rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .card-change { font-size: 0.85rem; font-weight: 600; }
+    .card-sector { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-secondary); margin-top: 0.5rem; }
+
+    .card-skeleton .sk { background: rgba(255,255,255,0.06); border-radius: 5px; animation: shimmer 1.4s infinite; }
+
+    .search-filter {
+        background: rgba(17,25,40,0.85);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        border-radius: var(--radius-sm);
+        padding: 0.4rem 0.9rem;
+        font-size: 0.88rem;
+        font-family: var(--font-family);
+        width: 180px;
+        transition: var(--transition);
+    }
+
+    .search-filter:focus { outline: none; border-color: var(--accent-color); }
+    .search-filter::placeholder { color: var(--text-secondary); }
+</style>
+
+<div class="container screener-hero">
+    <h1 class="display-5 mb-1">Stock Screener</h1>
+    <p class="text-secondary mb-4">Browse and filter stocks across major sectors. Click any card to open it in the Stocks page.</p>
+
+    <!-- Filter bar -->
+    <div class="filter-bar" id="filterBar">
+        <button class="sector-pill active" data-sector="All">All</button>
+        <button class="sector-pill" data-sector="Technology">Technology</button>
+        <button class="sector-pill" data-sector="Finance">Finance</button>
+        <button class="sector-pill" data-sector="Healthcare">Healthcare</button>
+        <button class="sector-pill" data-sector="Consumer">Consumer</button>
+        <button class="sector-pill" data-sector="Energy">Energy</button>
+        <button class="sector-pill" data-sector="Industrials">Industrials</button>
+        <button class="sector-pill" data-sector="Communication">Communication</button>
+        <input type="text" class="search-filter" id="symbolSearch" placeholder="Search symbol…" autocomplete="off" />
+        <select class="sort-select" id="sortSelect">
+            <option value="symbol">Sort: Symbol</option>
+            <option value="price-desc">Price ▼</option>
+            <option value="price-asc">Price ▲</option>
+            <option value="change-desc">Change% ▼</option>
+            <option value="change-asc">Change% ▲</option>
+        </select>
+    </div>
+
+    <!-- Cards grid -->
+    <div class="screener-grid" id="screenerGrid">
+        <!-- Skeleton placeholders -->
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    // ── Curated S&P 500 symbol list with sector tags ──────────────────────
+    const STOCKS = [
+        // Technology
+        { symbol:'AAPL',  name:'Apple Inc.',             sector:'Technology' },
+        { symbol:'MSFT',  name:'Microsoft Corp.',        sector:'Technology' },
+        { symbol:'NVDA',  name:'NVIDIA Corp.',           sector:'Technology' },
+        { symbol:'GOOGL', name:'Alphabet Inc.',          sector:'Technology' },
+        { symbol:'META',  name:'Meta Platforms',         sector:'Technology' },
+        { symbol:'AMZN',  name:'Amazon.com Inc.',        sector:'Technology' },
+        { symbol:'TSLA',  name:'Tesla Inc.',             sector:'Technology' },
+        { symbol:'AMD',   name:'Advanced Micro Devices', sector:'Technology' },
+        { symbol:'INTC',  name:'Intel Corp.',            sector:'Technology' },
+        { symbol:'ORCL',  name:'Oracle Corp.',           sector:'Technology' },
+        { symbol:'CRM',   name:'Salesforce Inc.',        sector:'Technology' },
+        { symbol:'ADBE',  name:'Adobe Inc.',             sector:'Technology' },
+        // Finance
+        { symbol:'JPM',   name:'JPMorgan Chase',         sector:'Finance' },
+        { symbol:'BAC',   name:'Bank of America',        sector:'Finance' },
+        { symbol:'GS',    name:'Goldman Sachs',          sector:'Finance' },
+        { symbol:'MS',    name:'Morgan Stanley',         sector:'Finance' },
+        { symbol:'V',     name:'Visa Inc.',              sector:'Finance' },
+        { symbol:'MA',    name:'Mastercard Inc.',        sector:'Finance' },
+        { symbol:'BRK.B', name:'Berkshire Hathaway',    sector:'Finance' },
+        { symbol:'AXP',   name:'American Express',       sector:'Finance' },
+        { symbol:'BLK',   name:'BlackRock Inc.',         sector:'Finance' },
+        // Healthcare
+        { symbol:'JNJ',   name:'Johnson & Johnson',      sector:'Healthcare' },
+        { symbol:'UNH',   name:'UnitedHealth Group',     sector:'Healthcare' },
+        { symbol:'PFE',   name:'Pfizer Inc.',            sector:'Healthcare' },
+        { symbol:'ABBV',  name:'AbbVie Inc.',            sector:'Healthcare' },
+        { symbol:'MRK',   name:'Merck & Co.',            sector:'Healthcare' },
+        { symbol:'TMO',   name:'Thermo Fisher Scientific',sector:'Healthcare'},
+        { symbol:'LLY',   name:'Eli Lilly & Co.',        sector:'Healthcare' },
+        { symbol:'AMGN',  name:'Amgen Inc.',             sector:'Healthcare' },
+        // Consumer
+        { symbol:'WMT',   name:'Walmart Inc.',           sector:'Consumer' },
+        { symbol:'PG',    name:'Procter & Gamble',       sector:'Consumer' },
+        { symbol:'HD',    name:'Home Depot Inc.',        sector:'Consumer' },
+        { symbol:'MCD',   name:"McDonald's Corp.",       sector:'Consumer' },
+        { symbol:'NKE',   name:'Nike Inc.',              sector:'Consumer' },
+        { symbol:'SBUX',  name:'Starbucks Corp.',        sector:'Consumer' },
+        { symbol:'KO',    name:'Coca-Cola Co.',          sector:'Consumer' },
+        { symbol:'PEP',   name:'PepsiCo Inc.',           sector:'Consumer' },
+        { symbol:'COST',  name:'Costco Wholesale',       sector:'Consumer' },
+        // Energy
+        { symbol:'XOM',   name:'ExxonMobil Corp.',       sector:'Energy' },
+        { symbol:'CVX',   name:'Chevron Corp.',          sector:'Energy' },
+        { symbol:'COP',   name:'ConocoPhillips',         sector:'Energy' },
+        { symbol:'SLB',   name:'SLB (Schlumberger)',     sector:'Energy' },
+        { symbol:'OXY',   name:'Occidental Petroleum',   sector:'Energy' },
+        // Industrials
+        { symbol:'CAT',   name:'Caterpillar Inc.',       sector:'Industrials' },
+        { symbol:'DE',    name:'Deere & Company',        sector:'Industrials' },
+        { symbol:'BA',    name:'Boeing Co.',             sector:'Industrials' },
+        { symbol:'RTX',   name:'RTX Corp.',              sector:'Industrials' },
+        { symbol:'HON',   name:'Honeywell International',sector:'Industrials' },
+        { symbol:'LMT',   name:'Lockheed Martin',        sector:'Industrials' },
+        { symbol:'GE',    name:'GE Aerospace',           sector:'Industrials' },
+        // Communication
+        { symbol:'NFLX',  name:'Netflix Inc.',           sector:'Communication' },
+        { symbol:'DIS',   name:'Walt Disney Co.',        sector:'Communication' },
+        { symbol:'T',     name:'AT&T Inc.',              sector:'Communication' },
+        { symbol:'VZ',    name:'Verizon Communications', sector:'Communication' },
+        { symbol:'CMCSA', name:'Comcast Corp.',          sector:'Communication' },
+        { symbol:'SPOT',  name:'Spotify Technology',     sector:'Communication' },
+    ];
+
+    let liveData   = {}; // symbol -> { price, change, pct }
+    let activeSector = 'All';
+    let searchTerm   = '';
+    let sortKey      = 'symbol';
+
+    const grid = document.getElementById('screenerGrid');
+
+    // ── Render skeletons ──────────────────────────────────────────────────
+    function renderSkeletons(count = 12) {
+        grid.innerHTML = Array(count).fill(0).map(() => `
+            <div class="stock-card card-skeleton">
+                <div class="sk" style="width:70px;height:20px;margin-bottom:6px;"></div>
+                <div class="sk" style="width:140px;height:12px;margin-bottom:16px;"></div>
+                <div class="sk" style="width:90px;height:28px;margin-bottom:6px;"></div>
+                <div class="sk" style="width:60px;height:14px;"></div>
+            </div>`).join('');
+    }
+
+    renderSkeletons();
+
+    // ── Fetch all quotes via /market/fullquote ────────────────────────────
+    async function fetchAllQuotes() {
+        await Promise.all(STOCKS.map(async s => {
+            try {
+                const r = await fetch(`/market/fullquote?symbol=${s.symbol}`);
+                if (!r.ok) return;
+                const q = await r.json();
+                liveData[s.symbol] = { price: q.c, change: q.d, pct: q.dp };
+            } catch { /* ignore */ }
+        }));
+        renderCards();
+    }
+
+    // ── Render cards ──────────────────────────────────────────────────────
+    function renderCards() {
+        let list = STOCKS.filter(s => {
+            const sectorOk = activeSector === 'All' || s.sector === activeSector;
+            const searchOk = !searchTerm || s.symbol.includes(searchTerm) || s.name.toUpperCase().includes(searchTerm);
+            return sectorOk && searchOk;
+        });
+
+        // Sort
+        list.sort((a, b) => {
+            const da = liveData[a.symbol];
+            const db = liveData[b.symbol];
+            if (sortKey === 'symbol')       return a.symbol.localeCompare(b.symbol);
+            if (sortKey === 'price-desc')   return (db?.price ?? 0) - (da?.price ?? 0);
+            if (sortKey === 'price-asc')    return (da?.price ?? 0) - (db?.price ?? 0);
+            if (sortKey === 'change-desc')  return (db?.pct ?? 0)   - (da?.pct ?? 0);
+            if (sortKey === 'change-asc')   return (da?.pct ?? 0)   - (db?.pct ?? 0);
+            return 0;
+        });
+
+        if (list.length === 0) {
+            grid.innerHTML = `<p style="color:var(--text-secondary);grid-column:1/-1;">No stocks match your filters.</p>`;
+            return;
+        }
+
+        grid.innerHTML = list.map(s => {
+            const d = liveData[s.symbol];
+            const priceStr  = d?.price  ? '$' + d.price.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : '—';
+            const pct       = d?.pct ?? 0;
+            const isUp      = pct >= 0;
+            const changeStr = d ? `${isUp ? '▲' : '▼'} ${Math.abs(pct).toFixed(2)}%` : '—';
+            const clr       = !d ? '' : isUp ? 'color:#10b981' : 'color:#ef4444';
+            return `
+            <a class="stock-card" href="/Stocks?symbol=${s.symbol}">
+                <div class="card-symbol">${s.symbol}</div>
+                <div class="card-name">${s.name}</div>
+                <div class="card-price">${priceStr}</div>
+                <div class="card-change" style="${clr}">${changeStr}</div>
+                <div class="card-sector">${s.sector}</div>
+            </a>`;
+        }).join('');
+    }
+
+    // ── Filter & sort event listeners ─────────────────────────────────────
+    document.getElementById('filterBar').addEventListener('click', e => {
+        const pill = e.target.closest('.sector-pill');
+        if (!pill) return;
+        document.querySelectorAll('.sector-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        activeSector = pill.dataset.sector;
+        renderCards();
+    });
+
+    document.getElementById('symbolSearch').addEventListener('input', e => {
+        searchTerm = e.target.value.toUpperCase().trim();
+        renderCards();
+    });
+
+    document.getElementById('sortSelect').addEventListener('change', e => {
+        sortKey = e.target.value;
+        renderCards();
+    });
+
+    // ── Load live data ────────────────────────────────────────────────────
+    fetchAllQuotes();
+</script>
+}

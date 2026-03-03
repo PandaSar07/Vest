@@ -71,7 +71,91 @@ public class PortfolioService
             await resp.Content.ReadAsStringAsync(), _json) ?? [];
     }
 
-    // ── Execute BUY ──────────────────────────────────────────────────────────
+    // ── Portfolio snapshots ────────────────────────────────────────────────
+
+    public async Task TakeSnapshotAsync(string userId, decimal totalValue)
+    {
+        // UNIQUE(user_id, snapped_at) handles idempotency — just upsert
+        var payload = JsonSerializer.Serialize(new { user_id = userId, value = totalValue });
+        var msg = new HttpRequestMessage(HttpMethod.Post, "portfolio_snapshots")
+        {
+            Headers = { { "Prefer", "resolution=merge-duplicates" } },
+            Content = new StringContent(payload, Encoding.UTF8, "application/json")
+        };
+        await _http.SendAsync(msg);
+    }
+
+    public async Task<List<SnapshotRow>> GetSnapshotsAsync(string userId, int days = 30)
+    {
+        var since = DateTime.UtcNow.AddDays(-days).ToString("yyyy-MM-dd");
+        var resp = await _http.GetAsync(
+            $"portfolio_snapshots?user_id=eq.{Uri.EscapeDataString(userId)}&snapped_at=gte.{since}&order=snapped_at.asc&select=*");
+        resp.EnsureSuccessStatusCode();
+        return JsonSerializer.Deserialize<List<SnapshotRow>>(
+            await resp.Content.ReadAsStringAsync(), _json) ?? [];
+    }
+
+    // ── Limit orders ───────────────────────────────────────────────────────
+
+    public async Task<LimitOrderRow> PlaceLimitOrderAsync(
+        string userId, string symbol, string action, decimal shares, decimal limitPrice)
+    {
+        var payload = JsonSerializer.Serialize(new
+        {
+            user_id = userId, symbol, action, shares, limit_price = limitPrice
+        });
+        var msg = new HttpRequestMessage(HttpMethod.Post, "limit_orders")
+        {
+            Headers = { { "Prefer", "return=representation" } },
+            Content = new StringContent(payload, Encoding.UTF8, "application/json")
+        };
+        var resp = await _http.SendAsync(msg);
+        resp.EnsureSuccessStatusCode();
+        var rows = JsonSerializer.Deserialize<List<LimitOrderRow>>(
+            await resp.Content.ReadAsStringAsync(), _json);
+        return rows![0];
+    }
+
+    public async Task<List<LimitOrderRow>> GetPendingOrdersAsync(string userId)
+    {
+        var resp = await _http.GetAsync(
+            $"limit_orders?user_id=eq.{Uri.EscapeDataString(userId)}&status=eq.PENDING&order=created_at.desc&select=*");
+        resp.EnsureSuccessStatusCode();
+        return JsonSerializer.Deserialize<List<LimitOrderRow>>(
+            await resp.Content.ReadAsStringAsync(), _json) ?? [];
+    }
+
+    /// <summary>Used by the background executor — fetches ALL PENDING orders across users.</summary>
+    public async Task<List<LimitOrderRow>> GetAllPendingOrdersAsync()
+    {
+        var resp = await _http.GetAsync("limit_orders?status=eq.PENDING&select=*");
+        resp.EnsureSuccessStatusCode();
+        return JsonSerializer.Deserialize<List<LimitOrderRow>>(
+            await resp.Content.ReadAsStringAsync(), _json) ?? [];
+    }
+
+    public async Task<bool> CancelOrderAsync(string userId, long orderId)
+    {
+        var resp = await _http.PatchAsync(
+            $"limit_orders?id=eq.{orderId}&user_id=eq.{Uri.EscapeDataString(userId)}&status=eq.PENDING",
+            Json(new { status = "CANCELLED" }));
+        return resp.IsSuccessStatusCode;
+    }
+
+    /// <summary>Marks order FILLED and executes the buy/sell trade.</summary>
+    public async Task FillOrderAsync(LimitOrderRow order)
+    {
+        if (order.Action == "BUY")
+            await ExecuteBuyAsync(order.UserId, order.Symbol, order.Shares, order.LimitPrice);
+        else
+            await ExecuteSellAsync(order.UserId, order.Symbol, order.Shares, order.LimitPrice);
+
+        await _http.PatchAsync(
+            $"limit_orders?id=eq.{order.Id}",
+            Json(new { status = "FILLED", filled_at = DateTime.UtcNow.ToString("o") }));
+    }
+
+
 
     public async Task<(bool ok, string error)> ExecuteBuyAsync(
         string userId, string symbol, decimal shares, decimal price)
@@ -181,4 +265,25 @@ public class TradeRow
     [JsonPropertyName("price")]      public decimal  Price     { get; set; }
     [JsonPropertyName("total")]      public decimal  Total     { get; set; }
     [JsonPropertyName("traded_at")]  public DateTime TradedAt  { get; set; }
+}
+
+public class SnapshotRow
+{
+    [JsonPropertyName("id")]          public long    Id       { get; set; }
+    [JsonPropertyName("user_id")]     public string  UserId   { get; set; } = "";
+    [JsonPropertyName("value")]       public decimal Value    { get; set; }
+    [JsonPropertyName("snapped_at")] public string  SnappedAt { get; set; } = "";
+}
+
+public class LimitOrderRow
+{
+    [JsonPropertyName("id")]          public long    Id         { get; set; }
+    [JsonPropertyName("user_id")]     public string  UserId     { get; set; } = "";
+    [JsonPropertyName("symbol")]      public string  Symbol     { get; set; } = "";
+    [JsonPropertyName("action")]      public string  Action     { get; set; } = "";
+    [JsonPropertyName("shares")]      public decimal Shares     { get; set; }
+    [JsonPropertyName("limit_price")] public decimal LimitPrice { get; set; }
+    [JsonPropertyName("status")]      public string  Status     { get; set; } = "";
+    [JsonPropertyName("created_at")]  public DateTime CreatedAt { get; set; }
+    [JsonPropertyName("filled_at")]   public DateTime? FilledAt { get; set; }
 }

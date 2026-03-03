@@ -21,6 +21,9 @@ builder.Services.AddHttpClient<FinnhubService>();
 // Register PortfolioService (uses the named "supabase" client)
 builder.Services.AddScoped<PortfolioService>();
 
+// Background worker: polls limit orders every 60 s and fills them
+builder.Services.AddHostedService<OrderExecutorService>();
+
 // HttpClient for direct Supabase REST calls (signup, login)
 builder.Services.AddHttpClient("supabase", client =>
 {

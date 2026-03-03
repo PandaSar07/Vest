@@ -16,70 +16,65 @@ public class PortfolioController : ControllerBase
         _finnhub   = finnhub;
     }
 
-    // ── Auth guard ──────────────────────────────────────────────────────────
-
-    private string? CurrentUserId =>
-        HttpContext.Session.GetString("UserId");
+    private string? CurrentUserId => HttpContext.Session.GetString("UserId");
 
     // ── GET /portfolio/summary ──────────────────────────────────────────────
-    // Returns cash, holdings with live prices, and total portfolio value.
 
     [HttpGet("summary")]
     public async Task<IActionResult> Summary()
     {
         var userId = CurrentUserId;
         if (userId == null) return Unauthorized(new { error = "Not logged in." });
-
         try
         {
             var portfolio = await _portfolio.GetOrCreatePortfolioAsync(userId);
             var holdings  = await _portfolio.GetHoldingsAsync(userId);
 
-            // Fetch live prices for all holdings in parallel
-            var priceMap = new Dictionary<string, decimal>();
+            var priceMap  = new Dictionary<string, decimal>();
+            var sectorMap = new Dictionary<string, string>();
+
             await Task.WhenAll(holdings.Select(async h =>
             {
                 try
                 {
                     var q = await _finnhub.GetFullQuoteAsync(h.Symbol);
-                    if (q.HasValue && q.Value.TryGetProperty("c", out var c))
+                    if (q.HasValue && q.Value.TryGetProperty("c", out var c) && c.GetDecimal() != 0)
                         priceMap[h.Symbol] = c.GetDecimal();
+
+                    var p = await _finnhub.GetCompanyProfileAsync(h.Symbol);
+                    if (p.HasValue && p.Value.TryGetProperty("finnhubIndustry", out var ind))
+                        sectorMap[h.Symbol] = ind.GetString() ?? "Other";
                 }
-                catch { /* ignore per-symbol failures */ }
+                catch { }
             }));
 
             var holdingDtos = holdings.Select(h =>
             {
-                var livePrice  = priceMap.GetValueOrDefault(h.Symbol, h.AvgCost);
-                var mktValue   = Math.Round(h.Shares * livePrice, 2);
-                var costBasis  = Math.Round(h.Shares * h.AvgCost, 2);
-                var gainLoss   = Math.Round(mktValue - costBasis, 2);
+                var livePrice   = priceMap.GetValueOrDefault(h.Symbol, h.AvgCost);
+                var mktValue    = Math.Round(h.Shares * livePrice, 2);
+                var costBasis   = Math.Round(h.Shares * h.AvgCost, 2);
+                var gainLoss    = Math.Round(mktValue - costBasis, 2);
                 var gainLossPct = costBasis == 0 ? 0 : Math.Round(gainLoss / costBasis * 100, 2);
                 return new
                 {
                     h.Symbol, h.Shares, h.AvgCost,
-                    LivePrice = livePrice,
+                    LivePrice   = livePrice,
                     MarketValue = mktValue,
-                    GainLoss = gainLoss,
+                    GainLoss    = gainLoss,
                     GainLossPct = gainLossPct,
+                    Sector      = sectorMap.GetValueOrDefault(h.Symbol, "Other"),
                 };
             }).ToList();
 
             var stockValue = holdingDtos.Sum(h => h.MarketValue);
             var totalValue = portfolio.Cash + stockValue;
 
-            return Ok(new
-            {
-                Cash       = portfolio.Cash,
-                StockValue = stockValue,
-                TotalValue = totalValue,
-                Holdings   = holdingDtos,
-            });
+            // Take daily snapshot (idempotent via UNIQUE constraint)
+            _ = _portfolio.TakeSnapshotAsync(userId, totalValue);
+
+            return Ok(new { Cash = portfolio.Cash, StockValue = stockValue, TotalValue = totalValue, Holdings = holdingDtos });
         }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { error = ex.Message });
-        }
+        catch (Exception ex) { return StatusCode(500, new { error = ex.Message }); }
     }
 
     // ── GET /portfolio/trades ───────────────────────────────────────────────
@@ -89,16 +84,35 @@ public class PortfolioController : ControllerBase
     {
         var userId = CurrentUserId;
         if (userId == null) return Unauthorized(new { error = "Not logged in." });
+        try { return Ok(await _portfolio.GetTradesAsync(userId, limit)); }
+        catch (Exception ex) { return StatusCode(500, new { error = ex.Message }); }
+    }
 
+    // ── GET /portfolio/snapshots ────────────────────────────────────────────
+
+    [HttpGet("snapshots")]
+    public async Task<IActionResult> Snapshots([FromQuery] int days = 30)
+    {
+        var userId = CurrentUserId;
+        if (userId == null) return Unauthorized(new { error = "Not logged in." });
+        try { return Ok(await _portfolio.GetSnapshotsAsync(userId, days)); }
+        catch (Exception ex) { return StatusCode(500, new { error = ex.Message }); }
+    }
+
+    // ── GET /portfolio/holding ──────────────────────────────────────────────
+
+    [HttpGet("holding")]
+    public async Task<IActionResult> Holding([FromQuery] string symbol)
+    {
+        var userId = CurrentUserId;
+        if (userId == null) return Unauthorized(new { error = "Not logged in." });
         try
         {
-            var trades = await _portfolio.GetTradesAsync(userId, limit);
-            return Ok(trades);
+            var portfolio = await _portfolio.GetOrCreatePortfolioAsync(userId);
+            var holding   = await _portfolio.GetHoldingAsync(userId, symbol.ToUpper());
+            return Ok(new { Cash = portfolio.Cash, Shares = holding?.Shares ?? 0m, AvgCost = holding?.AvgCost ?? 0m });
         }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { error = ex.Message });
-        }
+        catch (Exception ex) { return StatusCode(500, new { error = ex.Message }); }
     }
 
     // ── POST /portfolio/buy ─────────────────────────────────────────────────
@@ -110,26 +124,18 @@ public class PortfolioController : ControllerBase
         if (userId == null) return Unauthorized(new { error = "Not logged in." });
         if (string.IsNullOrWhiteSpace(req.Symbol) || req.Shares <= 0)
             return BadRequest(new { error = "Symbol and positive shares are required." });
-
         try
         {
-            // Get live price
             var q = await _finnhub.GetFullQuoteAsync(req.Symbol.ToUpper());
-            if (q == null || !q.Value.TryGetProperty("c", out var priceEl) || priceEl.GetDecimal() == 0)
-                return BadRequest(new { error = "Could not fetch live price for this symbol." });
-
-            var price = priceEl.GetDecimal();
+            if (q == null || !q.Value.TryGetProperty("c", out var pEl) || pEl.GetDecimal() == 0)
+                return BadRequest(new { error = "Could not fetch live price." });
+            var price = pEl.GetDecimal();
             var (ok, error) = await _portfolio.ExecuteBuyAsync(userId, req.Symbol.ToUpper(), req.Shares, price);
-
             if (!ok) return BadRequest(new { error });
-
-            var portfolio = await _portfolio.GetOrCreatePortfolioAsync(userId);
-            return Ok(new { message = $"Bought {req.Shares} × {req.Symbol.ToUpper()} @ ${price:N2}", newCash = portfolio.Cash, price });
+            var p = await _portfolio.GetOrCreatePortfolioAsync(userId);
+            return Ok(new { message = $"Bought {req.Shares} \u00d7 {req.Symbol.ToUpper()} @ ${price:N2}", newCash = p.Cash, price });
         }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { error = ex.Message });
-        }
+        catch (Exception ex) { return StatusCode(500, new { error = ex.Message }); }
     }
 
     // ── POST /portfolio/sell ────────────────────────────────────────────────
@@ -141,55 +147,67 @@ public class PortfolioController : ControllerBase
         if (userId == null) return Unauthorized(new { error = "Not logged in." });
         if (string.IsNullOrWhiteSpace(req.Symbol) || req.Shares <= 0)
             return BadRequest(new { error = "Symbol and positive shares are required." });
-
         try
         {
             var q = await _finnhub.GetFullQuoteAsync(req.Symbol.ToUpper());
-            if (q == null || !q.Value.TryGetProperty("c", out var priceEl) || priceEl.GetDecimal() == 0)
-                return BadRequest(new { error = "Could not fetch live price for this symbol." });
-
-            var price = priceEl.GetDecimal();
+            if (q == null || !q.Value.TryGetProperty("c", out var pEl) || pEl.GetDecimal() == 0)
+                return BadRequest(new { error = "Could not fetch live price." });
+            var price = pEl.GetDecimal();
             var (ok, error) = await _portfolio.ExecuteSellAsync(userId, req.Symbol.ToUpper(), req.Shares, price);
-
             if (!ok) return BadRequest(new { error });
-
-            var portfolio = await _portfolio.GetOrCreatePortfolioAsync(userId);
-            return Ok(new { message = $"Sold {req.Shares} × {req.Symbol.ToUpper()} @ ${price:N2}", newCash = portfolio.Cash, price });
+            var p = await _portfolio.GetOrCreatePortfolioAsync(userId);
+            return Ok(new { message = $"Sold {req.Shares} \u00d7 {req.Symbol.ToUpper()} @ ${price:N2}", newCash = p.Cash, price });
         }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { error = ex.Message });
-        }
+        catch (Exception ex) { return StatusCode(500, new { error = ex.Message }); }
     }
 
-    // ── GET /portfolio/holding?symbol= ──────────────────────────────────────
+    // ── GET /portfolio/orders ───────────────────────────────────────────────
 
-    [HttpGet("holding")]
-    public async Task<IActionResult> Holding([FromQuery] string symbol)
+    [HttpGet("orders")]
+    public async Task<IActionResult> GetOrders()
     {
         var userId = CurrentUserId;
         if (userId == null) return Unauthorized(new { error = "Not logged in." });
+        try { return Ok(await _portfolio.GetPendingOrdersAsync(userId)); }
+        catch (Exception ex) { return StatusCode(500, new { error = ex.Message }); }
+    }
 
+    // ── POST /portfolio/order ───────────────────────────────────────────────
+
+    [HttpPost("order")]
+    public async Task<IActionResult> PlaceOrder([FromBody] LimitOrderRequest req)
+    {
+        var userId = CurrentUserId;
+        if (userId == null) return Unauthorized(new { error = "Not logged in." });
+        if (string.IsNullOrWhiteSpace(req.Symbol) || req.Shares <= 0 || req.LimitPrice <= 0)
+            return BadRequest(new { error = "Symbol, shares, and limit price are required." });
+        var action = req.Action?.ToUpper();
+        if (action != "BUY" && action != "SELL")
+            return BadRequest(new { error = "Action must be BUY or SELL." });
         try
         {
-            var portfolio = await _portfolio.GetOrCreatePortfolioAsync(userId);
-            var holding   = await _portfolio.GetHoldingAsync(userId, symbol.ToUpper());
-            return Ok(new
-            {
-                Cash   = portfolio.Cash,
-                Shares = holding?.Shares ?? 0m,
-                AvgCost = holding?.AvgCost ?? 0m,
-            });
+            var order = await _portfolio.PlaceLimitOrderAsync(
+                userId, req.Symbol.ToUpper(), action, req.Shares, req.LimitPrice);
+            return Ok(new { message = $"Limit {action} order placed for {req.Shares} \u00d7 {req.Symbol.ToUpper()} @ ${req.LimitPrice:N2}", order });
         }
-        catch (Exception ex)
+        catch (Exception ex) { return StatusCode(500, new { error = ex.Message }); }
+    }
+
+    // ── DELETE /portfolio/order/{id} ────────────────────────────────────────
+
+    [HttpDelete("order/{id:long}")]
+    public async Task<IActionResult> CancelOrder(long id)
+    {
+        var userId = CurrentUserId;
+        if (userId == null) return Unauthorized(new { error = "Not logged in." });
+        try
         {
-            return StatusCode(500, new { error = ex.Message });
+            var ok = await _portfolio.CancelOrderAsync(userId, id);
+            return ok ? Ok(new { message = "Order cancelled." }) : NotFound(new { error = "Order not found or already filled." });
         }
+        catch (Exception ex) { return StatusCode(500, new { error = ex.Message }); }
     }
 }
 
-public class TradeRequest
-{
-    public string  Symbol { get; set; } = "";
-    public decimal Shares { get; set; }
-}
+public class TradeRequest      { public string Symbol { get; set; } = ""; public decimal Shares { get; set; } }
+public class LimitOrderRequest { public string? Action { get; set; } public string Symbol { get; set; } = ""; public decimal Shares { get; set; } public decimal LimitPrice { get; set; } }
