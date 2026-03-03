@@ -641,7 +641,7 @@
                         <button class="wl-btn ms-auto" id="wlToggleBtn" onclick="toggleWatchlist('${symbol.toUpperCase()}')">
                           <span class="wl-btn-label"></span>
                         </button>`;
-                    syncWlButton(symbol.toUpperCase());
+                    syncWlButtonFromServer(symbol.toUpperCase());
                     return;
                 }
 
@@ -664,7 +664,7 @@
                     <button class="wl-btn ms-auto" id="wlToggleBtn" onclick="toggleWatchlist('${symbol.toUpperCase()}')">
                       <span class="wl-btn-label"></span>
                     </button>`;
-                syncWlButton(symbol.toUpperCase());
+                syncWlButtonFromServer(symbol.toUpperCase());
             } catch (e) {
                 console.warn('Profile fetch error', e);
             }
