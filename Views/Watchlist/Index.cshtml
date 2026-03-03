@@ -1,0 +1,471 @@
+@{
+    ViewData["Title"] = "Watchlist";
+}
+
+<style>
+    /* ── Page ── */
+    .watchlist-hero {
+        padding: 2.5rem 0 1.5rem;
+    }
+
+    .page-title {
+        font-family: var(--font-brand);
+        font-size: 2rem;
+        background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.25rem;
+    }
+
+    .page-subtitle {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+    }
+
+    /* ── Watchlist grid ── */
+    .wl-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1rem;
+    }
+
+    /* ── Card ── */
+    .wl-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
+        backdrop-filter: var(--glass-blur);
+        padding: 1.25rem 1.375rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        transition: var(--transition);
+        animation: fadeIn 0.35s ease-out;
+        position: relative;
+    }
+
+    .wl-card:hover {
+        border-color: rgba(56, 189, 248, 0.3);
+        transform: translateY(-3px);
+        box-shadow: 0 14px 32px -10px rgba(0, 0, 0, 0.5);
+    }
+
+    .wl-card-top {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+    }
+
+    .wl-logo {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        object-fit: contain;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 5px;
+        border: 1px solid var(--border-color);
+        flex-shrink: 0;
+    }
+
+    .wl-logo-placeholder {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        background: rgba(56, 189, 248, 0.1);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: var(--accent-color);
+        letter-spacing: 0.5px;
+        flex-shrink: 0;
+    }
+
+    .wl-names {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .wl-ticker {
+        font-family: var(--font-brand);
+        font-size: 1.1rem;
+        color: var(--text-primary);
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+
+    .wl-company {
+        font-size: 0.78rem;
+        color: var(--text-secondary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .wl-remove-btn {
+        background: transparent;
+        border: 1px solid rgba(239, 68, 68, 0.25);
+        color: rgba(239, 68, 68, 0.6);
+        border-radius: 8px;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: var(--transition);
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+
+    .wl-remove-btn:hover {
+        background: rgba(239, 68, 68, 0.1);
+        border-color: rgba(239, 68, 68, 0.6);
+        color: #ef4444;
+    }
+
+    /* ── Price section ── */
+    .wl-price-row {
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+    }
+
+    .wl-price {
+        font-size: 1.6rem;
+        font-weight: 800;
+        font-variant-numeric: tabular-nums;
+        color: var(--text-primary);
+        line-height: 1;
+    }
+
+    .wl-change {
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .change-up { color: var(--success-color); }
+    .change-down { color: var(--danger-color); }
+
+    .wl-price-skeleton {
+        height: 28px;
+        width: 120px;
+        border-radius: 6px;
+        background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.4s infinite;
+    }
+
+    @@keyframes shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+
+    /* ── Card footer: stats + button ── */
+    .wl-stats {
+        display: flex;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+    }
+
+    .wl-stat {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 0.3rem 0.7rem;
+        font-size: 0.72rem;
+    }
+
+    .wl-stat-label {
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 0.65rem;
+    }
+
+    .wl-stat-val {
+        color: var(--text-primary);
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .wl-view-btn {
+        width: 100%;
+        background: transparent;
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        color: var(--accent-color);
+        border-radius: var(--radius-sm);
+        padding: 0.5rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        text-align: center;
+        text-decoration: none;
+        display: block;
+        letter-spacing: 0.5px;
+    }
+
+    .wl-view-btn:hover {
+        background: rgba(56, 189, 248, 0.1);
+        border-color: var(--accent-color);
+        color: var(--accent-color);
+        box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    /* ── Empty state ── */
+    .wl-empty {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 4rem 2rem;
+        animation: fadeIn 0.4s ease-out;
+    }
+
+    .wl-empty-icon {
+        font-size: 3.5rem;
+        margin-bottom: 1rem;
+        opacity: 0.25;
+    }
+
+    .wl-empty-title {
+        font-family: var(--font-brand);
+        font-size: 1.3rem;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .wl-empty-desc {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .wl-empty-cta {
+        display: inline-block;
+        background: var(--accent-color);
+        color: #05070a;
+        border-radius: var(--radius-sm);
+        padding: 0.65rem 1.75rem;
+        font-weight: 700;
+        font-size: 0.9rem;
+        text-decoration: none;
+        transition: var(--transition);
+        letter-spacing: 0.5px;
+    }
+
+    .wl-empty-cta:hover {
+        background: var(--accent-hover);
+        box-shadow: 0 0 20px var(--accent-glow);
+        color: #05070a;
+    }
+
+    /* ── Header row ── */
+    .wl-header-row {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+    }
+
+    .wl-count-badge {
+        background: rgba(56, 189, 248, 0.1);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        color: var(--accent-color);
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 2px 10px;
+        letter-spacing: 0.5px;
+    }
+
+    .wl-refresh-info {
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<div class="container watchlist-hero">
+
+    <div class="wl-header-row">
+        <div>
+            <h1 class="page-title">Watchlist</h1>
+            <p class="page-subtitle">Track your favourite stocks at a glance.</p>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <span class="wl-count-badge" id="wlCount">0 stocks</span>
+            <span class="wl-refresh-info" id="refreshInfo">—</span>
+        </div>
+    </div>
+
+    <div class="wl-grid" id="wlGrid">
+        <!-- JS rendered -->
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const STORAGE_KEY = 'vest_watchlist';
+        let refreshTimer;
+
+        // ── Helpers ─────────────────────────────────────────────────────────
+        const getWatchlist = () => JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        const saveWatchlist = arr => localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+
+        const fmt = (n, d = 2) =>
+            n == null ? '—' : Number(n).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+
+        // ── Fetch one quote ──────────────────────────────────────────────────
+        async function fetchQuote(symbol) {
+            try {
+                const r = await fetch(`/market/fullquote?symbol=${encodeURIComponent(symbol)}`);
+                return r.ok ? await r.json() : null;
+            } catch { return null; }
+        }
+
+        // Fetch company profile for logo / name
+        async function fetchProfile(symbol) {
+            try {
+                const r = await fetch(`/market/profile?symbol=${encodeURIComponent(symbol)}`);
+                return r.ok ? await r.json() : null;
+            } catch { return null; }
+        }
+
+        // ── Render ───────────────────────────────────────────────────────────
+        async function renderWatchlist() {
+            const symbols = getWatchlist();
+            const grid = document.getElementById('wlGrid');
+            const countEl = document.getElementById('wlCount');
+
+            countEl.textContent = `${symbols.length} stock${symbols.length !== 1 ? 's' : ''}`;
+
+            if (symbols.length === 0) {
+                grid.innerHTML = `
+                    <div class="wl-empty">
+                        <div class="wl-empty-icon">★</div>
+                        <div class="wl-empty-title">Your watchlist is empty</div>
+                        <p class="wl-empty-desc">Search for a stock and click <strong>Add to Watchlist</strong> to start tracking it here.</p>
+                        <a href="/Stocks" class="wl-empty-cta">Browse Stocks</a>
+                    </div>`;
+                document.getElementById('refreshInfo').textContent = '';
+                clearInterval(refreshTimer);
+                return;
+            }
+
+            // Show skeleton cards while loading
+            grid.innerHTML = symbols.map(sym => `
+                <div class="wl-card" id="wl-card-${sym}">
+                    <div class="wl-card-top">
+                        <div class="wl-logo-placeholder" id="wl-logo-${sym}">${sym.slice(0,3)}</div>
+                        <div class="wl-names">
+                            <div class="wl-ticker">${sym}</div>
+                            <div class="wl-company skeleton" style="height:13px;width:100px;margin-top:4px;border-radius:4px;"></div>
+                        </div>
+                        <button class="wl-remove-btn" onclick="removeStock('${sym}')" title="Remove">✕</button>
+                    </div>
+                    <div class="wl-price-row">
+                        <div class="wl-price-skeleton"></div>
+                    </div>
+                    <div class="wl-stats" id="wl-stats-${sym}"></div>
+                    <a href="/Stocks?symbol=${sym}" class="wl-view-btn">View Chart →</a>
+                </div>`).join('');
+
+            // Fetch all data in parallel
+            const results = await Promise.all(
+                symbols.map(sym => Promise.all([fetchQuote(sym), fetchProfile(sym)]).then(([q, p]) => ({ sym, q, p })))
+            );
+
+            for (const { sym, q, p } of results) {
+                updateCard(sym, q, p);
+            }
+
+            const now = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+            document.getElementById('refreshInfo').textContent = `Updated ${now} · refreshes every 30s`;
+        }
+
+        function updateCard(sym, q, p) {
+            const card = document.getElementById(`wl-card-${sym}`);
+            if (!card) return;
+
+            // Logo / name
+            const logoEl = document.getElementById(`wl-logo-${sym}`);
+            if (p && p.logo) {
+                logoEl.outerHTML = `<img src="${p.logo}" alt="${sym}" class="wl-logo" onerror="this.style.display='none'" id="wl-logo-${sym}" />`;
+            }
+            const companyEl = card.querySelector('.wl-company');
+            if (companyEl && p && p.name) companyEl.textContent = p.name;
+            else if (companyEl) companyEl.textContent = '';
+
+            // Price
+            const priceRow = card.querySelector('.wl-price-row');
+            if (q && q.c != null) {
+                const isUp = q.d >= 0;
+                const dir = isUp ? '▲' : '▼';
+                const cls = isUp ? 'change-up' : 'change-down';
+                priceRow.innerHTML = `
+                    <span class="wl-price">$${fmt(q.c)}</span>
+                    <span class="wl-change ${cls}">${dir} ${fmt(Math.abs(q.d))} (${fmt(Math.abs(q.dp))}%)</span>`;
+
+                document.getElementById(`wl-stats-${sym}`).innerHTML = `
+                    <div class="wl-stat">
+                        <div class="wl-stat-label">High</div>
+                        <div class="wl-stat-val">$${fmt(q.h)}</div>
+                    </div>
+                    <div class="wl-stat">
+                        <div class="wl-stat-label">Low</div>
+                        <div class="wl-stat-val">$${fmt(q.l)}</div>
+                    </div>
+                    <div class="wl-stat">
+                        <div class="wl-stat-label">Prev Close</div>
+                        <div class="wl-stat-val">$${fmt(q.pc)}</div>
+                    </div>`;
+            } else {
+                priceRow.innerHTML = `<span class="wl-price" style="font-size:1rem;color:var(--text-secondary);">No data</span>`;
+            }
+        }
+
+        // ── Remove stock ─────────────────────────────────────────────────────
+        function removeStock(sym) {
+            const list = getWatchlist().filter(s => s !== sym);
+            saveWatchlist(list);
+            // Animate card out then re-render
+            const card = document.getElementById(`wl-card-${sym}`);
+            if (card) {
+                card.style.transition = 'opacity 0.25s, transform 0.25s';
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.95)';
+                setTimeout(() => renderWatchlist(), 250);
+            } else {
+                renderWatchlist();
+            }
+        }
+
+        // ── Refresh loop ─────────────────────────────────────────────────────
+        async function refreshPrices() {
+            const symbols = getWatchlist();
+            if (symbols.length === 0) return;
+            const results = await Promise.all(
+                symbols.map(sym => Promise.all([fetchQuote(sym), fetchProfile(sym)]).then(([q, p]) => ({ sym, q, p })))
+            );
+            for (const { sym, q, p } of results) updateCard(sym, q, p);
+            const now = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+            document.getElementById('refreshInfo').textContent = `Updated ${now} · refreshes every 30s`;
+        }
+
+        // ── Init ──────────────────────────────────────────────────────────────
+        renderWatchlist().then(() => {
+            clearInterval(refreshTimer);
+            refreshTimer = setInterval(refreshPrices, 30000);
+        });
+    </script>
+}

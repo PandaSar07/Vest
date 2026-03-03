@@ -106,6 +106,46 @@
         text-transform: uppercase;
     }
 
+    /* ── Watchlist button ── */
+    .wl-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: transparent;
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        color: var(--accent-color);
+        border-radius: var(--radius-sm);
+        padding: 0.45rem 1.1rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        letter-spacing: 0.4px;
+        white-space: nowrap;
+    }
+
+    .wl-btn:hover {
+        background: rgba(56, 189, 248, 0.1);
+        border-color: var(--accent-color);
+        box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .wl-btn.active {
+        background: rgba(56, 189, 248, 0.15);
+        border-color: var(--accent-color);
+        color: var(--accent-color);
+    }
+
+    .wl-btn.active:hover {
+        background: rgba(239, 68, 68, 0.1);
+        border-color: rgba(239, 68, 68, 0.6);
+        color: #ef4444;
+    }
+
+    .wl-btn.active:hover .wl-btn-label::before { content: '✕ Remove'; }
+    .wl-btn.active .wl-btn-label::before       { content: '✓ Watchlisted'; }
+    .wl-btn:not(.active) .wl-btn-label::before { content: '★ Watchlist'; }
+
     /* ── Stats bar ── */
     .stats-grid {
         display: grid;
@@ -412,7 +452,11 @@
 
                 const el = document.getElementById('profileHeader');
                 if (!p || !p.name) {
-                    el.innerHTML = `<div><h1 class="company-name">${symbol.toUpperCase()}</h1></div>`;
+                    el.innerHTML = `<div><h1 class="company-name">${symbol.toUpperCase()}</h1></div>
+                        <button class="wl-btn ms-auto" id="wlToggleBtn" onclick="toggleWatchlist('${symbol.toUpperCase()}')">
+                          <span class="wl-btn-label"></span>
+                        </button>`;
+                    syncWlButton(symbol.toUpperCase());
                     return;
                 }
 
@@ -431,7 +475,11 @@
                     <div>
                       <h1 class="company-name">${p.name} <span style="font-size:1rem;color:var(--text-secondary);font-family:var(--font-family);-webkit-text-fill-color:var(--text-secondary);">(${symbol.toUpperCase()})</span></h1>
                       <div class="company-meta">${pills}</div>
-                    </div>`;
+                    </div>
+                    <button class="wl-btn ms-auto" id="wlToggleBtn" onclick="toggleWatchlist('${symbol.toUpperCase()}')">
+                      <span class="wl-btn-label"></span>
+                    </button>`;
+                syncWlButton(symbol.toUpperCase());
             } catch (e) {
                 console.warn('Profile fetch error', e);
             }
@@ -635,6 +683,35 @@
             }
         }
 
+        // ── Watchlist helpers ──────────────────────────────────────────────
+        const WL_KEY = 'vest_watchlist';
+        const getWL  = () => JSON.parse(localStorage.getItem(WL_KEY) || '[]');
+        const saveWL = arr => localStorage.setItem(WL_KEY, JSON.stringify(arr));
+
+        function syncWlButton(symbol) {
+            const btn = document.getElementById('wlToggleBtn');
+            if (!btn) return;
+            const inList = getWL().includes(symbol);
+            btn.classList.toggle('active', inList);
+        }
+
+        function toggleWatchlist(symbol) {
+            let list = getWL();
+            if (list.includes(symbol)) {
+                list = list.filter(s => s !== symbol);
+            } else {
+                list.push(symbol);
+            }
+            saveWL(list);
+            syncWlButton(symbol);
+            // Update nav badge
+            const badge = document.getElementById('wlNavBadge');
+            if (badge) {
+                badge.textContent = list.length;
+                badge.style.display = list.length > 0 ? 'inline' : 'none';
+            }
+        }
+
         // ── Master load ───────────────────────────────────────────────────
         async function loadAll(symbol) {
             currentSymbol = symbol.toUpperCase();
@@ -676,6 +753,8 @@
         });
 
         // ── Init ─────────────────────────────────────────────────────────
-        loadAll('AAPL');
+        const initSymbol = new URLSearchParams(window.location.search).get('symbol') || 'AAPL';
+        document.getElementById('symbolInput').value = initSymbol;
+        loadAll(initSymbol);
     </script>
 }

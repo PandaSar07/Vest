@@ -1,9 +1,16 @@
 using Microsoft.AspNetCore.Mvc;
 
-public class DashboardController : Controller
+namespace Vest.Controllers
 {
-    public IActionResult Index()
+    public class DashboardController : Controller
     {
-        return View();
+        public IActionResult Index()
+        {
+            // Redirect to login if not authenticated
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("UserId")))
+                return RedirectToAction("Log", "Home");
+
+            return View();
+        }
     }
 }
