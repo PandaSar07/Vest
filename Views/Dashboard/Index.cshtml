@@ -1,102 +1,240 @@
 @{
     ViewData["Title"] = "Dashboard";
+    var dashUsername = ViewContext.HttpContext.Session.GetString("Username") ?? "Trader";
 }
+
+<style>
+    .dash-grid {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    @@media (max-width: 900px) { .dash-grid { grid-template-columns: 1fr; } }
+
+    .dash-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
+        backdrop-filter: var(--glass-blur);
+        padding: 1.5rem;
+    }
+
+    .value-xl {
+        font-size: 2.2rem;
+        font-weight: 800;
+        font-variant-numeric: tabular-nums;
+        line-height: 1.1;
+        background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .sub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1rem; }
+
+    .sub-tile {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        padding: 0.85rem 1rem;
+    }
+
+    .tile-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); font-weight: 600; }
+    .tile-value { font-size: 1rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .up   { color: var(--success-color); }
+    .down { color: var(--danger-color); }
+
+    .dash-section-title {
+        font-family: var(--font-brand);
+        font-size: 1rem;
+        letter-spacing: 0.5px;
+        background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1rem;
+    }
+
+    .holdings-table th, .holdings-table td {
+        padding: 0.9rem 1rem !important;
+        font-size: 0.88rem;
+    }
+
+    .holdings-table tr:hover td { background: rgba(255,255,255,0.025); }
+
+    .skeleton-row td {
+        padding: 0.9rem 1rem !important;
+    }
+</style>
 
 <div class="py-4">
     <h1 class="display-5 mb-1">Dashboard</h1>
-    <p class="text-secondary mb-5">Welcome back. Here's your paper trading activity at a glance.</p>
+    <p class="text-secondary mb-4">Welcome back, <strong>@dashUsername</strong>. Here's your portfolio at a glance.</p>
 
-    <div class="dashboard-container">
-        <!-- Portfolio Summary -->
-        <div class="card portfolio-summary h-100">
-            <h2 class="h4 mb-4">Portfolio Summary</h2>
-            <div class="d-flex flex-column gap-3">
-                <div class="glass-panel p-3">
-                    <span class="text-secondary d-block small text-uppercase fw-bold">Total Value</span>
-                    <span class="h2 mb-0 fw-bold">$100,000.00</span>
+    <!-- Portfolio Summary + Holdings -->
+    <div class="dash-grid">
+        <!-- Left: value summary -->
+        <div class="dash-card">
+            <p class="dash-section-title">Portfolio Value</p>
+            <div class="value-xl" id="dashTotalValue">—</div>
+            <div class="sub-grid">
+                <div class="sub-tile">
+                    <div class="tile-label">Cash</div>
+                    <div class="tile-value" id="dashCash">—</div>
                 </div>
-                <div class="row g-3">
-                    <div class="col-6">
-                        <div class="glass-panel p-3">
-                            <span class="text-secondary d-block small text-uppercase fw-bold">Today</span>
-                            <span class="text-success fw-bold">+$1,250.00</span>
-                            <span class="d-block small text-success">(1.25%)</span>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="glass-panel p-3">
-                            <span class="text-secondary d-block small text-uppercase fw-bold">Overall</span>
-                            <span class="text-success fw-bold">+$5,000.00</span>
-                            <span class="d-block small text-success">(5.00%)</span>
-                        </div>
-                    </div>
+                <div class="sub-tile">
+                    <div class="tile-label">Invested</div>
+                    <div class="tile-value" id="dashStockValue">—</div>
+                </div>
+                <div class="sub-tile">
+                    <div class="tile-label">Total Gain/Loss</div>
+                    <div class="tile-value" id="dashGainLoss">—</div>
+                </div>
+                <div class="sub-tile">
+                    <div class="tile-label">Positions</div>
+                    <div class="tile-value" id="dashPositions">—</div>
                 </div>
             </div>
         </div>
 
-        <!-- Recent Trades -->
-        <div class="card recent-trades">
-            <h2 class="h4 mb-4">Recent Trades</h2>
+        <!-- Right: holdings -->
+        <div class="dash-card">
+            <p class="dash-section-title">Holdings</p>
             <div class="table-responsive">
-                <table class="table">
+                <table class="table holdings-table mb-0">
                     <thead>
                         <tr>
-                            <th>Date</th>
                             <th>Symbol</th>
-                            <th>Action</th>
-                            <th>Quantity</th>
-                            <th>Price</th>
-                            <th>Total</th>
+                            <th>Shares</th>
+                            <th>Avg Cost</th>
+                            <th>Live Price</th>
+                            <th>Mkt Value</th>
+                            <th>Gain/Loss</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td class="small">2023-10-27</td>
-                            <td class="fw-bold">AAPL</td>
-                            <td><span class="badge badge-buy">BUY</span></td>
-                            <td>10</td>
-                            <td>$150.00</td>
-                            <td class="fw-bold">$1,500.00</td>
-                        </tr>
-                        <tr>
-                            <td class="small">2023-10-26</td>
-                            <td class="fw-bold">MSFT</td>
-                            <td><span class="badge badge-sell">SELL</span></td>
-                            <td>5</td>
-                            <td>$300.00</td>
-                            <td class="fw-bold">$1,500.00</td>
+                    <tbody id="holdingsBody">
+                        <tr class="skeleton-row">
+                            <td colspan="6" style="text-align:center;color:var(--text-secondary);">Loading…</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
+    </div>
 
-        <!-- Watchlist -->
-        <div class="card watchlist">
-            <h2 class="h4 mb-4">Watchlist</h2>
-            <ul class="d-flex flex-column gap-2">
-                <li>
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="bg-primary rounded-circle" style="width: 8px; height: 8px;"></div>
-                        <span class="fw-bold">AAPL</span>
-                    </div>
-                    <span class="fw-bold">$150.00</span>
-                </li>
-                <li>
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="bg-primary rounded-circle" style="width: 8px; height: 8px;"></div>
-                        <span class="fw-bold">MSFT</span>
-                    </div>
-                    <span class="fw-bold">$300.00</span>
-                </li>
-                <li>
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="bg-primary rounded-circle" style="width: 8px; height: 8px;"></div>
-                        <span class="fw-bold">GOOGL</span>
-                    </div>
-                    <span class="fw-bold">$120.00</span>
-                </li>
-            </ul>
+    <!-- Recent Trades -->
+    <div class="dash-card">
+        <p class="dash-section-title">Recent Trades</p>
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Symbol</th>
+                        <th>Action</th>
+                        <th>Shares</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="tradesBody">
+                    <tr>
+                        <td colspan="6" style="text-align:center;color:var(--text-secondary);">Loading…</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        const fmt = (n, d = 2) =>
+            n == null ? '—' : Number(n).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+
+        async function loadSummary() {
+            try {
+                const r = await fetch('/portfolio/summary');
+                if (r.status === 401) {
+                    window.location = '/Home/Log';
+                    return;
+                }
+                if (!r.ok) return;
+                const d = await r.json();
+
+                document.getElementById('dashTotalValue').textContent = '$' + fmt(d.totalValue);
+                document.getElementById('dashCash').textContent        = '$' + fmt(d.cash);
+                document.getElementById('dashStockValue').textContent  = '$' + fmt(d.stockValue);
+                document.getElementById('dashPositions').textContent   = d.holdings.length;
+
+                // Overall gain/loss = stock value - cost basis
+                const totalCost = d.holdings.reduce((s, h) => s + h.shares * h.avgCost, 0);
+                const gainLoss  = d.stockValue - totalCost;
+                const glEl = document.getElementById('dashGainLoss');
+                glEl.textContent = (gainLoss >= 0 ? '+$' : '-$') + fmt(Math.abs(gainLoss));
+                glEl.className = 'tile-value ' + (gainLoss >= 0 ? 'up' : 'down');
+
+                // Holdings table
+                const tbody = document.getElementById('holdingsBody');
+                if (d.holdings.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);">No positions yet — <a href="/Stocks" style="color:var(--accent-color)">start trading</a>.</td></tr>`;
+                } else {
+                    tbody.innerHTML = d.holdings.map(h => {
+                        const glClass = h.gainLoss >= 0 ? 'up' : 'down';
+                        const glSign  = h.gainLoss >= 0 ? '+' : '';
+                        return `<tr>
+                            <td><a href="/Stocks?symbol=${h.symbol}" style="color:var(--accent-color);font-weight:700;">${h.symbol}</a></td>
+                            <td>${fmt(h.shares, 4)}</td>
+                            <td>$${fmt(h.avgCost)}</td>
+                            <td>$${fmt(h.livePrice)}</td>
+                            <td>$${fmt(h.marketValue)}</td>
+                            <td class="${glClass}">${glSign}$${fmt(Math.abs(h.gainLoss))} (${glSign}${fmt(h.gainLossPct)}%)</td>
+                        </tr>`;
+                    }).join('');
+                }
+            } catch(e) {
+                console.warn('Summary error', e);
+            }
+        }
+
+        async function loadTrades() {
+            try {
+                const r = await fetch('/portfolio/trades?limit=15');
+                if (!r.ok) return;
+                const trades = await r.json();
+                const tbody = document.getElementById('tradesBody');
+
+                if (!trades.length) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);">No trades yet.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = trades.map(t => {
+                    const isBuy  = t.action === 'BUY';
+                    const badge  = isBuy
+                        ? `<span class="badge badge-buy">BUY</span>`
+                        : `<span class="badge badge-sell">SELL</span>`;
+                    const date   = new Date(t.tradedAt).toLocaleString('en-US', {
+                        month: 'short', day: 'numeric', year: 'numeric',
+                        hour: 'numeric', minute: '2-digit'
+                    });
+                    return `<tr>
+                        <td class="small">${date}</td>
+                        <td><a href="/Stocks?symbol=${t.symbol}" style="color:var(--accent-color);font-weight:700;">${t.symbol}</a></td>
+                        <td>${badge}</td>
+                        <td>${fmt(t.shares, 4)}</td>
+                        <td>$${fmt(t.price)}</td>
+                        <td class="fw-bold">$${fmt(t.total)}</td>
+                    </tr>`;
+                }).join('');
+            } catch(e) {
+                console.warn('Trades error', e);
+            }
+        }
+
+        loadSummary();
+        loadTrades();
+    </script>
+}

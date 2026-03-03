@@ -18,6 +18,9 @@ builder.Services.AddSession(options =>
 // Register FinnhubService with HttpClient
 builder.Services.AddHttpClient<FinnhubService>();
 
+// Register PortfolioService (uses the named "supabase" client)
+builder.Services.AddScoped<PortfolioService>();
+
 // HttpClient for direct Supabase REST calls (signup, login)
 builder.Services.AddHttpClient("supabase", client =>
 {

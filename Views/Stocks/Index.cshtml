@@ -352,6 +352,147 @@
         0%, 100% { opacity: 1; transform: scale(1); }
         50% { opacity: 0.5; transform: scale(1.4); }
     }
+    /* ── Trade panel ── */
+    .trade-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
+        backdrop-filter: var(--glass-blur);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    .trade-tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .trade-tab {
+        flex: 1;
+        padding: 0.6rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        background: transparent;
+        color: var(--text-secondary);
+        font-weight: 700;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: var(--transition);
+        letter-spacing: 0.5px;
+    }
+
+    .trade-tab.buy.active  { background: rgba(16,185,129,0.15); border-color: #10b981; color: #10b981; }
+    .trade-tab.sell.active { background: rgba(239,68,68,0.15);  border-color: #ef4444; color: #ef4444; }
+    .trade-tab:not(.active):hover { border-color: rgba(255,255,255,0.2); color: var(--text-primary); }
+
+    .trade-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .trade-info-row {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+
+    .trade-info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .trade-info-label {
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--text-secondary);
+        font-weight: 600;
+    }
+
+    .trade-info-value {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .trade-input {
+        background: rgba(17,25,40,0.8);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        border-radius: var(--radius-sm);
+        padding: 0.6rem 0.9rem;
+        font-size: 1rem;
+        font-family: var(--font-family);
+        width: 130px;
+        transition: var(--transition);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .trade-input:focus {
+        outline: none;
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 2px var(--accent-glow);
+    }
+
+    .trade-submit {
+        padding: 0.6rem 1.4rem;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-weight: 700;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: var(--transition);
+        min-width: 90px;
+    }
+
+    .trade-submit.buy-btn  { background: #10b981; color: #05070a; }
+    .trade-submit.sell-btn { background: #ef4444; color: #fff; }
+    .trade-submit:hover    { transform: scale(1.04); filter: brightness(1.1); }
+    .trade-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .trade-est {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin-top: 0.4rem;
+    }
+
+    .trade-login-prompt {
+        text-align: center;
+        padding: 1.25rem;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    /* Toast */
+    #tradeToast {
+        position: fixed;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        background: rgba(17,25,40,0.97);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
+        padding: 1rem 1.4rem;
+        color: var(--text-primary);
+        font-size: 0.9rem;
+        z-index: 9999;
+        transform: translateY(120%);
+        transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+        max-width: 360px;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    #tradeToast.show { transform: translateY(0); }
+    #tradeToast.toast-ok   { border-left: 3px solid #10b981; }
+    #tradeToast.toast-err  { border-left: 3px solid #ef4444; }
+
 </style>
 
 <div class="container stocks-hero">
@@ -409,6 +550,42 @@
         </div>
     </div>
 
+    <!-- Trade panel -->
+    <div class="trade-card mb-4" id="tradePanel">
+        <div id="tradeLoggedIn">
+            <p class="section-header mb-3">Trade</p>
+            <!-- Account info row -->
+            <div class="trade-info-row">
+                <div class="trade-info-item">
+                    <span class="trade-info-label">Cash Available</span>
+                    <span class="trade-info-value" id="tradeCash">—</span>
+                </div>
+                <div class="trade-info-item">
+                    <span class="trade-info-label">Shares Owned</span>
+                    <span class="trade-info-value" id="tradeShares">—</span>
+                </div>
+                <div class="trade-info-item">
+                    <span class="trade-info-label">Avg Cost</span>
+                    <span class="trade-info-value" id="tradeAvgCost">—</span>
+                </div>
+            </div>
+            <!-- Buy / Sell tabs -->
+            <div class="trade-tabs">
+                <button class="trade-tab buy active" id="tabBuy" onclick="switchTab('buy')">BUY</button>
+                <button class="trade-tab sell" id="tabSell" onclick="switchTab('sell')">SELL</button>
+            </div>
+            <!-- Input row -->
+            <div class="trade-row">
+                <input type="number" class="trade-input" id="sharesInput" min="0.0001" step="1" placeholder="Shares" value="1" />
+                <button class="trade-submit buy-btn" id="tradeSubmitBtn" onclick="submitTrade()">Buy</button>
+            </div>
+            <div class="trade-est" id="tradeEst">Est. cost: —</div>
+        </div>
+        <div id="tradeGuest" style="display:none;" class="trade-login-prompt">
+            <a href="/Home/Log" style="color:var(--accent-color);font-weight:600;">Log in</a> to buy and sell stocks.
+        </div>
+    </div>
+
     <!-- News -->
     <div class="mb-5">
         <p class="section-header">Latest News</p>
@@ -418,6 +595,9 @@
     </div>
 
 </div>
+
+<!-- Toast -->
+<div id="tradeToast"></div>
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
@@ -494,6 +674,7 @@
 
                 // Current price
                 const price = q.c;
+                livePriceForTrade = price;   // keep trade panel in sync
                 const change = q.d;
                 const pct = q.dp;
                 const isUp = change >= 0;
@@ -712,6 +893,91 @@
             }
         }
 
+        // ── Trade panel ───────────────────────────────────────────────────
+        let tradeMode = 'buy';
+        let livePriceForTrade = 0;
+        let userLoggedIn = false;
+
+        async function loadHolding(symbol) {
+            try {
+                const r = await fetch(`/portfolio/holding?symbol=${encodeURIComponent(symbol)}`);
+                if (r.status === 401) {
+                    // Not logged in — show guest prompt
+                    document.getElementById('tradeLoggedIn').style.display = 'none';
+                    document.getElementById('tradeGuest').style.display = 'block';
+                    userLoggedIn = false;
+                    return;
+                }
+                document.getElementById('tradeLoggedIn').style.display = 'block';
+                document.getElementById('tradeGuest').style.display = 'none';
+                userLoggedIn = true;
+
+                if (!r.ok) return;
+                const d = await r.json();
+                document.getElementById('tradeCash').textContent    = '$' + fmt(d.cash);
+                document.getElementById('tradeShares').textContent  = fmt(d.shares, 4);
+                document.getElementById('tradeAvgCost').textContent = d.avgCost > 0 ? '$' + fmt(d.avgCost) : '—';
+            } catch(e) { console.warn('loadHolding error', e); }
+        }
+
+        function switchTab(mode) {
+            tradeMode = mode;
+            document.getElementById('tabBuy').classList.toggle('active', mode === 'buy');
+            document.getElementById('tabSell').classList.toggle('active', mode === 'sell');
+            const btn = document.getElementById('tradeSubmitBtn');
+            btn.textContent = mode === 'buy' ? 'Buy' : 'Sell';
+            btn.className = 'trade-submit ' + (mode === 'buy' ? 'buy-btn' : 'sell-btn');
+            updateEst();
+        }
+
+        function updateEst() {
+            const shares = parseFloat(document.getElementById('sharesInput').value) || 0;
+            const cost = shares * livePriceForTrade;
+            const label = tradeMode === 'buy' ? 'Est. cost' : 'Est. proceeds';
+            document.getElementById('tradeEst').textContent =
+                livePriceForTrade > 0
+                    ? `${label}: $${fmt(cost)} @@  $${fmt(livePriceForTrade)}/share`
+                    : `${label}: —`;
+        }
+
+        document.getElementById('sharesInput').addEventListener('input', updateEst);
+
+        async function submitTrade() {
+            const shares = parseFloat(document.getElementById('sharesInput').value);
+            if (!shares || shares <= 0) { showToast('Enter a valid number of shares.', false); return; }
+            const btn = document.getElementById('tradeSubmitBtn');
+            btn.disabled = true;
+            const endpoint = tradeMode === 'buy' ? '/portfolio/buy' : '/portfolio/sell';
+            try {
+                const r = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ symbol: currentSymbol, shares })
+                });
+                const data = await r.json();
+                if (!r.ok) {
+                    showToast(data.error || 'Trade failed.', false);
+                } else {
+                    showToast(data.message, true);
+                    // Refresh panel with new balance
+                    await loadHolding(currentSymbol);
+                }
+            } catch(e) {
+                showToast('Network error. Please try again.', false);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        let _toastTimer;
+        function showToast(msg, ok) {
+            const el = document.getElementById('tradeToast');
+            el.textContent = msg;
+            el.className = 'show ' + (ok ? 'toast-ok' : 'toast-err');
+            clearTimeout(_toastTimer);
+            _toastTimer = setTimeout(() => { el.className = ''; }, 3500);
+        }
+
         // ── Master load ───────────────────────────────────────────────────
         async function loadAll(symbol) {
             currentSymbol = symbol.toUpperCase();
@@ -722,10 +988,14 @@
                 loadQuote(currentSymbol),
                 loadHistory(currentSymbol, currentRange, currentInterval),
                 loadNews(currentSymbol),
+                loadHolding(currentSymbol),
             ]);
 
-            // Refresh quote every 30 s
-            refreshInterval = setInterval(() => loadQuote(currentSymbol), 30000);
+            // Refresh quote every 30 s and update trade estimate
+            refreshInterval = setInterval(async () => {
+                await loadQuote(currentSymbol);
+                updateEst();
+            }, 30000);
         }
 
         // ── Range buttons ─────────────────────────────────────────────────
