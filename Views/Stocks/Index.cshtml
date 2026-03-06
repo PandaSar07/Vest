@@ -910,7 +910,7 @@
             // Try server API first
             try {
                 const method = inList ? 'DELETE' : 'POST';
-                const url    = inList ? `/watchlist/${encodeURIComponent(symbol)}` : '/watchlist';
+                const url    = inList ? `/api/watchlist/${encodeURIComponent(symbol)}` : '/api/watchlist';
                 const r = await fetch(url, {
                     method,
                     headers: inList ? {} : { 'Content-Type': 'application/json' },
@@ -938,7 +938,7 @@
 
         async function syncWlButtonFromServer(symbol) {
             try {
-                const r = await fetch('/watchlist');
+                const r = await fetch('/api/watchlist');
                 if (r.ok) {
                     const list = await r.json();
                     const btn  = document.getElementById('wlToggleBtn');

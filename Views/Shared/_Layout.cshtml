@@ -245,7 +245,7 @@
             const badge = document.getElementById('wlNavBadge');
             if (!badge) return;
             try {
-                const r = await fetch('/watchlist');
+                const r = await fetch('/api/watchlist');
                 if (r.ok) {
                     const list = await r.json();
                     if (list.length > 0) { badge.textContent = list.length; badge.style.display = 'inline'; }
