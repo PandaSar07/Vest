@@ -12,12 +12,14 @@ public class HomeController : Controller
     private readonly ILogger<HomeController> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IConfiguration _config;
+    private readonly Vest.Services.EmailService _emailService;
 
-    public HomeController(ILogger<HomeController> logger, IHttpClientFactory httpClientFactory, IConfiguration config)
+    public HomeController(ILogger<HomeController> logger, IHttpClientFactory httpClientFactory, IConfiguration config, Vest.Services.EmailService emailService)
     {
         _logger = logger;
         _httpClientFactory = httpClientFactory;
         _config = config;
+        _emailService = emailService;
     }
 
     public IActionResult Index() => View();
@@ -122,6 +124,145 @@ public class HomeController : Controller
         return View(model);
     }
 
+    // GET: /Home/ForgotPassword
+    [HttpGet]
+    public IActionResult ForgotPassword() => View(new ForgotPasswordViewModel());
+
+    // POST: /Home/ForgotPassword
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+    {
+        if (!ModelState.IsValid)
+            return View(model);
+
+        try
+        {
+            var http = _httpClientFactory.CreateClient("supabase");
+
+            // Check if user with this email exists
+            var response = await http.GetAsync(
+                $"users?email=eq.{Uri.EscapeDataString(model.Email)}&select=id,email");
+            var json = await response.Content.ReadAsStringAsync();
+            var users = System.Text.Json.JsonSerializer.Deserialize<List<StoredUser>>(
+                json, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            // Always show the same success message regardless of whether the email exists
+            // (prevents user enumeration attacks)
+            if (users != null && users.Count > 0)
+            {
+                var user   = users[0];
+                var token  = Guid.NewGuid().ToString("N"); // 32-char hex token
+                var expiry = DateTime.UtcNow.AddHours(1).ToString("o"); // ISO-8601
+
+                // PATCH reset token + expiry onto the user row
+                var patch = new { reset_token = token, reset_token_expiry = expiry };
+                var patchContent = new StringContent(
+                    System.Text.Json.JsonSerializer.Serialize(patch),
+                    Encoding.UTF8,
+                    "application/json");
+
+                var patchReq = new HttpRequestMessage(HttpMethod.Patch,
+                    $"users?id=eq.{Uri.EscapeDataString(user.Id)}")
+                {
+                    Content = patchContent
+                };
+                await http.SendAsync(patchReq);
+
+                // Build and email the reset link
+                var resetUrl = Url.Action("ResetPassword", "Home",
+                    new { token }, Request.Scheme)!;
+
+                await _emailService.SendPasswordResetAsync(user.Email, resetUrl);
+            }
+
+            TempData["ForgotSuccess"] = "true";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "ForgotPassword failed");
+            ModelState.AddModelError(string.Empty, "Something went wrong. Please try again.");
+        }
+
+        return View(model);
+    }
+
+    // GET: /Home/ResetPassword?token=...
+    [HttpGet]
+    public IActionResult ResetPassword(string? token)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+            return RedirectToAction("ForgotPassword");
+
+        return View(new ResetPasswordViewModel { Token = token });
+    }
+
+    // POST: /Home/ResetPassword
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+    {
+        if (!ModelState.IsValid)
+            return View(model);
+
+        try
+        {
+            var http = _httpClientFactory.CreateClient("supabase");
+
+            // Look up user by token
+            var response = await http.GetAsync(
+                $"users?reset_token=eq.{Uri.EscapeDataString(model.Token)}&select=id,reset_token_expiry");
+            var json = await response.Content.ReadAsStringAsync();
+            var users = System.Text.Json.JsonSerializer.Deserialize<List<StoredUser>>(
+                json, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (users == null || users.Count == 0)
+            {
+                ModelState.AddModelError(string.Empty, "Reset link is invalid or has already been used.");
+                return View(model);
+            }
+
+            var user = users[0];
+
+            // Check expiry — use DateTimeOffset to correctly handle the +00:00 offset Supabase returns
+            if (!DateTimeOffset.TryParse(user.ResetTokenExpiry, out var expiry) || expiry.UtcDateTime < DateTime.UtcNow)
+            {
+                ModelState.AddModelError(string.Empty, "This reset link has expired. Please request a new one.");
+                return View(model);
+            }
+
+            // Hash new password and clear the token in one PATCH
+            var newHash = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
+            var patch = new
+            {
+                password_hash      = newHash,
+                reset_token        = (string?)null,
+                reset_token_expiry = (string?)null
+            };
+            var patchContent = new StringContent(
+                System.Text.Json.JsonSerializer.Serialize(patch),
+                Encoding.UTF8,
+                "application/json");
+
+            var patchReq = new HttpRequestMessage(HttpMethod.Patch,
+                $"users?id=eq.{Uri.EscapeDataString(user.Id)}")
+            {
+                Content = patchContent
+            };
+            await http.SendAsync(patchReq);
+
+            TempData["SuccessMessage"] = "Password updated! You can now log in with your new password.";
+            return RedirectToAction("Log");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "ResetPassword failed");
+            ModelState.AddModelError(string.Empty, "Something went wrong. Please try again.");
+        }
+
+        return View(model);
+    }
+
     // POST: /Home/Logout
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -142,14 +283,17 @@ public class HomeController : Controller
 file class StoredUser
 {
     [System.Text.Json.Serialization.JsonPropertyName("id")]
-    public string Id           { get; set; } = string.Empty;
+    public string Id { get; set; } = string.Empty;
 
     [System.Text.Json.Serialization.JsonPropertyName("email")]
-    public string Email        { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
 
     [System.Text.Json.Serialization.JsonPropertyName("username")]
-    public string Username     { get; set; } = string.Empty;
+    public string Username { get; set; } = string.Empty;
 
     [System.Text.Json.Serialization.JsonPropertyName("password_hash")]
     public string PasswordHash { get; set; } = string.Empty;
+
+    [System.Text.Json.Serialization.JsonPropertyName("reset_token_expiry")]
+    public string? ResetTokenExpiry { get; set; }
 }

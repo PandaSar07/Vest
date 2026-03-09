@@ -24,6 +24,9 @@ builder.Services.AddScoped<PortfolioService>();
 // Background worker: polls limit orders every 60 s and fills them
 builder.Services.AddHostedService<OrderExecutorService>();
 
+// Register EmailService for sending password reset emails
+builder.Services.AddScoped<EmailService>();
+
 // HttpClient for direct Supabase REST calls (signup, login)
 builder.Services.AddHttpClient("supabase", client =>
 {
