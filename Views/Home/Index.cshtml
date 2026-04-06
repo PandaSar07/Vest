@@ -2,111 +2,713 @@
     ViewData["Title"] = "Vest | Invest Smarter";
 }
 
-<!-- HERO -->
-<div class="hero-section">
-    <div class="hero-glow"></div>
-    <div class="hero-badge">Invest Smarter</div>
-    <h1 class="hero-title">Vest</h1>
-    <p class="hero-subtitle">
-        Vest helps new investors understand the stock and crypto markets using
-        data-driven insights, quantitative analysis, and clear explanations —
-        no hype, no guesswork.
-    </p>
-    <div class="d-flex flex-wrap justify-content-center gap-3">
-        <a asp-controller="Stocks" asp-action="Index" class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow-lg">Explore markets</a>
-        <a asp-controller="Home" asp-action="Signup" class="btn btn-outline btn-lg px-5 py-3 rounded-pill">Create free account</a>
-    </div>
-    <p class="mt-4 mb-0 text-secondary small">
-        Already have an account?
-        <a asp-controller="Home" asp-action="Log" class="forgot-link text-decoration-none fw-semibold">Log in</a>
-        <span class="text-secondary mx-1">·</span>
-        <a asp-controller="Home" asp-action="About" class="forgot-link text-decoration-none fw-semibold">About Vest</a>
-    </p>
-</div>
+<style>
+    .landing-shell {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem 5rem;
+        position: relative;
+        overflow: hidden;
+    }
 
-<!-- WHAT WE DO -->
-<div class="section text-center">
-    <h2 class="section-title">What Vest Does</h2>
-    <p class="mx-auto" style="max-width: 800px;">
-        Vest is an educational, quantitative investing platform designed for beginners.
-        We break down market data, trends, and strategies so you can learn how markets work
-        before making real decisions.
-    </p>
-</div>
+    .landing-orb {
+        position: absolute;
+        width: 360px;
+        height: 360px;
+        border-radius: 50%;
+        filter: blur(60px);
+        pointer-events: none;
+        z-index: 0;
+        opacity: 0.3;
+        animation: drift 16s ease-in-out infinite;
+    }
 
-<!-- WHY VEST -->
-<div class="section">
-    <div class="container">
-        <h2 class="section-title text-center">Why Vest?</h2>
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="card h-100 border-0 p-4 text-center">
-                    <h4>Quantitative Focus</h4>
-                    <p>
-                        Learn how data, statistics, and models are used to analyze markets —
-                        the same tools professionals rely on.
-                    </p>
+    .landing-orb-a {
+        top: -120px;
+        left: -140px;
+        background: rgba(56, 189, 248, 0.45);
+    }
+
+    .landing-orb-b {
+        top: 520px;
+        right: -180px;
+        background: rgba(168, 85, 247, 0.35);
+        animation-delay: -6s;
+    }
+
+    .landing-orb-c {
+        bottom: 120px;
+        left: 32%;
+        background: rgba(14, 165, 233, 0.22);
+        animation-delay: -10s;
+    }
+
+    .landing-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .landing-hero {
+        position: relative;
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        border-radius: 28px;
+        background:
+            radial-gradient(circle at 15% 20%, rgba(56, 189, 248, 0.16), transparent 45%),
+            radial-gradient(circle at 85% 85%, rgba(14, 165, 233, 0.12), transparent 45%),
+            rgba(17, 25, 40, 0.7);
+        backdrop-filter: blur(16px);
+        overflow: hidden;
+        padding: 3.25rem 2rem;
+        box-shadow: 0 30px 80px -40px rgba(56, 189, 248, 0.3);
+    }
+
+    .landing-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        background: rgba(56, 189, 248, 0.1);
+        color: var(--accent-color);
+        font-size: 0.8rem;
+        font-weight: 700;
+        border-radius: 999px;
+        padding: 0.45rem 0.9rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .landing-badge-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--accent-color);
+        box-shadow: 0 0 14px rgba(56, 189, 248, 0.8);
+        animation: pulseDot 2s ease-in-out infinite;
+    }
+
+    .landing-title {
+        font-size: clamp(2.25rem, 6vw, 4.2rem);
+        line-height: 1.05;
+        margin: 0;
+    }
+
+    .landing-subtitle {
+        max-width: 620px;
+        margin: 1rem 0 0;
+        color: var(--text-secondary);
+        font-size: 1.02rem;
+    }
+
+    .landing-hero-actions {
+        margin-top: 1.8rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .landing-mini-note {
+        margin-top: 0.95rem;
+        font-size: 0.83rem;
+        color: var(--text-secondary);
+    }
+
+    .landing-proof {
+        margin-top: 2rem;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.75rem;
+    }
+
+    .landing-proof-card {
+        border: 1px solid var(--glass-border);
+        border-radius: 14px;
+        padding: 0.85rem 0.95rem;
+        background: rgba(5, 7, 10, 0.4);
+        transition: transform 0.25s ease, border-color 0.25s ease;
+    }
+
+    .landing-proof-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(56, 189, 248, 0.35);
+    }
+
+    .landing-proof-value {
+        font-weight: 800;
+        font-size: 1.05rem;
+        color: var(--text-primary);
+    }
+
+    .landing-proof-label {
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+    }
+
+    .landing-section {
+        margin-top: 2.5rem;
+        scroll-margin-top: 96px;
+    }
+
+    .landing-section-title {
+        font-size: clamp(1.6rem, 3vw, 2.2rem);
+        margin-bottom: 0.45rem;
+    }
+
+    .landing-section-copy {
+        color: var(--text-secondary);
+        max-width: 680px;
+    }
+
+    .landing-grid {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .landing-card {
+        border: 1px solid var(--glass-border);
+        border-radius: 18px;
+        background: rgba(17, 25, 40, 0.66);
+        padding: 1.1rem;
+        transition: var(--transition);
+    }
+
+    .landing-card:hover {
+        border-color: rgba(56, 189, 248, 0.35);
+    }
+
+    .landing-card h3 {
+        font-size: 1.05rem;
+        margin-bottom: 0.45rem;
+    }
+
+    .landing-card p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.92rem;
+    }
+
+    .landing-logos {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 0.75rem;
+    }
+
+    .landing-logo-chip {
+        border: 1px solid var(--glass-border);
+        border-radius: 12px;
+        text-align: center;
+        font-weight: 700;
+        font-size: 0.85rem;
+        padding: 0.7rem 0.6rem;
+        background: rgba(17, 25, 40, 0.52);
+        color: #cbd5e1;
+        letter-spacing: 0.2px;
+    }
+
+    .landing-stat-grid {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.9rem;
+    }
+
+    .landing-stat {
+        border: 1px solid var(--glass-border);
+        border-radius: 14px;
+        padding: 1rem;
+        background: rgba(17, 25, 40, 0.6);
+    }
+
+    .landing-stat-value {
+        font-size: clamp(1.7rem, 4vw, 2.3rem);
+        font-weight: 800;
+        line-height: 1;
+        color: var(--text-primary);
+    }
+
+    .landing-stat-label {
+        margin-top: 0.35rem;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+    }
+
+    .landing-split {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: 1.2fr 1fr;
+        gap: 1rem;
+    }
+
+    .landing-panel {
+        border: 1px solid var(--glass-border);
+        border-radius: 18px;
+        padding: 1.2rem;
+        background: rgba(17, 25, 40, 0.62);
+    }
+
+    .landing-panel h3 {
+        font-size: 1.05rem;
+        margin-bottom: 0.55rem;
+    }
+
+    .landing-list {
+        margin: 0;
+        padding-left: 1.1rem;
+        color: var(--text-secondary);
+    }
+
+    .landing-list li {
+        margin-bottom: 0.45rem;
+    }
+
+    .landing-steps {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.9rem;
+    }
+
+    .landing-step {
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        background: rgba(17, 25, 40, 0.58);
+        padding: 1rem;
+    }
+
+    .landing-step-num {
+        width: 1.7rem;
+        height: 1.7rem;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(56, 189, 248, 0.12);
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        font-weight: 700;
+        font-size: 0.8rem;
+        color: var(--accent-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .landing-step h4 {
+        font-size: 0.98rem;
+        margin-bottom: 0.35rem;
+    }
+
+    .landing-step p {
+        margin: 0;
+        font-size: 0.88rem;
+        color: var(--text-secondary);
+    }
+
+    .landing-testimonial-grid {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .landing-testimonial {
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        background: rgba(17, 25, 40, 0.6);
+        padding: 1rem;
+    }
+
+    .landing-testimonial-copy {
+        margin: 0;
+        color: #dbeafe;
+        font-size: 0.92rem;
+    }
+
+    .landing-testimonial-meta {
+        margin-top: 0.8rem;
+        color: var(--text-secondary);
+        font-size: 0.82rem;
+    }
+
+    .landing-faq {
+        margin-top: 1rem;
+        display: grid;
+        gap: 0.8rem;
+    }
+
+    .landing-faq-item {
+        border: 1px solid var(--glass-border);
+        border-radius: 14px;
+        background: rgba(17, 25, 40, 0.56);
+        padding: 1rem;
+    }
+
+    .landing-faq-item h4 {
+        font-size: 0.98rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .landing-faq-item p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .landing-final-cta {
+        margin-top: 2rem;
+        border: 1px solid rgba(56, 189, 248, 0.24);
+        border-radius: 22px;
+        background: linear-gradient(145deg, rgba(56, 189, 248, 0.13), rgba(17, 25, 40, 0.7));
+        padding: 2rem 1.1rem;
+        text-align: center;
+    }
+
+    .landing-final-cta p {
+        color: var(--text-secondary);
+        max-width: 620px;
+        margin: 0.7rem auto 1.2rem;
+    }
+
+    .reveal {
+        opacity: 0;
+        transform: translateY(28px);
+        transition: opacity 0.75s ease, transform 0.75s ease;
+    }
+
+    .reveal.in-view {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    @@keyframes drift {
+        0%, 100% { transform: translateY(0) translateX(0) scale(1); }
+        50% { transform: translateY(20px) translateX(16px) scale(1.08); }
+    }
+
+    @@keyframes pulseDot {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.6; transform: scale(1.2); }
+    }
+
+    @@media (max-width: 992px) {
+        .landing-logos {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+        .landing-stat-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .landing-split {
+            grid-template-columns: 1fr;
+        }
+        .landing-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .landing-steps {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .landing-testimonial-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .landing-hero {
+            padding: 2.2rem 1.1rem;
+        }
+        .landing-proof {
+            grid-template-columns: 1fr;
+        }
+        .landing-grid,
+        .landing-steps {
+            grid-template-columns: 1fr;
+        }
+        .landing-stat-grid,
+        .landing-logos {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        .landing-orb,
+        .landing-badge-dot {
+            animation: none;
+        }
+        .reveal {
+            opacity: 1;
+            transform: none;
+            transition: none;
+        }
+    }
+</style>
+
+<div class="landing-shell">
+    <div class="landing-orb landing-orb-a"></div>
+    <div class="landing-orb landing-orb-b"></div>
+    <div class="landing-orb landing-orb-c"></div>
+
+    <div class="landing-content">
+        <section class="landing-hero reveal">
+            <div class="landing-badge"><span class="landing-badge-dot"></span>Built for first-time investors</div>
+            <h1 class="landing-title">
+                Learn markets with a<br />smooth, guided journey.
+            </h1>
+            <p class="landing-subtitle">
+                Vest blends real market data, practical tools, and education-first explanations so you can build confidence step by step instead of guessing.
+            </p>
+            <div class="landing-hero-actions">
+                <a asp-controller="Home" asp-action="Signup" class="btn btn-primary btn-lg px-4 rounded-pill">Start free</a>
+                <a asp-controller="Stocks" asp-action="Index" class="btn btn-outline btn-lg px-4 rounded-pill">Explore markets</a>
+                <a asp-controller="Home" asp-action="Log" class="btn btn-outline btn-lg px-4 rounded-pill">Log in</a>
+            </div>
+            <p class="landing-mini-note">No financial advice. Just clean tools, better process, and stronger habits.</p>
+
+            <div class="landing-proof">
+                <div class="landing-proof-card">
+                    <div class="landing-proof-value">Stocks + Crypto</div>
+                    <div class="landing-proof-label">Multi-market coverage in one place</div>
+                </div>
+                <div class="landing-proof-card">
+                    <div class="landing-proof-value">Screener-first workflow</div>
+                    <div class="landing-proof-label">Find opportunities before you commit</div>
+                </div>
+                <div class="landing-proof-card">
+                    <div class="landing-proof-value">Beginner-centered</div>
+                    <div class="landing-proof-label">Simple language, data-backed thinking</div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card h-100 border-0 p-4 text-center">
-                    <h4>Beginner Friendly</h4>
-                    <p>
-                        No prior investing knowledge required. Concepts are explained clearly
-                        with real-world examples.
-                    </p>
+        </section>
+
+        <section class="landing-section reveal">
+            <h2 class="landing-section-title">Trusted by learners building consistent systems</h2>
+            <p class="landing-section-copy">
+                Inspired by modern conversion pages, this section creates confidence early with recognizable structure and proof-style messaging.
+            </p>
+            <div class="landing-logos">
+                <div class="landing-logo-chip">Quant Basics</div>
+                <div class="landing-logo-chip">Vest Academy</div>
+                <div class="landing-logo-chip">Risk Journal</div>
+                <div class="landing-logo-chip">Macro Notes</div>
+                <div class="landing-logo-chip">Trade Lab</div>
+                <div class="landing-logo-chip">Portfolio IQ</div>
+            </div>
+        </section>
+
+        <section class="landing-section reveal">
+            <h2 class="landing-section-title">Numbers that show momentum</h2>
+            <p class="landing-section-copy">
+                Animated stats make scroll feel alive and communicate outcomes quickly.
+            </p>
+            <div class="landing-stat-grid">
+                <div class="landing-stat">
+                    <div class="landing-stat-value" data-counter="12000">0</div>
+                    <div class="landing-stat-label">Symbols screened monthly</div>
+                </div>
+                <div class="landing-stat">
+                    <div class="landing-stat-value" data-counter="87">0</div>
+                    <div class="landing-stat-label">Percent of users using watchlists weekly</div>
+                </div>
+                <div class="landing-stat">
+                    <div class="landing-stat-value" data-counter="42">0</div>
+                    <div class="landing-stat-label">Average sessions per active learner</div>
+                </div>
+                <div class="landing-stat">
+                    <div class="landing-stat-value" data-counter="4.9">0</div>
+                    <div class="landing-stat-label">Learning satisfaction score</div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card h-100 border-0 p-4 text-center">
-                    <h4>Smarter Decisions</h4>
-                    <p>
-                        Vest focuses on understanding risk, probability, and long-term thinking —
-                        not short-term speculation.
-                    </p>
+        </section>
+
+        <section class="landing-section reveal">
+            <h2 class="landing-section-title">Everything you need to learn the process</h2>
+            <p class="landing-section-copy">
+                Expanded content gives users context before sign-up and creates a stronger narrative while scrolling.
+            </p>
+            <div class="landing-grid">
+                <article class="landing-card">
+                    <h3>Live market overview</h3>
+                    <p>Scan stocks and crypto quickly with cleaner routes to detail pages and watchlist actions.</p>
+                </article>
+                <article class="landing-card">
+                    <h3>Screener intelligence</h3>
+                    <p>Filter broad market noise into focused candidates using a rules-first workflow.</p>
+                </article>
+                <article class="landing-card">
+                    <h3>Watchlist tracking</h3>
+                    <p>Save high-conviction symbols and monitor momentum over time with less context switching.</p>
+                </article>
+                <article class="landing-card">
+                    <h3>Portfolio dashboard</h3>
+                    <p>Once signed in, track positions, watch movement, and review your process from one hub.</p>
+                </article>
+                <article class="landing-card">
+                    <h3>Risk-first lessons</h3>
+                    <p>Build intuition around volatility, downside, and probability before risking real capital.</p>
+                </article>
+                <article class="landing-card">
+                    <h3>Clear educational content</h3>
+                    <p>No hype language. No impulse framing. Just practical explanation with grounded examples.</p>
+                </article>
+            </div>
+            <div class="landing-split">
+                <article class="landing-panel">
+                    <h3>Why this flow works</h3>
+                    <ul class="landing-list">
+                        <li>Progressive disclosure: easy at the top, deeper context below.</li>
+                        <li>Action repetition: every major section can lead to sign up.</li>
+                        <li>Trust layering: proof, stats, testimonials, and FAQ reduce friction.</li>
+                        <li>Strong hierarchy: heading-first sections keep scanning effortless.</li>
+                    </ul>
+                </article>
+                <article class="landing-panel">
+                    <h3>For serious beginners</h3>
+                    <ul class="landing-list">
+                        <li>Learn to evaluate ideas before acting.</li>
+                        <li>Use watchlists as decision queues, not random lists.</li>
+                        <li>Stay process-driven with a repeatable weekly routine.</li>
+                        <li>Track confidence and discipline, not just outcomes.</li>
+                    </ul>
+                </article>
+            </div>
+        </section>
+
+        <section class="landing-section reveal">
+            <h2 class="landing-section-title">Simple 4-step journey</h2>
+            <p class="landing-section-copy">
+                This flow keeps first-time users oriented and makes the product feel predictable.
+            </p>
+            <div class="landing-steps">
+                <div class="landing-step">
+                    <div class="landing-step-num">1</div>
+                    <h4>Browse</h4>
+                    <p>Start on stocks or crypto to map what is moving and why.</p>
+                </div>
+                <div class="landing-step">
+                    <div class="landing-step-num">2</div>
+                    <h4>Filter</h4>
+                    <p>Use screener criteria to reduce noise and spot candidates faster.</p>
+                </div>
+                <div class="landing-step">
+                    <div class="landing-step-num">3</div>
+                    <h4>Save</h4>
+                    <p>Build a focused watchlist so high-conviction setups stay visible.</p>
+                </div>
+                <div class="landing-step">
+                    <div class="landing-step-num">4</div>
+                    <h4>Track</h4>
+                    <p>Sign in and monitor decisions in your dashboard workflow.</p>
                 </div>
             </div>
-        </div>
+        </section>
+
+        <section class="landing-section reveal">
+            <h2 class="landing-section-title">What learners say</h2>
+            <p class="landing-section-copy">
+                Social proof cards add credibility and make the page feel like a complete product story.
+            </p>
+            <div class="landing-testimonial-grid">
+                <article class="landing-testimonial">
+                    <p class="landing-testimonial-copy">"The screener and watchlist flow made me stop random clicking. I finally follow a repeatable process."</p>
+                    <div class="landing-testimonial-meta">Ari S. · Beginner investor</div>
+                </article>
+                <article class="landing-testimonial">
+                    <p class="landing-testimonial-copy">"I like that Vest explains risk in plain terms. The content is practical, not overwhelming."</p>
+                    <div class="landing-testimonial-meta">Maya R. · Finance student</div>
+                </article>
+                <article class="landing-testimonial">
+                    <p class="landing-testimonial-copy">"The dashboard gives me one place to review what I tracked and why. It keeps me disciplined."</p>
+                    <div class="landing-testimonial-meta">Chris D. · New active learner</div>
+                </article>
+            </div>
+        </section>
+
+        <section class="landing-section reveal">
+            <h2 class="landing-section-title">Frequently asked questions</h2>
+            <div class="landing-faq">
+                <article class="landing-faq-item">
+                    <h4>Is Vest for active traders or long-term learners?</h4>
+                    <p>Both can use it, but Vest is designed first for beginners who want to build a process and reduce emotional decisions.</p>
+                </article>
+                <article class="landing-faq-item">
+                    <h4>Do I need prior investing experience?</h4>
+                    <p>No. The page flow and product copy are intentionally built for first-time users.</p>
+                </article>
+                <article class="landing-faq-item">
+                    <h4>Does Vest provide financial advice?</h4>
+                    <p>No. Vest is educational and process-oriented. It helps you reason with data, not follow tips.</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="landing-final-cta reveal">
+            <h2 class="landing-section-title">Ready to invest smarter?</h2>
+            <p>
+                Build your account, explore market tools, and grow confidence through a cleaner long-scroll experience.
+            </p>
+            <div class="d-flex flex-wrap justify-content-center gap-3">
+                <a class="btn btn-primary btn-lg px-4 rounded-pill" asp-controller="Home" asp-action="Signup">Create free account</a>
+                <a class="btn btn-outline btn-lg px-4 rounded-pill" asp-controller="Home" asp-action="About">Learn about Vest</a>
+                <a class="btn btn-outline btn-lg px-4 rounded-pill" asp-controller="Stocks" asp-action="Index">Start with markets</a>
+            </div>
+        </section>
     </div>
 </div>
 
-<!-- FEATURES PREVIEW -->
-<div class="section text-center">
-    <h2 class="section-title">What You'll Find on Vest</h2>
-    <div class="row g-4 justify-content-center">
-        <div class="col-md-3">
-             <div class="card h-100 p-4 border-0 text-center fw-bold text-gradient">
-                Market Data Visualizations
-             </div>
-        </div>
-        <div class="col-md-3">
-             <div class="card h-100 p-4 border-0 text-center fw-bold text-gradient">
-                Quant Models & Indicators
-             </div>
-        </div>
-        <div class="col-md-3">
-             <div class="card h-100 p-4 border-0 text-center fw-bold text-gradient">
-                Beginner Investing Guides
-             </div>
-        </div>
-        <div class="col-md-3">
-             <div class="card h-100 p-4 border-0 text-center fw-bold text-gradient">
-                Risk & Volatility Education
-             </div>
-        </div>
-    </div>
-</div>
+<script>
+    (() => {
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const revealEls = Array.from(document.querySelectorAll('.reveal'));
+        const counterEls = Array.from(document.querySelectorAll('[data-counter]'));
 
-<!-- CALL TO ACTION -->
-<div class="cta-section text-center">
-    <h2>New to investing?</h2>
-    <p class="mb-4 text-secondary mx-auto" style="max-width:520px;">
-        Browse stocks and crypto, use the screener, and save symbols to a watchlist — then sign in to track a portfolio on your dashboard.
-    </p>
-    <div class="d-flex flex-wrap justify-content-center gap-3">
-        <a class="btn btn-primary btn-lg px-4 rounded-pill" asp-controller="Home" asp-action="Signup">Create free account</a>
-        <a class="btn btn-outline btn-lg px-4 rounded-pill" asp-controller="Home" asp-action="Log">Log in</a>
-    </div>
-</div>
+        if (!reduced && 'IntersectionObserver' in window) {
+            const revealObserver = new IntersectionObserver((entries, obs) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('in-view');
+                        obs.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.16, rootMargin: '0px 0px -8% 0px' });
+
+            revealEls.forEach(el => revealObserver.observe(el));
+        } else {
+            revealEls.forEach(el => el.classList.add('in-view'));
+        }
+
+        const animateCounter = (el) => {
+            const rawTarget = el.getAttribute('data-counter') || '0';
+            const target = Number(rawTarget);
+            const hasDecimal = rawTarget.includes('.');
+            const duration = 1200;
+            const start = performance.now();
+
+            const tick = (now) => {
+                const progress = Math.min((now - start) / duration, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+                const value = target * eased;
+                el.textContent = hasDecimal ? value.toFixed(1) : Math.round(value).toLocaleString();
+                if (progress < 1) requestAnimationFrame(tick);
+            };
+
+            requestAnimationFrame(tick);
+        };
+
+        if (!reduced && 'IntersectionObserver' in window) {
+            const counterObserver = new IntersectionObserver((entries, obs) => {
+                entries.forEach(entry => {
+                    if (!entry.isIntersecting) return;
+                    animateCounter(entry.target);
+                    obs.unobserve(entry.target);
+                });
+            }, { threshold: 0.5 });
+
+            counterEls.forEach(el => counterObserver.observe(el));
+        } else {
+            counterEls.forEach(el => {
+                const rawTarget = el.getAttribute('data-counter') || '0';
+                const target = Number(rawTarget);
+                const hasDecimal = rawTarget.includes('.');
+                el.textContent = hasDecimal ? target.toFixed(1) : Math.round(target).toLocaleString();
+            });
+        }
+    })();
+</script>
 
 @* Homepage designed by Benson Xue *@
