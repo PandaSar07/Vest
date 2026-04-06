@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Vest.styles.css" asp-append-version="true" />
     <link rel="icon" type="image/png" href="~/images/favicon-32x32.png" />
+    @await RenderSectionAsync("Head", required: false)
     <style>
         /* ── Profile avatar ── */
         .nav-avatar {
@@ -383,8 +384,9 @@
                     <p class="mb-0 mt-1 small text-secondary" style="opacity:0.85;">For educational use only. Not financial advice.</p>
                 </div>
                 <div class="col-md-6 text-center text-md-end">
-                    <a class="footer-link me-4" asp-area="" asp-controller="Home" asp-action="About">About</a>
-                    <a class="footer-link" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy Policy</a>
+                    <a class="footer-link me-3" asp-area="" asp-controller="Home" asp-action="About">About</a>
+                    <a class="footer-link me-3" asp-area="" asp-controller="Home" asp-action="Contact">Contact</a>
+                    <a class="footer-link" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                 </div>
             </div>
         </div>
@@ -425,10 +427,7 @@
                 { symbol: 'META', name: 'Meta' },
                 { symbol: 'GOOGL', name: 'Alphabet' },
                 { symbol: 'SPY', name: 'S&P 500 ETF' },
-                { symbol: 'QQQ', name: 'Nasdaq 100 ETF' },
-                { symbol: 'BTC-USD', name: 'Bitcoin / USD' },
-                { symbol: 'ETH-USD', name: 'Ethereum / USD' },
-                { symbol: 'SOL-USD', name: 'Solana / USD' }
+                { symbol: 'QQQ', name: 'Nasdaq 100 ETF' }
             ];
 
             let activeIndex = -1;

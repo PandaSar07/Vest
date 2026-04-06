@@ -7,6 +7,17 @@ namespace Vest.Controllers
     [Route("market")]
     public class MarketController : ControllerBase
     {
+        /// <summary>Drop obvious non-US Finnhub symbology (e.g. AAPL.SW) even if search leaks; keep BRK.B-style class shares.</summary>
+        private static bool IsUsListedSymbol(string symbol)
+        {
+            if (string.IsNullOrWhiteSpace(symbol)) return false;
+            if (symbol.Contains('-', StringComparison.Ordinal)) return false;
+            var i = symbol.LastIndexOf('.');
+            if (i < 0) return true;
+            var suffix = symbol[(i + 1)..];
+            return suffix.Length < 2;
+        }
+
         private readonly FinnhubService _finnhubService;
 
         public MarketController(FinnhubService finnhubService)
@@ -117,7 +128,8 @@ namespace Vest.Controllers
                 if (!raw.Value.TryGetProperty("result", out var results) || results.ValueKind != System.Text.Json.JsonValueKind.Array)
                     return Ok(new { result = Array.Empty<object>() });
 
-                var allowedTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Common Stock", "ADR", "ETF", "ETP", "Crypto" };
+                // US equities only (Finnhub search uses exchange=US; types exclude crypto / non-equity).
+                var allowedTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Common Stock", "ADR", "ETF", "ETP" };
                 var mapped = results.EnumerateArray()
                     .Where(x => x.TryGetProperty("symbol", out var s) && s.ValueKind == System.Text.Json.JsonValueKind.String)
                     .Select(x => new
@@ -128,6 +140,7 @@ namespace Vest.Controllers
                     })
                     .Where(x => !string.IsNullOrWhiteSpace(x.symbol))
                     .Where(x => string.IsNullOrWhiteSpace(x.type) || allowedTypes.Contains(x.type))
+                    .Where(x => IsUsListedSymbol(x.symbol))
                     .Take(10)
                     .ToArray();
 
