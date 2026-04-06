@@ -100,5 +100,43 @@ namespace Vest.Controllers
                 return StatusCode(500, new { error = ex.Message });
             }
         }
+
+        /// <summary>Symbol autocomplete for navbar search.</summary>
+        [HttpGet("searchsymbols")]
+        public async Task<IActionResult> SearchSymbols([FromQuery] string q)
+        {
+            if (string.IsNullOrWhiteSpace(q) || q.Trim().Length < 1)
+                return Ok(new { result = Array.Empty<object>() });
+
+            try
+            {
+                var raw = await _finnhubService.SearchSymbolsAsync(q.Trim());
+                if (raw is null || raw.Value.ValueKind != System.Text.Json.JsonValueKind.Object)
+                    return Ok(new { result = Array.Empty<object>() });
+
+                if (!raw.Value.TryGetProperty("result", out var results) || results.ValueKind != System.Text.Json.JsonValueKind.Array)
+                    return Ok(new { result = Array.Empty<object>() });
+
+                var allowedTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Common Stock", "ADR", "ETF", "ETP", "Crypto" };
+                var mapped = results.EnumerateArray()
+                    .Where(x => x.TryGetProperty("symbol", out var s) && s.ValueKind == System.Text.Json.JsonValueKind.String)
+                    .Select(x => new
+                    {
+                        symbol = x.GetProperty("symbol").GetString() ?? "",
+                        description = x.TryGetProperty("description", out var d) && d.ValueKind == System.Text.Json.JsonValueKind.String ? d.GetString() ?? "" : "",
+                        type = x.TryGetProperty("type", out var t) && t.ValueKind == System.Text.Json.JsonValueKind.String ? t.GetString() ?? "" : ""
+                    })
+                    .Where(x => !string.IsNullOrWhiteSpace(x.symbol))
+                    .Where(x => string.IsNullOrWhiteSpace(x.type) || allowedTypes.Contains(x.type))
+                    .Take(10)
+                    .ToArray();
+
+                return Ok(new { result = mapped });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
     }
 }
