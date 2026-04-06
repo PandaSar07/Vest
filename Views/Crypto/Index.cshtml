@@ -1,0 +1,935 @@
+@{
+    ViewData["Title"] = "Crypto";
+}
+
+<style>
+    .crypto-hero { padding: 2.5rem 0 1.5rem; }
+
+    .search-wrap {
+        position: relative;
+        max-width: 520px;
+    }
+
+    .search-wrap input {
+        background: rgba(17, 25, 40, 0.8);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        border-radius: var(--radius-md);
+        padding: 0.85rem 1.25rem;
+        width: 100%;
+        font-size: 1rem;
+        font-family: var(--font-family);
+        transition: var(--transition);
+    }
+
+    .search-wrap input:focus {
+        outline: none;
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 3px var(--accent-glow);
+        caret-color: var(--accent-color);
+    }
+
+    .search-wrap input::placeholder { color: var(--text-secondary); }
+
+    .search-btn {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: var(--accent-color);
+        border: none;
+        color: #05070a;
+        border-radius: 10px;
+        padding: 0.5rem 1.25rem;
+        font-weight: 700;
+        font-size: 0.88rem;
+        cursor: pointer;
+        transition: var(--transition);
+        letter-spacing: 0.5px;
+    }
+
+    .search-btn:hover {
+        background: var(--accent-hover);
+        box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .crypto-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .crypto-chip {
+        background: rgba(56, 189, 248, 0.06);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        color: var(--accent-color);
+        border-radius: 9999px;
+        padding: 0.35rem 0.9rem;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.4px;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .crypto-chip:hover, .crypto-chip.active {
+        background: rgba(56, 189, 248, 0.15);
+        border-color: var(--accent-color);
+    }
+
+    .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        flex-wrap: wrap;
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    .crypto-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, rgba(56,189,248,0.2) 0%, rgba(139,92,246,0.15) 100%);
+        border: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-brand);
+        font-weight: 800;
+        font-size: 1.1rem;
+        color: var(--accent-color);
+    }
+
+    .asset-name {
+        font-family: var(--font-brand);
+        font-size: 1.7rem;
+        background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin: 0;
+    }
+
+    .meta-pill {
+        font-size: 0.75rem;
+        padding: 3px 10px;
+        border-radius: 9999px;
+        background: rgba(56, 189, 248, 0.08);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        color: var(--accent-color);
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 0.75rem;
+        margin: 1.5rem 0;
+    }
+
+    .stat-box {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-sm);
+        padding: 0.9rem 1rem;
+        backdrop-filter: var(--glass-blur);
+        transition: var(--transition);
+    }
+
+    .stat-box:hover { border-color: rgba(56,189,248,0.3); }
+
+    .stat-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--text-secondary);
+        margin-bottom: 0.3rem;
+    }
+
+    .stat-value {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .price-main {
+        font-size: 2.6rem;
+        font-weight: 800;
+        font-variant-numeric: tabular-nums;
+        line-height: 1;
+        color: var(--text-primary);
+    }
+
+    .price-change { font-size: 1.15rem; font-weight: 600; margin-left: 0.75rem; }
+    .change-up { color: var(--success-color); }
+    .change-down { color: var(--danger-color); }
+
+    .chart-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
+        backdrop-filter: var(--glass-blur);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        animation: fadeIn 0.6s ease-out;
+    }
+
+    .range-btns { display: flex; gap: 0.4rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+
+    .range-btn {
+        background: transparent;
+        border: 1px solid var(--border-color);
+        color: var(--text-secondary);
+        border-radius: var(--radius-sm);
+        padding: 0.35rem 0.85rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        letter-spacing: 0.5px;
+    }
+
+    .range-btn:hover, .range-btn.active {
+        background: var(--accent-color);
+        border-color: var(--accent-color);
+        color: #05070a;
+    }
+
+    #cryptoChart { width: 100% !important; height: 380px !important; }
+
+    .news-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .news-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
+        padding: 1.1rem 1.25rem;
+        transition: var(--transition);
+        text-decoration: none;
+        display: block;
+        backdrop-filter: var(--glass-blur);
+    }
+
+    .news-card:hover {
+        border-color: rgba(56,189,248,0.35);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px -10px rgba(0,0,0,0.5);
+    }
+
+    .news-source {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--accent-color);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .news-headline {
+        font-size: 0.9rem;
+        color: var(--text-primary);
+        font-weight: 500;
+        line-height: 1.45;
+        margin-bottom: 0.5rem;
+    }
+
+    .news-date { font-size: 0.72rem; color: var(--text-secondary); }
+
+    .skeleton {
+        background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.4s infinite;
+        border-radius: 8px;
+    }
+
+    @@keyframes shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+
+    #loadingOverlay {
+        display: none;
+        position: absolute;
+        inset: 0;
+        background: rgba(5,7,10,0.7);
+        border-radius: var(--radius-md);
+        z-index: 10;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .spinner {
+        width: 36px;
+        height: 36px;
+        border: 3px solid var(--border-color);
+        border-top-color: var(--accent-color);
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+    }
+
+    @@keyframes spin { to { transform: rotate(360deg); } }
+
+    .chart-wrap { position: relative; }
+
+    .section-header {
+        font-size: 1.1rem;
+        font-family: var(--font-brand);
+        background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1rem;
+        letter-spacing: 0.5px;
+    }
+
+    .crypto-247 {
+        font-size: 0.72rem;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        background: rgba(16,185,129,0.12);
+        border: 1px solid rgba(16,185,129,0.25);
+        color: #10b981;
+        letter-spacing: 0.3px;
+    }
+
+    .trade-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
+        backdrop-filter: var(--glass-blur);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    .trade-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; }
+
+    .trade-tab {
+        flex: 1;
+        padding: 0.6rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        background: transparent;
+        color: var(--text-secondary);
+        font-weight: 700;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: var(--transition);
+        letter-spacing: 0.5px;
+    }
+
+    .trade-tab.buy.active  { background: rgba(16,185,129,0.15); border-color: #10b981; color: #10b981; }
+    .trade-tab.sell.active { background: rgba(239,68,68,0.15);  border-color: #ef4444; color: #ef4444; }
+    .trade-tab:not(.active):hover { border-color: rgba(255,255,255,0.2); color: var(--text-primary); }
+
+    .trade-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+
+    .trade-info-row { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+
+    .trade-info-item { display: flex; flex-direction: column; gap: 2px; }
+
+    .trade-info-label {
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--text-secondary);
+        font-weight: 600;
+    }
+
+    .trade-info-value {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .trade-input {
+        background: rgba(17,25,40,0.8);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        border-radius: var(--radius-sm);
+        padding: 0.6rem 0.9rem;
+        font-size: 1rem;
+        font-family: var(--font-family);
+        width: 140px;
+        transition: var(--transition);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .trade-input:focus {
+        outline: none;
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 2px var(--accent-glow);
+    }
+
+    .trade-submit {
+        padding: 0.6rem 1.4rem;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-weight: 700;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: var(--transition);
+        min-width: 90px;
+    }
+
+    .trade-submit.buy-btn  { background: #10b981; color: #05070a; }
+    .trade-submit.sell-btn { background: #ef4444; color: #fff; }
+    .trade-submit:hover    { transform: scale(1.04); filter: brightness(1.1); }
+    .trade-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .trade-est { font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.4rem; }
+
+    .trade-login-prompt {
+        text-align: center;
+        padding: 1.25rem;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    #tradeToast {
+        position: fixed;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        background: rgba(17,25,40,0.97);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
+        padding: 1rem 1.4rem;
+        color: var(--text-primary);
+        font-size: 0.9rem;
+        z-index: 9999;
+        transform: translateY(120%);
+        transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+        max-width: 360px;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    #tradeToast.show { transform: translateY(0); }
+    #tradeToast.toast-ok   { border-left: 3px solid #10b981; }
+    #tradeToast.toast-err  { border-left: 3px solid #ef4444; }
+</style>
+
+<div class="container crypto-hero">
+
+    <div class="mb-4">
+        <div class="search-wrap">
+            <input type="text" id="symbolInput" placeholder="Symbol — e.g. BTC, ETH, SOL or BTC-USD" value="BTC" autocomplete="off" />
+            <button class="search-btn" id="searchBtn">Load</button>
+        </div>
+        <div class="crypto-chips" id="cryptoChips" aria-label="Popular assets">
+            <button type="button" class="crypto-chip active" data-base="BTC">Bitcoin</button>
+            <button type="button" class="crypto-chip" data-base="ETH">Ethereum</button>
+            <button type="button" class="crypto-chip" data-base="SOL">Solana</button>
+            <button type="button" class="crypto-chip" data-base="XRP">XRP</button>
+            <button type="button" class="crypto-chip" data-base="DOGE">Dogecoin</button>
+            <button type="button" class="crypto-chip" data-base="ADA">Cardano</button>
+        </div>
+    </div>
+
+    <div id="profileSection" class="mb-3" style="min-height:70px;">
+        <div class="profile-header" id="profileHeader">
+            <div class="skeleton" style="width:56px;height:56px;border-radius:12px;"></div>
+            <div>
+                <div class="skeleton" style="width:200px;height:28px;margin-bottom:8px;border-radius:6px;"></div>
+                <div class="skeleton" style="width:180px;height:18px;border-radius:6px;"></div>
+            </div>
+            <span class="crypto-247 ms-auto d-none d-sm-inline">24/7 markets</span>
+        </div>
+    </div>
+
+    <div id="quoteSection" class="mb-2">
+        <div class="d-flex align-items-baseline flex-wrap gap-2 mb-3">
+            <span class="price-main" id="priceMain">—</span>
+            <span class="price-change" id="priceChange">—</span>
+        </div>
+        <div class="stats-grid" id="statsGrid"></div>
+    </div>
+
+    <div class="chart-card">
+        <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+            <div>
+                <span class="section-header" style="display:inline;">USD price history</span>
+            </div>
+            <div class="range-btns" id="rangeBtns">
+                <button class="range-btn" data-range="5d" data-interval="1h">1W</button>
+                <button class="range-btn active" data-range="1mo" data-interval="1d">1M</button>
+                <button class="range-btn" data-range="3mo" data-interval="1d">3M</button>
+                <button class="range-btn" data-range="6mo" data-interval="1d">6M</button>
+                <button class="range-btn" data-range="1y" data-interval="1d">1Y</button>
+            </div>
+        </div>
+        <div class="chart-wrap">
+            <div id="loadingOverlay" style="display:flex;">
+                <div class="spinner"></div>
+            </div>
+            <canvas id="cryptoChart"></canvas>
+        </div>
+    </div>
+
+    <div class="trade-card mb-4" id="tradePanel">
+        <div id="tradeLoggedIn">
+            <p class="section-header mb-3">Trade (paper)</p>
+            <p class="text-secondary small mb-3" style="font-size:0.82rem;margin-top:-0.5rem;">Uses the same cash balance as stocks. Positions are stored as <code style="color:var(--accent-color);">BTC-USD</code> style symbols in your portfolio.</p>
+            <div class="trade-info-row">
+                <div class="trade-info-item">
+                    <span class="trade-info-label">Cash available</span>
+                    <span class="trade-info-value" id="tradeCash">—</span>
+                </div>
+                <div class="trade-info-item">
+                    <span class="trade-info-label">Amount held</span>
+                    <span class="trade-info-value" id="tradeShares">—</span>
+                </div>
+                <div class="trade-info-item">
+                    <span class="trade-info-label">Avg cost (USD)</span>
+                    <span class="trade-info-value" id="tradeAvgCost">—</span>
+                </div>
+            </div>
+            <div class="trade-tabs">
+                <button type="button" class="trade-tab buy active" id="tabBuy" onclick="switchTab('buy')">BUY</button>
+                <button type="button" class="trade-tab sell" id="tabSell" onclick="switchTab('sell')">SELL</button>
+                <button type="button" class="trade-tab" style="border-color:rgba(251,191,36,0.4);color:#fbbf24;" id="tabLimit" onclick="switchTab('limit')">LIMIT</button>
+            </div>
+            <div class="trade-row">
+                <input type="number" class="trade-input" id="sharesInput" min="0.00000001" step="any" placeholder="Amount" value="0.01" />
+                <input type="number" class="trade-input" id="limitPriceInput" min="0.01" step="any" placeholder="Limit $" style="display:none;" />
+                <button type="button" class="trade-submit buy-btn" id="tradeSubmitBtn" onclick="submitTrade()">Buy</button>
+            </div>
+            <div class="trade-est" id="tradeEst">Est. cost: —</div>
+        </div>
+        <div id="tradeGuest" style="display:none;" class="trade-login-prompt">
+            <a href="/Home/Log" style="color:var(--accent-color);font-weight:600;">Log in</a> to buy and sell crypto from your paper account.
+        </div>
+    </div>
+
+    <div class="mb-5">
+        <p class="section-header">Crypto news</p>
+        <div class="news-grid" id="newsGrid"></div>
+    </div>
+
+</div>
+
+<div id="tradeToast"></div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script>
+        const KNOWN = {
+            BTC:  { name: 'Bitcoin',     finnhub: 'BINANCE:BTCUSDT',  yahoo: 'BTC-USD' },
+            ETH:  { name: 'Ethereum',    finnhub: 'BINANCE:ETHUSDT',  yahoo: 'ETH-USD' },
+            SOL:  { name: 'Solana',      finnhub: 'BINANCE:SOLUSDT',  yahoo: 'SOL-USD' },
+            XRP:  { name: 'XRP',         finnhub: 'BINANCE:XRPUSDT',  yahoo: 'XRP-USD' },
+            DOGE: { name: 'Dogecoin',    finnhub: 'BINANCE:DOGEUSDT', yahoo: 'DOGE-USD' },
+            ADA:  { name: 'Cardano',     finnhub: 'BINANCE:ADAUSDT',  yahoo: 'ADA-USD' },
+            LTC:  { name: 'Litecoin',    finnhub: 'BINANCE:LTCUSDT',  yahoo: 'LTC-USD' },
+            BNB:  { name: 'BNB',         finnhub: 'BINANCE:BNBUSDT',  yahoo: 'BNB-USD' },
+        };
+
+        function resolveCrypto(raw) {
+            const s = (raw || '').trim().toUpperCase();
+            if (!s) return null;
+            if (KNOWN[s]) return { base: s, ...KNOWN[s] };
+            if (s.startsWith('BINANCE:')) {
+                const pair = s.slice('BINANCE:'.length);
+                const m = pair.match(/^([A-Z0-9]+)(USDT|USDC|BUSD|TUSD)$/);
+                const base = m ? m[1] : pair.replace(/USDT$|USDC$/, '') || pair;
+                return { base, name: base, finnhub: s, yahoo: `${base}-USD` };
+            }
+            if (s.includes('-USD')) {
+                const base = s.replace('-USD', '');
+                const k = KNOWN[base];
+                if (k) return { base, ...k };
+                return { base, name: base, finnhub: `BINANCE:${base}USDT`, yahoo: s };
+            }
+            const k2 = KNOWN[s];
+            if (k2) return { base: s, ...k2 };
+            return { base: s, name: s, finnhub: `BINANCE:${s}USDT`, yahoo: `${s}-USD` };
+        }
+
+        let chart;
+        let resolved = resolveCrypto('BTC');
+        let currentRange = '1mo';
+        let currentInterval = '1d';
+        let refreshInterval;
+        let tradeMode = 'buy';
+        let livePriceForTrade = 0;
+        let userLoggedIn = false;
+
+        const fmt = (n, decimals = 2) =>
+            n == null ? '—' : Number(n).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+        const fmtDate = ts => new Date(ts * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const fmtTs = ts => new Date(ts * 1000).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+
+        function renderProfile(r) {
+            const el = document.getElementById('profileHeader');
+            const initials = (r.base || '?').slice(0, 3);
+            el.innerHTML = `
+                <div class="crypto-icon" aria-hidden="true">${initials}</div>
+                <div>
+                    <h1 class="asset-name">${r.name} <span style="font-size:1rem;color:var(--text-secondary);font-family:var(--font-family);-webkit-text-fill-color:var(--text-secondary);">${r.yahoo}</span></h1>
+                    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.35rem;">
+                        <span class="meta-pill">${r.finnhub}</span>
+                        <span class="meta-pill">Spot · USD</span>
+                    </div>
+                </div>
+                <span class="crypto-247 ms-auto d-none d-sm-inline">24/7 markets</span>`;
+        }
+
+        async function loadQuote(r) {
+            try {
+                const url = `/market/fullquote?symbol=${encodeURIComponent(r.finnhub)}`;
+                const res = await fetch(url);
+                if (!res.ok) {
+                    livePriceForTrade = 0;
+                    document.getElementById('priceMain').textContent = '—';
+                    document.getElementById('priceChange').innerHTML = '<span class="change-down">Quote unavailable</span>';
+                    document.getElementById('statsGrid').innerHTML = '';
+                    updateEst();
+                    return;
+                }
+                const q = await res.json();
+                const price = q.c;
+                livePriceForTrade = price;
+                const change = q.d;
+                const pct = q.dp;
+                const isUp = change >= 0;
+                document.getElementById('priceMain').textContent = '$' + fmt(price);
+                document.getElementById('priceChange').innerHTML =
+                    `<span class="${isUp ? 'change-up' : 'change-down'}">${isUp ? '▲' : '▼'} ${fmt(Math.abs(change))} (${fmt(Math.abs(pct))}%)</span>`;
+                const stats = [
+                    { label: 'Open', value: '$' + fmt(q.o) },
+                    { label: 'Prev close', value: '$' + fmt(q.pc) },
+                    { label: 'High', value: '$' + fmt(q.h) },
+                    { label: 'Low', value: '$' + fmt(q.l) },
+                    { label: 'Updated', value: q.t ? fmtTs(q.t) : '—' },
+                ];
+                document.getElementById('statsGrid').innerHTML = stats.map(s => `
+                    <div class="stat-box">
+                        <div class="stat-label">${s.label}</div>
+                        <div class="stat-value">${s.value}</div>
+                    </div>`).join('');
+                updateEst();
+            } catch (e) {
+                console.warn('Quote error', e);
+                livePriceForTrade = 0;
+                updateEst();
+            }
+        }
+
+        async function loadHolding(portfolioSymbol) {
+            try {
+                const r = await fetch(`/portfolio/holding?symbol=${encodeURIComponent(portfolioSymbol)}`);
+                if (r.status === 401) {
+                    document.getElementById('tradeLoggedIn').style.display = 'none';
+                    document.getElementById('tradeGuest').style.display = 'block';
+                    userLoggedIn = false;
+                    return;
+                }
+                document.getElementById('tradeLoggedIn').style.display = 'block';
+                document.getElementById('tradeGuest').style.display = 'none';
+                userLoggedIn = true;
+                if (!r.ok) return;
+                const d = await r.json();
+                document.getElementById('tradeCash').textContent = '$' + fmt(d.cash);
+                document.getElementById('tradeShares').textContent = fmt(d.shares, 8);
+                document.getElementById('tradeAvgCost').textContent = d.avgCost > 0 ? '$' + fmt(d.avgCost) : '—';
+            } catch (e) { console.warn('loadHolding', e); }
+        }
+
+        function switchTab(mode) {
+            tradeMode = mode;
+            const isLimit = mode === 'limit';
+            const isBuy = mode === 'buy';
+            document.getElementById('tabBuy').classList.toggle('active', isBuy);
+            document.getElementById('tabSell').classList.toggle('active', mode === 'sell');
+            document.getElementById('tabLimit').classList.toggle('active', isLimit);
+            const btn = document.getElementById('tradeSubmitBtn');
+            if (isLimit) {
+                btn.textContent = 'Place limit order';
+                btn.className = 'trade-submit';
+                btn.style.background = 'linear-gradient(135deg,#f59e0b,#d97706)';
+                btn.style.color = '#fff';
+                document.getElementById('limitPriceInput').style.display = 'block';
+            } else {
+                document.getElementById('limitPriceInput').style.display = 'none';
+                btn.style.background = '';
+                btn.style.color = '';
+                btn.textContent = isBuy ? 'Buy' : 'Sell';
+                btn.className = 'trade-submit ' + (isBuy ? 'buy-btn' : 'sell-btn');
+            }
+            updateEst();
+        }
+
+        function updateEst() {
+            const amt = parseFloat(document.getElementById('sharesInput').value) || 0;
+            const cost = amt * livePriceForTrade;
+            const label = tradeMode === 'buy' ? 'Est. cost' : 'Est. proceeds';
+            const unit = resolved ? resolved.yahoo : '';
+            document.getElementById('tradeEst').textContent =
+                livePriceForTrade > 0
+                    ? `${label}: $${fmt(cost)} @@ $${fmt(livePriceForTrade)}/unit (${unit})`
+                    : `${label}: —`;
+        }
+
+        document.getElementById('sharesInput').addEventListener('input', updateEst);
+
+        let _toastTimer;
+        function showToast(msg, ok) {
+            const el = document.getElementById('tradeToast');
+            el.textContent = msg;
+            el.className = 'show ' + (ok ? 'toast-ok' : 'toast-err');
+            clearTimeout(_toastTimer);
+            _toastTimer = setTimeout(() => { el.className = ''; }, 3500);
+        }
+
+        async function submitTrade() {
+            if (!resolved) return;
+            const portfolioSymbol = resolved.yahoo;
+            const amt = parseFloat(document.getElementById('sharesInput').value);
+            if (!amt || amt <= 0) { showToast('Enter a valid amount.', false); return; }
+
+            if (tradeMode === 'limit') {
+                const limitPrice = parseFloat(document.getElementById('limitPriceInput').value);
+                if (!limitPrice || limitPrice <= 0) { showToast('Enter a valid limit price.', false); return; }
+                const action = livePriceForTrade > 0 && limitPrice < livePriceForTrade ? 'BUY' : 'SELL';
+                const r = await fetch('/portfolio/order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ symbol: portfolioSymbol, shares: amt, limitPrice, action })
+                });
+                const data = await r.json();
+                showToast(r.ok ? data.message : (data.error || 'Failed.'), r.ok);
+                if (r.ok) await loadHolding(portfolioSymbol);
+                return;
+            }
+
+            const btn = document.getElementById('tradeSubmitBtn');
+            btn.disabled = true;
+            const endpoint = tradeMode === 'buy' ? '/portfolio/buy' : '/portfolio/sell';
+            try {
+                const r = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ symbol: portfolioSymbol, shares: amt })
+                });
+                const data = await r.json();
+                if (!r.ok) showToast(data.error || 'Trade failed.', false);
+                else {
+                    showToast(data.message, true);
+                    await loadHolding(portfolioSymbol);
+                    await loadQuote(resolved);
+                }
+            } catch {
+                showToast('Network error. Please try again.', false);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function loadHistory(r, range, interval) {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.style.display = 'flex';
+            try {
+                const url = `/market/history?symbol=${encodeURIComponent(r.yahoo)}&range=${range}&interval=${interval}`;
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('history ' + res.status);
+                const data = await res.json();
+                if (!data.timestamps || data.timestamps.length === 0) {
+                    showNoData('No chart data for this range.');
+                    return;
+                }
+                renderChart(r.yahoo, data, interval);
+            } catch (e) {
+                console.warn('History error', e);
+                showNoData('Could not load price history.');
+            } finally {
+                overlay.style.display = 'none';
+            }
+        }
+
+        function showNoData(msg) {
+            if (chart) { chart.destroy(); chart = null; }
+            const canvas = document.getElementById('cryptoChart');
+            canvas.style.height = '200px';
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'rgba(148,163,184,0.35)';
+            ctx.font = '15px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(msg || 'No data.', canvas.width / 2, 100);
+        }
+
+        function renderChart(labelSymbol, data, interval) {
+            const labels = data.timestamps.map(ts => {
+                const d = new Date(ts * 1000);
+                if (interval === '1h') return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric' });
+                return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            });
+            const closes = data.closes;
+            const valid = closes.filter(v => v != null);
+            const firstPrice = valid[0];
+            const lastPrice = valid[valid.length - 1];
+            const isUp = lastPrice >= firstPrice;
+            const lineColor = isUp ? '#10b981' : '#ef4444';
+            const fillColor = isUp ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)';
+            if (chart) chart.destroy();
+            const ctx = document.getElementById('cryptoChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: labelSymbol + ' close',
+                        data: closes,
+                        borderColor: lineColor,
+                        backgroundColor: (context) => {
+                            const g = context.chart.ctx.createLinearGradient(0, 0, 0, 380);
+                            g.addColorStop(0, fillColor);
+                            g.addColorStop(1, 'rgba(5,7,10,0)');
+                            return g;
+                        },
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 0,
+                        pointHoverRadius: 5,
+                        pointHoverBackgroundColor: lineColor,
+                        pointHoverBorderColor: '#fff',
+                        pointHoverBorderWidth: 2,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: 'index' },
+                    animation: { duration: 600, easing: 'easeInOutQuart' },
+                    scales: {
+                        y: {
+                            position: 'right',
+                            beginAtZero: false,
+                            grid: { color: 'rgba(255,255,255,0.04)' },
+                            ticks: {
+                                color: '#64748b',
+                                font: { size: 11 },
+                                callback: v => '$' + v.toLocaleString()
+                            },
+                            border: { display: false }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#64748b', font: { size: 11 }, maxTicksLimit: 8, maxRotation: 0 },
+                            border: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(17,25,40,0.95)',
+                            borderColor: 'rgba(56,189,248,0.2)',
+                            borderWidth: 1,
+                            titleColor: '#94a3b8',
+                            bodyColor: '#ffffff',
+                            bodyFont: { size: 14, weight: 'bold' },
+                            padding: 12,
+                            callbacks: { label: c => ' $' + fmt(c.parsed.y) }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function loadCryptoNews() {
+            const grid = document.getElementById('newsGrid');
+            grid.innerHTML = Array(4).fill(0).map(() => `
+                <div class="news-card">
+                    <div class="skeleton" style="height:12px;width:70px;margin-bottom:8px;"></div>
+                    <div class="skeleton" style="height:16px;margin-bottom:6px;"></div>
+                    <div class="skeleton" style="height:16px;width:80%;"></div>
+                </div>`).join('');
+            try {
+                const res = await fetch('/market/crypto-news');
+                if (!res.ok) throw new Error();
+                const items = await res.json();
+                const top = Array.isArray(items) ? items.slice(0, 8) : [];
+                if (top.length === 0) {
+                    grid.innerHTML = '<p style="color:var(--text-secondary);font-size:0.9rem;">No news available.</p>';
+                    return;
+                }
+                grid.innerHTML = top.map(n => `
+                    <a class="news-card" href="${n.url || '#'}" target="_blank" rel="noopener">
+                        <div class="news-source">${n.source || 'News'}</div>
+                        <div class="news-headline">${n.headline || ''}</div>
+                        <div class="news-date">${n.datetime ? fmtDate(n.datetime) : ''}</div>
+                    </a>`).join('');
+            } catch {
+                grid.innerHTML = '<p style="color:var(--text-secondary);font-size:0.9rem;">Could not load crypto news.</p>';
+            }
+        }
+
+        async function loadAll(input) {
+            const r = resolveCrypto(input);
+            if (!r) return;
+            resolved = r;
+            clearInterval(refreshInterval);
+            renderProfile(r);
+            document.querySelectorAll('.crypto-chip').forEach(c => {
+                c.classList.toggle('active', c.getAttribute('data-base') === r.base);
+            });
+            await Promise.all([
+                loadQuote(r),
+                loadHistory(r, currentRange, currentInterval),
+                loadHolding(r.yahoo),
+            ]);
+            refreshInterval = setInterval(async () => {
+                await loadQuote(r);
+                updateEst();
+            }, 30000);
+        }
+
+        document.getElementById('rangeBtns').addEventListener('click', e => {
+            const btn = e.target.closest('.range-btn');
+            if (!btn || !resolved) return;
+            document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentRange = btn.dataset.range;
+            currentInterval = btn.dataset.interval;
+            loadHistory(resolved, currentRange, currentInterval);
+        });
+
+        document.getElementById('searchBtn').addEventListener('click', () => {
+            const v = document.getElementById('symbolInput').value.trim();
+            if (v) loadAll(v);
+        });
+
+        document.getElementById('symbolInput').addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                const v = e.target.value.trim();
+                if (v) loadAll(v);
+            }
+        });
+
+        document.getElementById('cryptoChips').addEventListener('click', e => {
+            const chip = e.target.closest('.crypto-chip');
+            if (!chip) return;
+            const base = chip.getAttribute('data-base');
+            document.getElementById('symbolInput').value = base;
+            loadAll(base);
+        });
+
+        const qp = new URLSearchParams(window.location.search).get('symbol');
+        const start = qp || 'BTC';
+        document.getElementById('symbolInput').value = start;
+        loadAll(start);
+        loadCryptoNews();
+    </script>
+}

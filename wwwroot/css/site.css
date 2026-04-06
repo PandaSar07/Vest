@@ -152,6 +152,23 @@ h4 {
   width: 70%;
 }
 
+.nav-link.active {
+  color: var(--text-primary) !important;
+}
+
+.nav-link.active::after {
+  width: 70%;
+}
+
+.nav-link.btn-outline.active {
+  border-color: var(--accent-color);
+  color: var(--accent-color) !important;
+}
+
+.nav-link.btn-outline.active::after {
+  display: none;
+}
+
 /* Premium Dashboard Cards */
 .dashboard-container {
   display: grid;
@@ -334,6 +351,24 @@ footer {
 
 main {
   animation: fadeIn 0.6s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  main {
+    animation: none;
+  }
+
+  .card:hover {
+    transform: none;
+  }
+
+  .btn-primary:hover {
+    transform: none;
+  }
 }
 
 /* Utilities */

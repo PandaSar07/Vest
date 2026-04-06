@@ -22,7 +22,11 @@ public class HomeController : Controller
         _emailService = emailService;
     }
 
-    public IActionResult Index() => View();
+    public IActionResult Index()
+    {
+        ViewData["FluidMain"] = true;
+        return View();
+    }
     public IActionResult Privacy() => View();
     public IActionResult About() => View();
 

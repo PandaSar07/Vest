@@ -97,5 +97,17 @@ namespace Vest.Services
 
             return new { timestamps, closes };
         }
+
+        /// <summary>General cryptocurrency market news headlines (Finnhub category=crypto).</summary>
+        public async Task<JsonElement?> GetCryptoNewsAsync()
+        {
+            var url = $"https://finnhub.io/api/v1/news?category=crypto&token={_apiKey}";
+            var response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadAsStringAsync();
+            using var doc = JsonDocument.Parse(json);
+            return doc.RootElement.Clone();
+        }
     }
 }

@@ -37,13 +37,19 @@ public class PortfolioController : ControllerBase
             {
                 try
                 {
-                    var q = await _finnhub.GetFullQuoteAsync(h.Symbol);
+                    var quoteSym = QuoteSymbolResolver.ForFinnhubQuote(h.Symbol);
+                    var q = await _finnhub.GetFullQuoteAsync(quoteSym);
                     if (q.HasValue && q.Value.TryGetProperty("c", out var c) && c.GetDecimal() != 0)
                         priceMap[h.Symbol] = c.GetDecimal();
 
-                    var p = await _finnhub.GetCompanyProfileAsync(h.Symbol);
-                    if (p.HasValue && p.Value.TryGetProperty("finnhubIndustry", out var ind))
-                        sectorMap[h.Symbol] = ind.GetString() ?? "Other";
+                    if (!QuoteSymbolResolver.IsUsdCryptoSpot(h.Symbol))
+                    {
+                        var p = await _finnhub.GetCompanyProfileAsync(h.Symbol);
+                        if (p.HasValue && p.Value.TryGetProperty("finnhubIndustry", out var ind))
+                            sectorMap[h.Symbol] = ind.GetString() ?? "Other";
+                    }
+                    else
+                        sectorMap[h.Symbol] = "Crypto";
                 }
                 catch { }
             }));
@@ -109,7 +115,8 @@ public class PortfolioController : ControllerBase
         try
         {
             var portfolio = await _portfolio.GetOrCreatePortfolioAsync(userId);
-            var holding   = await _portfolio.GetHoldingAsync(userId, symbol.ToUpper());
+            var sym = symbol.Trim().ToUpperInvariant();
+            var holding   = await _portfolio.GetHoldingAsync(userId, sym);
             return Ok(new { Cash = portfolio.Cash, Shares = holding?.Shares ?? 0m, AvgCost = holding?.AvgCost ?? 0m });
         }
         catch (Exception ex) { return StatusCode(500, new { error = ex.Message }); }
@@ -126,14 +133,16 @@ public class PortfolioController : ControllerBase
             return BadRequest(new { error = "Symbol and positive shares are required." });
         try
         {
-            var q = await _finnhub.GetFullQuoteAsync(req.Symbol.ToUpper());
+            var sym = req.Symbol.Trim().ToUpperInvariant();
+            var quoteSym = QuoteSymbolResolver.ForFinnhubQuote(sym);
+            var q = await _finnhub.GetFullQuoteAsync(quoteSym);
             if (q == null || !q.Value.TryGetProperty("c", out var pEl) || pEl.GetDecimal() == 0)
                 return BadRequest(new { error = "Could not fetch live price." });
             var price = pEl.GetDecimal();
-            var (ok, error) = await _portfolio.ExecuteBuyAsync(userId, req.Symbol.ToUpper(), req.Shares, price);
+            var (ok, error) = await _portfolio.ExecuteBuyAsync(userId, sym, req.Shares, price);
             if (!ok) return BadRequest(new { error });
             var p = await _portfolio.GetOrCreatePortfolioAsync(userId);
-            return Ok(new { message = $"Bought {req.Shares} \u00d7 {req.Symbol.ToUpper()} @ ${price:N2}", newCash = p.Cash, price });
+            return Ok(new { message = $"Bought {req.Shares} \u00d7 {sym} @ ${price:N2}", newCash = p.Cash, price });
         }
         catch (Exception ex) { return StatusCode(500, new { error = ex.Message }); }
     }
@@ -149,14 +158,16 @@ public class PortfolioController : ControllerBase
             return BadRequest(new { error = "Symbol and positive shares are required." });
         try
         {
-            var q = await _finnhub.GetFullQuoteAsync(req.Symbol.ToUpper());
+            var sym = req.Symbol.Trim().ToUpperInvariant();
+            var quoteSym = QuoteSymbolResolver.ForFinnhubQuote(sym);
+            var q = await _finnhub.GetFullQuoteAsync(quoteSym);
             if (q == null || !q.Value.TryGetProperty("c", out var pEl) || pEl.GetDecimal() == 0)
                 return BadRequest(new { error = "Could not fetch live price." });
             var price = pEl.GetDecimal();
-            var (ok, error) = await _portfolio.ExecuteSellAsync(userId, req.Symbol.ToUpper(), req.Shares, price);
+            var (ok, error) = await _portfolio.ExecuteSellAsync(userId, sym, req.Shares, price);
             if (!ok) return BadRequest(new { error });
             var p = await _portfolio.GetOrCreatePortfolioAsync(userId);
-            return Ok(new { message = $"Sold {req.Shares} \u00d7 {req.Symbol.ToUpper()} @ ${price:N2}", newCash = p.Cash, price });
+            return Ok(new { message = $"Sold {req.Shares} \u00d7 {sym} @ ${price:N2}", newCash = p.Cash, price });
         }
         catch (Exception ex) { return StatusCode(500, new { error = ex.Message }); }
     }
@@ -186,9 +197,10 @@ public class PortfolioController : ControllerBase
             return BadRequest(new { error = "Action must be BUY or SELL." });
         try
         {
+            var sym = req.Symbol.Trim().ToUpperInvariant();
             var order = await _portfolio.PlaceLimitOrderAsync(
-                userId, req.Symbol.ToUpper(), action, req.Shares, req.LimitPrice);
-            return Ok(new { message = $"Limit {action} order placed for {req.Shares} \u00d7 {req.Symbol.ToUpper()} @ ${req.LimitPrice:N2}", order });
+                userId, sym, action, req.Shares, req.LimitPrice);
+            return Ok(new { message = $"Limit {action} order placed for {req.Shares} \u00d7 {sym} @ ${req.LimitPrice:N2}", order });
         }
         catch (Exception ex) { return StatusCode(500, new { error = ex.Message }); }
     }

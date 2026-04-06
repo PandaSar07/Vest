@@ -12,10 +12,16 @@
         data-driven insights, quantitative analysis, and clear explanations —
         no hype, no guesswork.
     </p>
-    <div class="d-flex justify-content-center gap-3">
-        <a asp-controller="Home" asp-action="Log" class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow-lg">Start Learning</a>
-        <a asp-controller="Home" asp-action="About" class="btn btn-outline btn-lg px-5 py-3 rounded-pill">Learn More</a>
+    <div class="d-flex flex-wrap justify-content-center gap-3">
+        <a asp-controller="Stocks" asp-action="Index" class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow-lg">Explore markets</a>
+        <a asp-controller="Home" asp-action="Signup" class="btn btn-outline btn-lg px-5 py-3 rounded-pill">Create free account</a>
     </div>
+    <p class="mt-4 mb-0 text-secondary small">
+        Already have an account?
+        <a asp-controller="Home" asp-action="Log" class="forgot-link text-decoration-none fw-semibold">Log in</a>
+        <span class="text-secondary mx-1">·</span>
+        <a asp-controller="Home" asp-action="About" class="forgot-link text-decoration-none fw-semibold">About Vest</a>
+    </p>
 </div>
 
 <!-- WHAT WE DO -->
@@ -93,18 +99,14 @@
 
 <!-- CALL TO ACTION -->
 <div class="cta-section text-center">
-    <h2>New to Investing?</h2>
-    <p class="mb-4">
-        Start by learning how markets work before risking real money.
+    <h2>New to investing?</h2>
+    <p class="mb-4 text-secondary mx-auto" style="max-width:520px;">
+        Browse stocks and crypto, use the screener, and save symbols to a watchlist — then sign in to track a portfolio on your dashboard.
     </p>
-    <a class="btn btn-dark" asp-controller="Home" asp-action="Log">
-        Start Learning
-    </a>
+    <div class="d-flex flex-wrap justify-content-center gap-3">
+        <a class="btn btn-primary btn-lg px-4 rounded-pill" asp-controller="Home" asp-action="Signup">Create free account</a>
+        <a class="btn btn-outline btn-lg px-4 rounded-pill" asp-controller="Home" asp-action="Log">Log in</a>
+    </div>
 </div>
-
-<!-- FOOTER -->
-<footer class="text-center mt-5 mb-3 text-muted">
-    © @DateTime.Now.Year Vest • For educational use only • Not financial advice
-</footer>
 
 @* Homepage designed by Benson Xue *@

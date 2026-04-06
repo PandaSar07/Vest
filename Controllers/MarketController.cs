@@ -85,5 +85,20 @@ namespace Vest.Controllers
                 return StatusCode(500, new { error = ex.Message });
             }
         }
+
+        /// <summary>Latest crypto market news (not tied to a single token).</summary>
+        [HttpGet("crypto-news")]
+        public async Task<IActionResult> GetCryptoNews()
+        {
+            try
+            {
+                var news = await _finnhubService.GetCryptoNewsAsync();
+                return Ok(news);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
     }
 }

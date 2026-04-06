@@ -49,7 +49,7 @@ public class OrderExecutorService : BackgroundService
             if (ct.IsCancellationRequested) break;
             try
             {
-                var q = await finnhub.GetFullQuoteAsync(grp.Key);
+                var q = await finnhub.GetFullQuoteAsync(QuoteSymbolResolver.ForFinnhubQuote(grp.Key));
                 if (q == null || !q.Value.TryGetProperty("c", out var priceEl)) continue;
                 var livePrice = priceEl.GetDecimal();
                 if (livePrice == 0) continue;
