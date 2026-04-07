@@ -6,6 +6,9 @@ namespace Vest.Controllers
     {
         public IActionResult Index()
         {
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("UserId")))
+                return RedirectToAction("Log", "Home");
+
             return View();
         }
     }

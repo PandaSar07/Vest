@@ -17,6 +17,9 @@ namespace Vest.Controllers
             var suffix = symbol[(i + 1)..];
             return suffix.Length < 2;
         }
+        private static bool IsUsdCryptoSymbol(string symbol) =>
+            !string.IsNullOrWhiteSpace(symbol) &&
+            symbol.EndsWith("-USD", StringComparison.OrdinalIgnoreCase);
 
         private readonly FinnhubService _finnhubService;
 
@@ -139,12 +142,40 @@ namespace Vest.Controllers
                         type = x.TryGetProperty("type", out var t) && t.ValueKind == System.Text.Json.JsonValueKind.String ? t.GetString() ?? "" : ""
                     })
                     .Where(x => !string.IsNullOrWhiteSpace(x.symbol))
-                    .Where(x => string.IsNullOrWhiteSpace(x.type) || allowedTypes.Contains(x.type))
-                    .Where(x => IsUsListedSymbol(x.symbol))
+                    .Where(x =>
+                        IsUsdCryptoSymbol(x.symbol) ||
+                        ((string.IsNullOrWhiteSpace(x.type) || allowedTypes.Contains(x.type)) && IsUsListedSymbol(x.symbol)))
+                    .Take(16)
+                    .ToArray();
+
+                var priced = await Task.WhenAll(mapped.Select(async x =>
+                {
+                    decimal? price = null;
+                    try
+                    {
+                        var q = await _finnhubService.GetFullQuoteAsync(x.symbol.ToUpperInvariant());
+                        if (q.HasValue && q.Value.TryGetProperty("c", out var c) && c.ValueKind == System.Text.Json.JsonValueKind.Number)
+                            price = c.GetDecimal();
+                    }
+                    catch { }
+                    return new
+                    {
+                        symbol = x.symbol,
+                        description = x.description,
+                        type = x.type,
+                        price,
+                        assetType = IsUsdCryptoSymbol(x.symbol) ? "Crypto" : "Stock"
+                    };
+                }));
+
+                var sorted = priced
+                    .OrderBy(x => x.assetType == "Crypto" ? 1 : 0)
+                    .ThenByDescending(x => x.price ?? -1m)
+                    .ThenBy(x => x.symbol)
                     .Take(10)
                     .ToArray();
 
-                return Ok(new { result = mapped });
+                return Ok(new { result = sorted });
             }
             catch (Exception ex)
             {

@@ -60,7 +60,7 @@ export function Hero() {
       <div className="mt-10 grid grid-cols-1 gap-3 md:grid-cols-3">
         {[
           ['Precision over noise', 'A flow that rewards consistency.'],
-          ['Screener-first workflow', 'Discover → filter → save → track.'],
+          ['Market-first workflow', 'Discover → research → save → track.'],
           ['Premium micro-interactions', 'Subtle lift, glow, and motion.'],
         ].map(([k, v]) => (
           <div

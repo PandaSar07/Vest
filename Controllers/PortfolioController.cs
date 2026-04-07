@@ -17,6 +17,18 @@ public class PortfolioController : ControllerBase
     }
 
     private string? CurrentUserId => HttpContext.Session.GetString("UserId");
+    private static bool HasHundredthPrecision(decimal shares) =>
+        decimal.Round(shares, 2, MidpointRounding.AwayFromZero) == shares;
+
+    private static bool IsUsEquityMarketOpen()
+    {
+        DateTime etNow;
+        try { etNow = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Eastern Standard Time"); }
+        catch (TimeZoneNotFoundException) { etNow = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "America/New_York"); }
+        if (etNow.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday) return false;
+        var now = etNow.TimeOfDay;
+        return now >= new TimeSpan(9, 30, 0) && now < new TimeSpan(16, 0, 0);
+    }
 
     // ── GET /portfolio/summary ──────────────────────────────────────────────
 
@@ -131,9 +143,13 @@ public class PortfolioController : ControllerBase
         if (userId == null) return Unauthorized(new { error = "Not logged in." });
         if (string.IsNullOrWhiteSpace(req.Symbol) || req.Shares <= 0)
             return BadRequest(new { error = "Symbol and positive shares are required." });
+        if (!HasHundredthPrecision(req.Shares))
+            return BadRequest(new { error = "Shares must be in increments of 0.01." });
         try
         {
             var sym = req.Symbol.Trim().ToUpperInvariant();
+            if (!QuoteSymbolResolver.IsUsdCryptoSpot(sym) && !IsUsEquityMarketOpen())
+                return BadRequest(new { error = "Market is closed. Buying is only available during regular market hours (9:30 AM - 4:00 PM ET)." });
             var quoteSym = QuoteSymbolResolver.ForFinnhubQuote(sym);
             var q = await _finnhub.GetFullQuoteAsync(quoteSym);
             if (q == null || !q.Value.TryGetProperty("c", out var pEl) || pEl.GetDecimal() == 0)
@@ -156,9 +172,13 @@ public class PortfolioController : ControllerBase
         if (userId == null) return Unauthorized(new { error = "Not logged in." });
         if (string.IsNullOrWhiteSpace(req.Symbol) || req.Shares <= 0)
             return BadRequest(new { error = "Symbol and positive shares are required." });
+        if (!HasHundredthPrecision(req.Shares))
+            return BadRequest(new { error = "Shares must be in increments of 0.01." });
         try
         {
             var sym = req.Symbol.Trim().ToUpperInvariant();
+            if (!QuoteSymbolResolver.IsUsdCryptoSpot(sym) && !IsUsEquityMarketOpen())
+                return BadRequest(new { error = "Market is closed. Selling is only available during regular market hours (9:30 AM - 4:00 PM ET)." });
             var quoteSym = QuoteSymbolResolver.ForFinnhubQuote(sym);
             var q = await _finnhub.GetFullQuoteAsync(quoteSym);
             if (q == null || !q.Value.TryGetProperty("c", out var pEl) || pEl.GetDecimal() == 0)
@@ -192,6 +212,8 @@ public class PortfolioController : ControllerBase
         if (userId == null) return Unauthorized(new { error = "Not logged in." });
         if (string.IsNullOrWhiteSpace(req.Symbol) || req.Shares <= 0 || req.LimitPrice <= 0)
             return BadRequest(new { error = "Symbol, shares, and limit price are required." });
+        if (!HasHundredthPrecision(req.Shares))
+            return BadRequest(new { error = "Shares must be in increments of 0.01." });
         var action = req.Action?.ToUpper();
         if (action != "BUY" && action != "SELL")
             return BadRequest(new { error = "Action must be BUY or SELL." });

@@ -113,7 +113,7 @@ namespace Vest.Services
         /// <summary>Symbol search autocomplete from Finnhub.</summary>
         public async Task<JsonElement?> SearchSymbolsAsync(string query)
         {
-            var url = $"https://finnhub.io/api/v1/search?q={Uri.EscapeDataString(query)}&exchange=US&token={_apiKey}";
+            var url = $"https://finnhub.io/api/v1/search?q={Uri.EscapeDataString(query)}&token={_apiKey}";
             var response = await _httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
 
