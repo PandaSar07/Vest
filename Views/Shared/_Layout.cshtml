@@ -1,4 +1,4 @@
-﻿@{
+@{
     var fluidMain = ViewData["FluidMain"] as bool? == true;
     var navCtrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
     var navAct = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
@@ -154,6 +154,9 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link @(navCtrl == "Screener" ? "active" : null)" asp-area="" asp-controller="Screener" asp-action="Index">Screener</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(navCtrl == "Tutorial" ? "active" : null)" asp-area="" asp-controller="Tutorial" asp-action="Index">Tutorial</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link @(navCtrl == "Watchlist" ? "active" : null)" asp-area="" asp-controller="Watchlist" asp-action="Index" id="navWatchlist">Watchlist <span id="wlNavBadge" style="display:none;background:var(--accent-color);color:#05070a;border-radius:9999px;font-size:0.65rem;font-weight:800;padding:1px 7px;margin-left:3px;vertical-align:middle;">0</span></a>
