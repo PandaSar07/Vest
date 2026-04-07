@@ -1,0 +1,582 @@
+@{
+    ViewData["Title"] = "Tutorial | Vest";
+}
+
+<style>
+    .landing-shell {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem 5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .landing-orb {
+        position: absolute;
+        width: 360px;
+        height: 360px;
+        border-radius: 50%;
+        filter: blur(60px);
+        pointer-events: none;
+        z-index: 0;
+        opacity: 0.3;
+        animation: drift 16s ease-in-out infinite;
+    }
+
+    .landing-orb-a {
+        top: -120px;
+        left: -140px;
+        background: rgba(56, 189, 248, 0.45);
+    }
+
+    .landing-orb-b {
+        top: 520px;
+        right: -180px;
+        background: rgba(168, 85, 247, 0.35);
+        animation-delay: -6s;
+    }
+
+    .landing-orb-c {
+        bottom: 120px;
+        left: 32%;
+        background: rgba(14, 165, 233, 0.22);
+        animation-delay: -10s;
+    }
+
+    .landing-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .landing-hero {
+        position: relative;
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        border-radius: 28px;
+        background:
+            radial-gradient(circle at 15% 20%, rgba(56, 189, 248, 0.16), transparent 45%),
+            radial-gradient(circle at 85% 85%, rgba(14, 165, 233, 0.12), transparent 45%),
+            rgba(17, 25, 40, 0.7);
+        backdrop-filter: blur(16px);
+        overflow: hidden;
+        padding: 3.25rem 2rem;
+        box-shadow: 0 30px 80px -40px rgba(56, 189, 248, 0.3);
+    }
+
+    .landing-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        background: rgba(56, 189, 248, 0.1);
+        color: var(--accent-color);
+        font-size: 0.8rem;
+        font-weight: 700;
+        border-radius: 999px;
+        padding: 0.45rem 0.9rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .landing-badge-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--accent-color);
+        box-shadow: 0 0 14px rgba(56, 189, 248, 0.8);
+        animation: pulseDot 2s ease-in-out infinite;
+    }
+
+    .landing-title {
+        font-size: clamp(2.25rem, 6vw, 4.2rem);
+        line-height: 1.05;
+        margin: 0;
+    }
+
+    .landing-subtitle {
+        max-width: 620px;
+        margin: 1rem 0 0;
+        color: var(--text-secondary);
+        font-size: 1.02rem;
+    }
+
+    .landing-hero-actions {
+        margin-top: 1.8rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .landing-mini-note {
+        margin-top: 0.95rem;
+        font-size: 0.83rem;
+        color: var(--text-secondary);
+    }
+
+    .landing-proof {
+        margin-top: 2rem;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.75rem;
+    }
+
+    .landing-proof-card {
+        border: 1px solid var(--glass-border);
+        border-radius: 14px;
+        padding: 0.85rem 0.95rem;
+        background: rgba(5, 7, 10, 0.4);
+        transition: transform 0.25s ease, border-color 0.25s ease;
+    }
+
+    .landing-proof-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(56, 189, 248, 0.35);
+    }
+
+    .landing-proof-value {
+        font-weight: 800;
+        font-size: 1.05rem;
+        color: var(--text-primary);
+    }
+
+    .landing-proof-label {
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+    }
+
+    .landing-section {
+        margin-top: 2.5rem;
+        scroll-margin-top: 96px;
+    }
+
+    .landing-section-title {
+        font-size: clamp(1.6rem, 3vw, 2.2rem);
+        margin-bottom: 0.45rem;
+    }
+
+    .landing-section-copy {
+        color: var(--text-secondary);
+        max-width: 680px;
+    }
+
+    .landing-grid {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .landing-card {
+        border: 1px solid var(--glass-border);
+        border-radius: 18px;
+        background: rgba(17, 25, 40, 0.66);
+        padding: 1.1rem;
+        transition: var(--transition);
+    }
+
+    .landing-card:hover {
+        border-color: rgba(56, 189, 248, 0.35);
+    }
+
+    .landing-card h3 {
+        font-size: 1.05rem;
+        margin-bottom: 0.45rem;
+    }
+
+    .landing-card p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.92rem;
+    }
+
+    .landing-logos {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 0.75rem;
+    }
+
+    .landing-logo-chip {
+        border: 1px solid var(--glass-border);
+        border-radius: 12px;
+        text-align: center;
+        font-weight: 700;
+        font-size: 0.85rem;
+        padding: 0.7rem 0.6rem;
+        background: rgba(17, 25, 40, 0.52);
+        color: #cbd5e1;
+        letter-spacing: 0.2px;
+    }
+
+    .landing-stat-grid {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.9rem;
+    }
+
+    .landing-stat {
+        border: 1px solid var(--glass-border);
+        border-radius: 14px;
+        padding: 1rem;
+        background: rgba(17, 25, 40, 0.6);
+    }
+
+    .landing-stat-value {
+        font-size: clamp(1.7rem, 4vw, 2.3rem);
+        font-weight: 800;
+        line-height: 1;
+        color: var(--text-primary);
+    }
+
+    .landing-stat-label {
+        margin-top: 0.35rem;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+    }
+
+    .landing-split {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: 1.2fr 1fr;
+        gap: 1rem;
+    }
+
+    .landing-panel {
+        border: 1px solid var(--glass-border);
+        border-radius: 18px;
+        padding: 1.2rem;
+        background: rgba(17, 25, 40, 0.62);
+    }
+
+    .landing-panel h3 {
+        font-size: 1.05rem;
+        margin-bottom: 0.55rem;
+    }
+
+    .landing-list {
+        margin: 0;
+        padding-left: 1.1rem;
+        color: var(--text-secondary);
+    }
+
+    .landing-list li {
+        margin-bottom: 0.45rem;
+    }
+
+    .landing-steps {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.9rem;
+    }
+
+    .landing-step {
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        background: rgba(17, 25, 40, 0.58);
+        padding: 1rem;
+    }
+
+    .landing-step-num {
+        width: 1.7rem;
+        height: 1.7rem;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(56, 189, 248, 0.12);
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        font-weight: 700;
+        font-size: 0.8rem;
+        color: var(--accent-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .landing-step h4 {
+        font-size: 0.98rem;
+        margin-bottom: 0.35rem;
+    }
+
+    .landing-step p {
+        margin: 0;
+        font-size: 0.88rem;
+        color: var(--text-secondary);
+    }
+
+    .landing-testimonial-grid {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .landing-testimonial {
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        background: rgba(17, 25, 40, 0.6);
+        padding: 1rem;
+    }
+
+    .landing-testimonial-copy {
+        margin: 0;
+        color: #dbeafe;
+        font-size: 0.92rem;
+    }
+
+    .landing-testimonial-meta {
+        margin-top: 0.8rem;
+        color: var(--text-secondary);
+        font-size: 0.82rem;
+    }
+
+    .landing-faq {
+        margin-top: 1rem;
+        display: grid;
+        gap: 0.8rem;
+    }
+
+    .landing-faq-item {
+        border: 1px solid var(--glass-border);
+        border-radius: 14px;
+        background: rgba(17, 25, 40, 0.56);
+        padding: 1rem;
+    }
+
+    .landing-faq-item h4 {
+        font-size: 0.98rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .landing-faq-item p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .landing-final-cta {
+        margin-top: 2rem;
+        border: 1px solid rgba(56, 189, 248, 0.24);
+        border-radius: 22px;
+        background: linear-gradient(145deg, rgba(56, 189, 248, 0.13), rgba(17, 25, 40, 0.7));
+        padding: 2rem 1.1rem;
+        text-align: center;
+    }
+
+    .landing-final-cta p {
+        color: var(--text-secondary);
+        max-width: 620px;
+        margin: 0.7rem auto 1.2rem;
+    }
+
+    .reveal {
+        opacity: 0;
+        transform: translateY(28px);
+        transition: opacity 0.75s ease, transform 0.75s ease;
+    }
+
+    .reveal.in-view {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    @@keyframes drift {
+        0%, 100% { transform: translateY(0) translateX(0) scale(1); }
+        50% { transform: translateY(20px) translateX(16px) scale(1.08); }
+    }
+
+    @@keyframes pulseDot {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.6; transform: scale(1.2); }
+    }
+
+    @@media (max-width: 992px) {
+        .landing-logos {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+        .landing-stat-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .landing-split {
+            grid-template-columns: 1fr;
+        }
+        .landing-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .landing-steps {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .landing-testimonial-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .landing-hero {
+            padding: 2.2rem 1.1rem;
+        }
+        .landing-proof {
+            grid-template-columns: 1fr;
+        }
+        .landing-grid,
+        .landing-steps {
+            grid-template-columns: 1fr;
+        }
+        .landing-stat-grid,
+        .landing-logos {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        .landing-orb,
+        .landing-badge-dot {
+            animation: none;
+        }
+        .reveal {
+            opacity: 1;
+            transform: none;
+            transition: none;
+        }
+    }
+</style>
+
+<div class="landing-shell">
+    <div class="landing-orb landing-orb-a"></div>
+    <div class="landing-orb landing-orb-b"></div>
+    <div class="landing-orb landing-orb-c"></div>
+
+    <div class="landing-content">
+        <section class="landing-hero reveal">
+            <div class="landing-badge"><span class="landing-badge-dot"></span>Getting Started Guide</div>
+            <h1 class="landing-title">
+                Master the Markets<br />with Confidence.
+            </h1>
+            <p class="landing-subtitle">
+                Welcome to the Vest Tutorial. Before you dive into screening symbols and building a portfolio, let's explore what stocks actually are and how to navigate our platform effectively.
+            </p>
+            <div class="landing-hero-actions">
+                <a asp-controller="Stocks" asp-action="Index" class="btn btn-primary btn-lg px-4 rounded-pill">Start Exploring</a>
+            </div>
+            <p class="landing-mini-note">Building confidence step-by-step through a better process.</p>
+        </section>
+
+        <section class="landing-section reveal">
+            <h2 class="landing-section-title">What are stocks, anyway?</h2>
+            <p class="landing-section-copy">
+                Investing can be intimidating, but the core concept is surprisingly simple.
+            </p>
+            <div class="landing-split">
+                <article class="landing-panel">
+                    <h3>Owning a slice of a company</h3>
+                    <p class="landing-list">
+                        When you purchase a stock, you are buying a small fractional ownership, or an "equity share," in a publicly traded company. 
+                        As a shareholder, you benefit from the company's growth, profits, and success over time. 
+                        Instead of just being a consumer of products from companies like Apple or Microsoft, stocks let you become a part-owner.
+                    </p>
+                </article>
+                <article class="landing-panel">
+                    <h3>How returns are generated</h3>
+                    <ul class="landing-list">
+                        <li><strong>Capital Appreciation:</strong> If the company becomes more valuable, the price of your shares increases. You make a profit when you sell the stock for more than you paid for it.</li>
+                        <li><strong>Dividends:</strong> Some established companies distribute a portion of their profits back to shareholders as cash payments on a regular basis.</li>
+                        <li><strong>Understanding Risk:</strong> Market prices fluctuate based on earnings reports, economy, and investor sentiment. Prices can go down, resulting in a loss if you decide to sell.</li>
+                    </ul>
+                </article>
+            </div>
+        </section>
+
+        <section class="landing-section reveal">
+            <h2 class="landing-section-title">How to Navigate Vest</h2>
+            <p class="landing-section-copy">
+                We've built Vest to give you the most efficient research workflow. Here is what every page on our platform does for you.
+            </p>
+            <div class="landing-grid">
+                <article class="landing-card">
+                    <h3>Home / Dashboard</h3>
+                    <p>Your central command hub. Once signed in, you will see a quick summary of your performance, recent market moves, and links to your tracked assets.</p>
+                </article>
+                <article class="landing-card">
+                    <h3>Stocks Screener</h3>
+                    <p>The core of Vest. Use our rich data tables to filter thousands of stocks based on metrics like Market Cap, Price, and Volume to unearth the best opportunities.</p>
+                </article>
+                <article class="landing-card">
+                    <h3>Watchlist</h3>
+                    <p>Not ready to buy? Save symbols here to monitor them. It helps you keep track of potential trades without committing your capital right away.</p>
+                </article>
+                <article class="landing-card">
+                    <h3>Portfolio</h3>
+                    <p>Track your actual investments. This page lets you see the overall health of the positions you've taken, showing your gains and losses over time.</p>
+                </article>
+                <article class="landing-card">
+                    <h3>Tutorial (You are here!)</h3>
+                    <p>Your educational resource. We believe in helping users understand their decisions rather than gambling on symbols. Check back here to brush up on basics.</p>
+                </article>
+                <article class="landing-card">
+                    <h3>Account Settings</h3>
+                    <p>Manage your profile, adjust your learning preferences, set up security features like 2FA, and configure visual themes like dark mode.</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="landing-section reveal">
+            <h2 class="landing-section-title">The 4-Step Investing Process</h2>
+            <p class="landing-section-copy">
+                Don't guess. Build a reliable, repetitive system.
+            </p>
+            <div class="landing-steps">
+                <div class="landing-step">
+                    <div class="landing-step-num">1</div>
+                    <h4>Educate</h4>
+                    <p>Understand exactly what a company does before buying. Use resources to read about their business model.</p>
+                </div>
+                <div class="landing-step">
+                    <div class="landing-step-num">2</div>
+                    <h4>Filter</h4>
+                    <p>Use the Vest Screener to compare similar companies and identify the strongest candidates fundamentals.</p>
+                </div>
+                <div class="landing-step">
+                    <div class="landing-step-num">3</div>
+                    <h4>Monitor</h4>
+                    <p>Add the top candidates to your Watchlist. Wait for the right entry price based on your risk tolerance.</p>
+                </div>
+                <div class="landing-step">
+                    <div class="landing-step-num">4</div>
+                    <h4>Execute</h4>
+                    <p>Move the asset to your Portfolio once you commit capital, and review your process periodically.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="landing-final-cta reveal">
+            <h2 class="landing-section-title">Ready to put it into practice?</h2>
+            <p>
+                Now that you know what stocks are and how our platform is mapped out, it's time to start exploring live data.
+            </p>
+            <div class="d-flex flex-wrap justify-content-center gap-3">
+                <a class="btn btn-primary btn-lg px-4 rounded-pill" asp-controller="Stocks" asp-action="Index">Go to Stocks</a>
+                <a class="btn btn-outline btn-lg px-4 rounded-pill" asp-controller="Home" asp-action="Index">Back to Home</a>
+            </div>
+        </section>
+    </div>
+</div>
+
+<script>
+    (() => {
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const revealEls = Array.from(document.querySelectorAll('.reveal'));
+
+        if (!reduced && 'IntersectionObserver' in window) {
+            const revealObserver = new IntersectionObserver((entries, obs) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('in-view');
+                        obs.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.16, rootMargin: '0px 0px -8% 0px' });
+
+            revealEls.forEach(el => revealObserver.observe(el));
+        } else {
+            revealEls.forEach(el => el.classList.add('in-view'));
+        }
+    })();
+</script>
