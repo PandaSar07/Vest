@@ -7,6 +7,20 @@ namespace Vest.Controllers
     [Route("market")]
     public class MarketController : ControllerBase
     {
+        /// <summary>Drop obvious non-US Finnhub symbology (e.g. AAPL.SW) even if search leaks; keep BRK.B-style class shares.</summary>
+        private static bool IsUsListedSymbol(string symbol)
+        {
+            if (string.IsNullOrWhiteSpace(symbol)) return false;
+            if (symbol.Contains('-', StringComparison.Ordinal)) return false;
+            var i = symbol.LastIndexOf('.');
+            if (i < 0) return true;
+            var suffix = symbol[(i + 1)..];
+            return suffix.Length < 2;
+        }
+        private static bool IsUsdCryptoSymbol(string symbol) =>
+            !string.IsNullOrWhiteSpace(symbol) &&
+            symbol.EndsWith("-USD", StringComparison.OrdinalIgnoreCase);
+
         private readonly FinnhubService _finnhubService;
 
         public MarketController(FinnhubService finnhubService)
@@ -94,6 +108,74 @@ namespace Vest.Controllers
             {
                 var news = await _finnhubService.GetCryptoNewsAsync();
                 return Ok(news);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
+        /// <summary>Symbol autocomplete for navbar search.</summary>
+        [HttpGet("searchsymbols")]
+        public async Task<IActionResult> SearchSymbols([FromQuery] string q)
+        {
+            if (string.IsNullOrWhiteSpace(q) || q.Trim().Length < 1)
+                return Ok(new { result = Array.Empty<object>() });
+
+            try
+            {
+                var raw = await _finnhubService.SearchSymbolsAsync(q.Trim());
+                if (raw is null || raw.Value.ValueKind != System.Text.Json.JsonValueKind.Object)
+                    return Ok(new { result = Array.Empty<object>() });
+
+                if (!raw.Value.TryGetProperty("result", out var results) || results.ValueKind != System.Text.Json.JsonValueKind.Array)
+                    return Ok(new { result = Array.Empty<object>() });
+
+                // US equities only (Finnhub search uses exchange=US; types exclude crypto / non-equity).
+                var allowedTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Common Stock", "ADR", "ETF", "ETP" };
+                var mapped = results.EnumerateArray()
+                    .Where(x => x.TryGetProperty("symbol", out var s) && s.ValueKind == System.Text.Json.JsonValueKind.String)
+                    .Select(x => new
+                    {
+                        symbol = x.GetProperty("symbol").GetString() ?? "",
+                        description = x.TryGetProperty("description", out var d) && d.ValueKind == System.Text.Json.JsonValueKind.String ? d.GetString() ?? "" : "",
+                        type = x.TryGetProperty("type", out var t) && t.ValueKind == System.Text.Json.JsonValueKind.String ? t.GetString() ?? "" : ""
+                    })
+                    .Where(x => !string.IsNullOrWhiteSpace(x.symbol))
+                    .Where(x =>
+                        IsUsdCryptoSymbol(x.symbol) ||
+                        ((string.IsNullOrWhiteSpace(x.type) || allowedTypes.Contains(x.type)) && IsUsListedSymbol(x.symbol)))
+                    .Take(16)
+                    .ToArray();
+
+                var priced = await Task.WhenAll(mapped.Select(async x =>
+                {
+                    decimal? price = null;
+                    try
+                    {
+                        var q = await _finnhubService.GetFullQuoteAsync(x.symbol.ToUpperInvariant());
+                        if (q.HasValue && q.Value.TryGetProperty("c", out var c) && c.ValueKind == System.Text.Json.JsonValueKind.Number)
+                            price = c.GetDecimal();
+                    }
+                    catch { }
+                    return new
+                    {
+                        symbol = x.symbol,
+                        description = x.description,
+                        type = x.type,
+                        price,
+                        assetType = IsUsdCryptoSymbol(x.symbol) ? "Crypto" : "Stock"
+                    };
+                }));
+
+                var sorted = priced
+                    .OrderBy(x => x.assetType == "Crypto" ? 1 : 0)
+                    .ThenByDescending(x => x.price ?? -1m)
+                    .ThenBy(x => x.symbol)
+                    .Take(10)
+                    .ToArray();
+
+                return Ok(new { result = sorted });
             }
             catch (Exception ex)
             {

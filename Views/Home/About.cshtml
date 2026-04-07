@@ -1,240 +1,140 @@
 @{
-    ViewData["Title"] = "About Us";
+    ViewData["Title"] = "About";
+    var featureCards = new (string Icon, string Title, string Body)[]
+    {
+        ("📊", "Markets & quotes", "Browse stocks and crypto with search and detail views backed by market data providers."),
+        ("⭐", "Watchlists", "Save symbols you care about and keep them synced when you are signed in."),
+        ("📈", "Market views", "Explore focused stock and crypto pages with live quote context and quick research tools."),
+        ("🛡️", "Accounts & sessions", "Sign up and sign in with a secure password flow; sessions keep your experience consistent."),
+        ("📰", "Context", "News and profile-style context to help you understand what you are looking at."),
+        ("🎓", "Learning-first", "Vest is for education and personal organization—not personalized investment advice."),
+    };
 }
 
-<style>
-    .about-hero {
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-        color: white;
-        padding: 80px 0 60px;
-        text-align: center;
-    }
+@section Head {
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            important: '#vest-marketing',
+            corePlugins: { preflight: false },
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        display: ['Orbitron', 'sans-serif'],
+                    },
+                },
+            },
+        };
+    </script>
+}
 
-    .about-hero h1 {
-        font-size: 3rem;
-        font-weight: 800;
-        letter-spacing: -1px;
-    }
-
-    .about-hero p {
-        font-size: 1.2rem;
-        opacity: 0.8;
-        max-width: 600px;
-        margin: 0 auto;
-    }
-
-    .stat-badge {
-        display: inline-block;
-        background: rgba(255,255,255,0.1);
-        border: 1px solid rgba(255,255,255,0.2);
-        border-radius: 12px;
-        padding: 20px 30px;
-        margin: 10px;
-    }
-
-    .stat-badge .num {
-        font-size: 2.2rem;
-        font-weight: 800;
-        color: #63b3ed;
-    }
-
-    .stat-badge .label {
-        font-size: 0.85rem;
-        opacity: 0.7;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    .feature-card {
-        border: none;
-        border-radius: 16px;
-        padding: 30px;
-        height: 100%;
-        background: #fff;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.07);
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .feature-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.12);
-    }
-
-    .feature-icon {
-        font-size: 2.5rem;
-        margin-bottom: 16px;
-    }
-
-    .feature-card h4 {
-        font-weight: 700;
-        margin-bottom: 10px;
-        color: #1a1a2e;
-    }
-
-    .feature-card p {
-        color: #6c757d;
-        font-size: 0.95rem;
-        margin: 0;
-    }
-
-    .section-label {
-        text-transform: uppercase;
-        font-size: 0.8rem;
-        letter-spacing: 2px;
-        color: #63b3ed;
-        font-weight: 700;
-        margin-bottom: 8px;
-    }
-
-    .team-card {
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-        transition: transform 0.2s;
-    }
-
-    .team-card:hover {
-        transform: translateY(-4px);
-    }
-
-    .team-avatar {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2rem;
-        margin: 0 auto 12px;
-    }
-
-    .cta-section {
-        background: linear-gradient(135deg, #0f3460, #1a1a2e);
-        color: white;
-        border-radius: 20px;
-        padding: 60px 40px;
-        text-align: center;
-    }
-</style>
-
-<!-- Hero -->
-<div class="about-hero">
-    <div class="container">
-        <div class="section-label">Who we are</div>
-        <h1>Built for <span style="color:#63b3ed;">smarter</span> investing</h1>
-        <p class="mt-3 mb-5">
-            Vest brings clarity to your financial life — from real-time portfolio tracking
-            to intelligent insights that help you make better decisions, faster.
-        </p>
-
-        <div class="d-flex flex-wrap justify-content-center">
-            <div class="stat-badge">
-                <div class="num">10K+</div>
-                <div class="label">Active Users</div>
-            </div>
-            <div class="stat-badge">
-                <div class="num">$2.4B</div>
-                <div class="label">Assets Tracked</div>
-            </div>
-            <div class="stat-badge">
-                <div class="num">99.9%</div>
-                <div class="label">Uptime</div>
-            </div>
-            <div class="stat-badge">
-                <div class="num">2025</div>
-                <div class="label">Founded</div>
+<div id="vest-marketing" class="vest-marketing min-h-screen bg-[#05070a] text-slate-200 antialiased">
+    <section class="relative overflow-hidden border-b border-white/10 px-4 pb-20 pt-16 sm:pt-24">
+        <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(56,189,248,0.22),transparent)]"></div>
+        <div class="pointer-events-none absolute left-1/2 top-24 h-72 w-[42rem] -translate-x-1/2 rounded-full bg-sky-500/10 blur-3xl"></div>
+        <div class="relative mx-auto max-w-4xl text-center">
+            <p data-anim="hero-line" class="mb-4 font-display text-xs font-semibold uppercase tracking-[0.35em] text-sky-400/90">About Vest</p>
+            <h1 data-anim="hero-line" class="font-display text-4xl font-bold tracking-tight text-white sm:text-5xl md:text-6xl">
+                Clarity for your <span class="text-sky-400">portfolio</span>
+            </h1>
+            <p data-anim="hero-line" class="mx-auto mt-6 max-w-2xl text-lg text-slate-400">
+                Vest is a portfolio and markets workspace built for learning and experimentation.
+                Track US-focused equities and crypto, organize a watchlist, and explore tools in one calm interface.
+            </p>
+            <div data-anim="hero-line" class="mt-10 flex flex-wrap items-center justify-center gap-3">
+                <span class="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-slate-300 backdrop-blur-sm">Live market data</span>
+                <span class="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-slate-300 backdrop-blur-sm">Watchlists</span>
+                <span class="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-slate-300 backdrop-blur-sm">Educational use</span>
             </div>
         </div>
-    </div>
+    </section>
+
+    <section class="mx-auto max-w-6xl px-4 py-20">
+        <div data-anim="reveal" class="mx-auto mb-14 max-w-2xl text-center">
+            <p class="font-display text-xs font-semibold uppercase tracking-[0.3em] text-sky-400/90">What you can do</p>
+            <h2 class="mt-3 font-display text-3xl font-bold text-white sm:text-4xl">Built for focus, not noise</h2>
+            <p class="mt-4 text-slate-400">Practical tools for following markets—without pretending to be a brokerage.</p>
+        </div>
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            @foreach (var c in featureCards)
+            {
+                <div data-anim="reveal" class="group rounded-2xl border border-white/10 bg-[rgba(17,25,40,0.6)] p-6 shadow-[0_20px_50px_-24px_rgba(0,0,0,0.7)] backdrop-blur-md transition duration-300 hover:border-sky-500/30 hover:shadow-[0_24px_60px_-20px_rgba(56,189,248,0.12)]">
+                    <div class="mb-4 text-3xl opacity-90 transition group-hover:scale-110">@c.Icon</div>
+                    <h3 class="font-display text-lg font-semibold text-white">@c.Title</h3>
+                    <p class="mt-2 text-sm leading-relaxed text-slate-400">@c.Body</p>
+                </div>
+            }
+        </div>
+    </section>
+
+    <section class="border-y border-white/10 bg-white/[0.02] px-4 py-20">
+        <div class="mx-auto max-w-4xl">
+            <div data-anim="reveal" class="text-center">
+                <p class="font-display text-xs font-semibold uppercase tracking-[0.3em] text-sky-400/90">People</p>
+                <h2 class="mt-3 font-display text-3xl font-bold text-white sm:text-4xl">Made by students, for curious investors</h2>
+                <p class="mx-auto mt-4 max-w-xl text-slate-400">
+                    Vest started as a passion project at Drexel University and continues to grow with design and engineering contributions from the team.
+                </p>
+            </div>
+            <div class="mx-auto mt-12 grid max-w-5xl gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                <div data-anim="reveal" class="rounded-2xl border border-white/10 bg-[rgba(17,25,40,0.75)] p-7 text-center backdrop-blur-md">
+                    <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-sky-500/15 text-2xl">🧑‍💻</div>
+                    <h3 class="font-display font-semibold text-white">Sarvarbek Rahmonov</h3>
+                    <p class="mt-1 text-sm text-slate-500">Lead developer</p>
+                </div>
+                <div data-anim="reveal" class="rounded-2xl border border-white/10 bg-[rgba(17,25,40,0.75)] p-7 text-center backdrop-blur-md">
+                    <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/15 text-2xl">🗄️</div>
+                    <h3 class="font-display font-semibold text-white">Edison Zheng</h3>
+                    <p class="mt-1 text-sm text-slate-500">Database manager</p>
+                </div>
+                <div data-anim="reveal" class="rounded-2xl border border-white/10 bg-[rgba(17,25,40,0.75)] p-7 text-center backdrop-blur-md">
+                    <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/15 text-2xl">🎨</div>
+                    <h3 class="font-display font-semibold text-white">Benson Xue</h3>
+                    <p class="mt-1 text-sm text-slate-500">Frontend developer</p>
+                </div>
+                <div data-anim="reveal" class="rounded-2xl border border-white/10 bg-[rgba(17,25,40,0.75)] p-7 text-center backdrop-blur-md">
+                    <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-violet-500/15 text-2xl">⚡</div>
+                    <h3 class="font-display font-semibold text-white">Babar Baloch</h3>
+                    <p class="mt-1 text-sm text-slate-500">Frontend developer</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="mx-auto max-w-4xl px-4 py-20">
+        <div data-anim="reveal" class="relative overflow-hidden rounded-3xl border border-sky-500/20 bg-gradient-to-br from-sky-500/10 via-[rgba(17,25,40,0.9)] to-[#05070a] p-10 text-center sm:p-14">
+            <div class="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-sky-400/20 blur-3xl"></div>
+            <h2 class="relative font-display text-2xl font-bold text-white sm:text-3xl">Ready to explore?</h2>
+            <p class="relative mx-auto mt-3 max-w-lg text-slate-400">Create a free account or jump back to the home page. Nothing here is financial advice.</p>
+            <div class="relative mt-8 flex flex-wrap justify-center gap-3">
+                <a asp-controller="Home" asp-action="Signup" class="inline-flex items-center justify-center rounded-xl bg-sky-400 px-8 py-3 font-display text-sm font-bold uppercase tracking-wide text-[#05070a] transition hover:bg-sky-300">Create account</a>
+                <a asp-controller="Home" asp-action="Index" class="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/5 px-8 py-3 font-display text-sm font-semibold text-white transition hover:border-sky-500/40 hover:bg-white/10">Home</a>
+            </div>
+        </div>
+    </section>
 </div>
 
-<!-- What We Do -->
-<div class="container my-5">
-    <div class="text-center mb-5">
-        <div class="section-label">What we offer</div>
-        <h2 class="fw-bold" style="color:#1a1a2e;">Everything you need to stay on top</h2>
-    </div>
-
-    <div class="row g-4">
-        <div class="col-md-4">
-            <div class="feature-card">
-                <div class="feature-icon">📊</div>
-                <h4>Portfolio Tracking</h4>
-                <p>Monitor all your investments in one place. Stocks, crypto, ETFs — unified into a single, clean dashboard.</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="feature-card">
-                <div class="feature-icon">🔔</div>
-                <h4>Smart Alerts</h4>
-                <p>Get notified when your holdings hit price targets, or when market conditions change dramatically.</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="feature-card">
-                <div class="feature-icon">📈</div>
-                <h4>Performance Analytics</h4>
-                <p>Deep-dive into your returns, compare against benchmarks, and understand what's driving your gains or losses.</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="feature-card">
-                <div class="feature-icon">🔒</div>
-                <h4>Bank-Level Security</h4>
-                <p>256-bit encryption, multi-factor authentication, and zero-knowledge architecture to keep your data safe.</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="feature-card">
-                <div class="feature-icon">🌍</div>
-                <h4>Global Markets</h4>
-                <p>Access data from over 50 global exchanges. Track assets anywhere in the world, in any currency.</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="feature-card">
-                <div class="feature-icon">🤖</div>
-                <h4>AI Insights</h4>
-                <p>Powered by machine learning to surface personalized insights, anomaly detection, and predictive trends.</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Team -->
-<div class="container my-5">
-    <div class="text-center mb-5">
-        <div class="section-label">The team</div>
-        <h2 class="fw-bold" style="color:#1a1a2e;">Made by students, for everyone</h2>
-        <p class="text-muted">Built at Drexel University as a passion project turned real product.</p>
-    </div>
-
-    <div class="row g-4 justify-content-center">
-        <div class="col-md-3 text-center">
-            <div class="team-card p-4 bg-white">
-                <div class="team-avatar bg-primary bg-opacity-10 text-primary mx-auto">🧑‍💻</div>
-                <h5 class="fw-bold mb-1">Edison Zheng</h5>
-                <small class="text-muted">Lead Developer</small>
-            </div>
-        </div>
-        <div class="col-md-3 text-center">
-            <div class="team-card p-4 bg-white">
-                <div class="team-avatar bg-success bg-opacity-10 text-success mx-auto">🎨</div>
-                <h5 class="fw-bold mb-1">Vest Team</h5>
-                <small class="text-muted">Design & Engineering</small>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- CTA -->
-<div class="container mb-5">
-    <div class="cta-section">
-        <h2 class="fw-bold mb-3">Ready to take control of your portfolio?</h2>
-        <p class="mb-4" style="opacity:0.8;">Join thousands of investors who trust Vest to keep their finances organized.</p>
-        <a href="/Home/Signup" class="btn btn-light btn-lg px-5 me-3 fw-semibold">Create Account</a>
-        <a href="/" class="btn btn-outline-light btn-lg px-5">Learn More</a>
-    </div>
-</div>
-
-@*Code made by Edison Zheng*@
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+        gsap.from('[data-anim="hero-line"]', {
+            opacity: 0,
+            y: 28,
+            duration: 0.85,
+            stagger: 0.1,
+            ease: 'power3.out',
+        });
+        gsap.utils.toArray('[data-anim="reveal"]').forEach(function (el) {
+            gsap.from(el, {
+                opacity: 0,
+                y: 32,
+                duration: 0.75,
+                ease: 'power2.out',
+                scrollTrigger: { trigger: el, start: 'top 90%', toggleActions: 'play none none none' },
+            });
+        });
+    </script>
+}

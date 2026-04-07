@@ -22,7 +22,13 @@ public class WatchlistController : Controller
     // ── MVC page ─────────────────────────────────────────────────────────────
 
     // GET /Watchlist  (default MVC route)
-    public IActionResult Index() => View("~/Views/Watchlist/Index.cshtml");
+    public IActionResult Index()
+    {
+        if (string.IsNullOrEmpty(UserId))
+            return RedirectToAction("Log", "Home");
+
+        return View("~/Views/Watchlist/Index.cshtml");
+    }
 
     // ── REST API  (/api/watchlist) ────────────────────────────────────────────
 

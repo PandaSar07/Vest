@@ -580,7 +580,7 @@
             </div>
             <!-- Input row -->
             <div class="trade-row">
-                <input type="number" class="trade-input" id="sharesInput" min="0.0001" step="1" placeholder="Shares" value="1" />
+                <input type="number" class="trade-input" id="sharesInput" min="0.01" step="0.01" placeholder="Shares" value="1.00" />
                 <input type="number" class="trade-input" id="limitPriceInput" min="0.01" step="0.01" placeholder="Limit $" style="display:none;" />
                 <button class="trade-submit buy-btn" id="tradeSubmitBtn" onclick="submitTrade()">Buy</button>
             </div>
@@ -888,26 +888,31 @@
             el.style.background = open ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.12)';
             el.style.color      = open ? '#10b981' : '#ef4444';
             el.style.border     = `1px solid ${open ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.25)'}`;
+
+            const submitBtn = document.getElementById('tradeSubmitBtn');
+            const isLimitActive = document.getElementById('tabLimit')?.classList.contains('active');
+            if (submitBtn && !isLimitActive) {
+                submitBtn.disabled = !open;
+                if (!open) submitBtn.title = 'Market orders are disabled while the market is closed.';
+                else submitBtn.removeAttribute('title');
+            }
         }
 
         updateMarketBadge();
         setInterval(updateMarketBadge, 60000);
 
         // ── Watchlist helpers (server-aware) ───────────────────────────────
-        const WL_KEY = 'vest_watchlist';
-        const getWL  = () => JSON.parse(localStorage.getItem(WL_KEY) || '[]');
-        const saveWL = arr => localStorage.setItem(WL_KEY, JSON.stringify(arr));
+        let wlSymbols = [];
 
         function syncWlButton(symbol) {
             const btn = document.getElementById('wlToggleBtn');
             if (!btn) return;
-            const inList = getWL().includes(symbol);
+            const inList = wlSymbols.includes(symbol);
             btn.classList.toggle('active', inList);
         }
 
         async function toggleWatchlist(symbol) {
-            const inList = getWL().includes(symbol);
-            // Try server API first
+            const inList = wlSymbols.includes(symbol);
             try {
                 const method = inList ? 'DELETE' : 'POST';
                 const url    = inList ? `/api/watchlist/${encodeURIComponent(symbol)}` : '/api/watchlist';
@@ -916,24 +921,19 @@
                     headers: inList ? {} : { 'Content-Type': 'application/json' },
                     body:    inList ? undefined : JSON.stringify({ symbol })
                 });
-                if (r.status === 401) throw new Error('guest');
+                if (r.status === 401) {
+                    window.location.href = '/Home/Log';
+                    return;
+                }
                 if (!r.ok) throw new Error('api');
-                // Also sync localStorage for badge fallback
-                let list = getWL();
-                list = inList ? list.filter(s => s !== symbol) : [...list, symbol];
-                saveWL(list);
+                wlSymbols = inList ? wlSymbols.filter(s => s !== symbol) : [...wlSymbols, symbol];
                 syncWlButton(symbol);
                 const badge = document.getElementById('wlNavBadge');
-                if (badge) { badge.textContent = list.length; badge.style.display = list.length > 0 ? 'inline' : 'none'; }
+                if (badge) { badge.textContent = wlSymbols.length; badge.style.display = wlSymbols.length > 0 ? 'inline' : 'none'; }
                 return;
-            } catch { /* fall through to localStorage */ }
-            // Guest fallback
-            let list = getWL();
-            list = inList ? list.filter(s => s !== symbol) : [...list, symbol];
-            saveWL(list);
-            syncWlButton(symbol);
-            const badge = document.getElementById('wlNavBadge');
-            if (badge) { badge.textContent = list.length; badge.style.display = list.length > 0 ? 'inline' : 'none'; }
+            } catch {
+                alert('Could not update watchlist right now. Please try again.');
+            }
         }
 
         async function syncWlButtonFromServer(symbol) {
@@ -943,11 +943,11 @@
                     const list = await r.json();
                     const btn  = document.getElementById('wlToggleBtn');
                     if (btn) btn.classList.toggle('active', list.includes(symbol));
-                    saveWL(list); // keep localStorage in sync
+                    wlSymbols = list;
                     return;
                 }
             } catch { }
-            syncWlButton(symbol); // localStorage fallback
+            syncWlButton(symbol);
         }
 
         // ── Trade panel ───────────────────────────────────────────────────
@@ -988,6 +988,7 @@
             if (isLimit) {
                 btn.textContent = 'Place Limit Order';
                 btn.className   = 'trade-submit';
+                btn.disabled = false;
                 btn.style.background = 'linear-gradient(135deg,#f59e0b,#d97706)';
                 document.getElementById('limitPriceInput').style.display = 'block';
             } else {
@@ -995,6 +996,7 @@
                 btn.style.background = '';
                 btn.textContent = isBuy ? 'Buy' : 'Sell';
                 btn.className   = 'trade-submit ' + (isBuy ? 'buy-btn' : 'sell-btn');
+                btn.disabled = !isMarketOpen();
             }
             updateEst();
         }
@@ -1014,6 +1016,10 @@
         async function submitTrade() {
             const shares = parseFloat(document.getElementById('sharesInput').value);
             if (!shares || shares <= 0) { showToast('Enter a valid number of shares.', false); return; }
+            if (Math.round(shares * 100) !== shares * 100) {
+                showToast('Shares must be in increments of 0.01.', false);
+                return;
+            }
 
             // LIMIT order path
             if (tradeMode === 'limit') {
@@ -1027,6 +1033,12 @@
                 });
                 const data = await r.json();
                 showToast(r.ok ? data.message : (data.error || 'Failed.'), r.ok);
+                return;
+            }
+
+            if (!isMarketOpen()) {
+                showToast('Market is closed. Buy/Sell is available 9:30 AM - 4:00 PM ET.', false);
+                updateMarketBadge();
                 return;
             }
 

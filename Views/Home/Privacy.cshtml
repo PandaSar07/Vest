@@ -1,160 +1,200 @@
 @{
     ViewData["Title"] = "Privacy Policy";
+    var effective = new DateTime(2026, 4, 6);
 }
 
-<div class="privacy-container">
-    <div class="privacy-header">
-        <h1 class="privacy-title">@ViewData["Title"]</h1>
-        <p class="privacy-subtitle">Last updated: @DateTime.Now.ToString("MMMM dd, yyyy")</p>
-    </div>
+@section Head {
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            important: '#vest-marketing',
+            corePlugins: { preflight: false },
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        display: ['Orbitron', 'sans-serif'],
+                    },
+                },
+            },
+        };
+    </script>
+}
 
-    <div class="privacy-content">
-        <section class="privacy-section">
-            <h2 class="section-title">Our Commitment to Privacy</h2>
-            <p class="section-text">
-                At Vest, we take your privacy seriously. This policy describes how we collect, use, and protect your personal information when you use our services.
+<div id="vest-marketing" class="vest-marketing min-h-screen bg-[#05070a] pb-24 text-slate-200 antialiased">
+    <header class="relative overflow-hidden border-b border-white/10 px-4 pb-16 pt-16 sm:pt-20">
+        <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_-10%,rgba(56,189,248,0.18),transparent)]"></div>
+        <div class="relative mx-auto max-w-3xl text-center">
+            <p data-anim="hero-line" class="font-display text-xs font-semibold uppercase tracking-[0.35em] text-sky-400/90">Legal</p>
+            <h1 data-anim="hero-line" class="mt-3 font-display text-4xl font-bold text-white sm:text-5xl">Privacy Policy</h1>
+            <p data-anim="hero-line" class="mt-4 text-sm text-slate-500">Effective date: <time datetime="@effective.ToString("yyyy-MM-dd")">@effective.ToString("MMMM d, yyyy")</time></p>
+            <p data-anim="hero-line" class="mx-auto mt-6 max-w-2xl text-slate-400">
+                This policy explains how Vest (“we,” “us,” or “our”) collects, uses, and shares information when you use our website and related services (the “Services”).
             </p>
-        </section>
+        </div>
+    </header>
 
-        <section class="privacy-section">
-            <h2 class="section-title">Information We Collect</h2>
-            <p class="section-text">
-                We may collect basic information such as your name, email address, account details, and usage data 
-                (like device information and activity on the platform) to provide, maintain, and improve our services.
-            </p>
-        </section>
+    <div class="mx-auto max-w-3xl px-4 pt-12">
+        <nav data-anim="reveal" aria-label="Policy sections" class="mb-14 rounded-2xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-sm">
+            <p class="font-display text-xs font-semibold uppercase tracking-wider text-sky-400/90">On this page</p>
+            <ul class="mt-3 grid gap-2 text-sm text-slate-400 sm:grid-cols-2">
+                <li><a class="text-sky-400 hover:text-sky-300" href="#who">Who we are</a></li>
+                <li><a class="text-sky-400 hover:text-sky-300" href="#collect">Information we collect</a></li>
+                <li><a class="text-sky-400 hover:text-sky-300" href="#use">How we use information</a></li>
+                <li><a class="text-sky-400 hover:text-sky-300" href="#share">Sharing &amp; processors</a></li>
+                <li><a class="text-sky-400 hover:text-sky-300" href="#cookies">Cookies &amp; similar tech</a></li>
+                <li><a class="text-sky-400 hover:text-sky-300" href="#retention">Retention</a></li>
+                <li><a class="text-sky-400 hover:text-sky-300" href="#security">Security</a></li>
+                <li><a class="text-sky-400 hover:text-sky-300" href="#rights">Your choices &amp; rights</a></li>
+                <li><a class="text-sky-400 hover:text-sky-300" href="#children">Children</a></li>
+                <li><a class="text-sky-400 hover:text-sky-300" href="#international">International</a></li>
+                <li><a class="text-sky-400 hover:text-sky-300" href="#changes">Changes</a></li>
+                <li><a class="text-sky-400 hover:text-sky-300" href="#contact">Contact</a></li>
+            </ul>
+        </nav>
 
-        <section class="privacy-section">
-            <h2 class="section-title">Payment Information</h2>
-            <p class="section-text">
-                If transactions are processed through Vest, payment information is handled securely by third-party providers, 
-                and we do not store full payment card details.
-            </p>
-        </section>
+        <article class="space-y-12 text-[0.95rem] leading-relaxed text-slate-400">
+            <section data-anim="reveal" id="who" class="scroll-mt-24">
+                <h2 class="font-display text-xl font-semibold text-white">1. Who we are</h2>
+                <p class="mt-4">
+                    Vest is an educational software project that provides market information and portfolio-style features. Depending on how the Services are operated, the data controller may be the project maintainers or the organization hosting the deployment.
+                    If you use a third-party hosted instance, that operator’s practices may also apply.
+                </p>
+            </section>
 
-        <section class="privacy-section highlight">
-            <h2 class="section-title">Data Sharing and Sales</h2>
-            <p class="section-text">
-                <strong>We do not sell your personal information.</strong> Your data may be shared only with trusted service 
-                providers (such as hosting or payment processors) or when required by law.
-            </p>
-        </section>
+            <section data-anim="reveal" id="collect" class="scroll-mt-24">
+                <h2 class="font-display text-xl font-semibold text-white">2. Information we collect</h2>
+                <p class="mt-4">We collect information in the following categories:</p>
+                <ul class="mt-4 list-disc space-y-2 pl-5 marker:text-sky-500/80">
+                    <li><span class="text-slate-300">Account and profile data.</span> When you register, we collect identifiers such as your name, email address, and username, and we store a cryptographic hash of your password (not your plain-text password).</li>
+                    <li><span class="text-slate-300">Session data.</span> We use server-side sessions (for example, session cookies) to keep you signed in and to associate requests with your account.</li>
+                    <li><span class="text-slate-300">Content you provide.</span> Information you add in the product—such as watchlist symbols or preferences—may be stored with your account or locally in your browser.</li>
+                    <li><span class="text-slate-300">Usage and technical data.</span> Standard server and application logs may include IP address, user agent, timestamps, and pages or API routes accessed, used for security, debugging, and reliability.</li>
+                    <li><span class="text-slate-300">Communications.</span> If you email us, we receive the content of your message and associated metadata (such as your address).</li>
+                </ul>
+                <p class="mt-4">
+                    We do <strong class="text-slate-200">not</strong> require you to submit government ID, tax identifiers, or full payment card numbers for core account features. If paid features are added later, payment data would typically be processed by a payment processor, not stored on our servers as full card numbers.
+                </p>
+            </section>
 
-        <section class="privacy-section">
-            <h2 class="section-title">Security Measures</h2>
-            <p class="section-text">
-                We take reasonable security measures to protect your information through encryption, secure servers, 
-                and regular security audits.
-            </p>
-        </section>
+            <section data-anim="reveal" id="use" class="scroll-mt-24">
+                <h2 class="font-display text-xl font-semibold text-white">3. How we use information</h2>
+                <p class="mt-4">We use the information above to:</p>
+                <ul class="mt-4 list-disc space-y-2 pl-5 marker:text-sky-500/80">
+                    <li>Provide, operate, and maintain the Services (including authentication and watchlists).</li>
+                    <li>Retrieve and display market data and related content you request.</li>
+                    <li>Send transactional messages (for example, password reset emails when you use that feature).</li>
+                    <li>Protect the security and integrity of the Services, detect abuse, and comply with law.</li>
+                    <li>Improve performance, fix bugs, and understand aggregate usage patterns.</li>
+                </ul>
+                <p class="mt-4">
+                    <strong class="text-slate-200">We do not sell your personal information</strong> and we do not use it for cross-context behavioral advertising as a paid product.
+                </p>
+            </section>
 
-        <section class="privacy-section">
-            <h2 class="section-title">Your Rights</h2>
-            <p class="section-text">
-                You may request access to, correction of, or deletion of your data at any time by contacting us at 
-                <a href="mailto:privacy@vest.com" class="privacy-link">privacy@vest.com</a>.
-            </p>
-        </section>
-    </div>
+            <section data-anim="reveal" id="share" class="scroll-mt-24">
+                <h2 class="font-display text-xl font-semibold text-white">4. Sharing and processors</h2>
+                <p class="mt-4">
+                    We share information with service providers (“processors”) who help us run the Services. Categories of recipients may include:
+                </p>
+                <ul class="mt-4 list-disc space-y-2 pl-5 marker:text-sky-500/80">
+                    <li><span class="text-slate-300">Database and authentication hosting</span> (for example, cloud database providers used to store account rows).</li>
+                    <li><span class="text-slate-300">Market data providers</span> when you search or load quotes (queries may be sent to those APIs from our servers).</li>
+                    <li><span class="text-slate-300">Email delivery</span> for transactional messages such as password resets.</li>
+                    <li><span class="text-slate-300">Infrastructure and logging</span> providers that host the application or collect diagnostic logs.</li>
+                </ul>
+                <p class="mt-4">
+                    We may also disclose information if required by law, legal process, or a good-faith belief that disclosure is necessary to protect rights, safety, or security, or in connection with a merger, acquisition, or asset sale after notice where required.
+                </p>
+            </section>
 
-    <div class="privacy-footer">
-        <p>For any questions about this policy, please <a href="/contact" class="privacy-link">contact us</a>.</p>
+            <section data-anim="reveal" id="cookies" class="scroll-mt-24">
+                <h2 class="font-display text-xl font-semibold text-white">5. Cookies and similar technologies</h2>
+                <p class="mt-4">
+                    We use cookies and similar technologies that are necessary for authentication and session management. If we add analytics or non-essential cookies in the future, we will update this policy and, where required, provide appropriate consent mechanisms.
+                </p>
+            </section>
+
+            <section data-anim="reveal" id="retention" class="scroll-mt-24">
+                <h2 class="font-display text-xl font-semibold text-white">6. Retention</h2>
+                <p class="mt-4">
+                    We retain account and related data for as long as your account is active and for a reasonable period afterward for backups, legal obligations, and dispute resolution. Technical logs are typically retained for a shorter rolling period unless longer retention is needed for security investigations.
+                </p>
+            </section>
+
+            <section data-anim="reveal" id="security" class="scroll-mt-24">
+                <h2 class="font-display text-xl font-semibold text-white">7. Security</h2>
+                <p class="mt-4">
+                    We use reasonable administrative, technical, and organizational measures designed to protect personal information, including transport encryption (HTTPS) where configured and hashed passwords at rest. No method of transmission or storage is completely secure; we cannot guarantee absolute security.
+                </p>
+            </section>
+
+            <section data-anim="reveal" id="rights" class="scroll-mt-24">
+                <h2 class="font-display text-xl font-semibold text-white">8. Your choices and rights</h2>
+                <p class="mt-4">
+                    Depending on where you live, you may have rights to access, correct, delete, or export certain personal data, or to object to or restrict certain processing. You may also have the right to lodge a complaint with a supervisory authority.
+                </p>
+                <p class="mt-4">
+                    <span class="text-slate-300">California residents (CPRA).</span> California consumers may have rights to know, delete, and correct personal information, and to opt out of certain sharing (we do not sell personal information as defined by the CPRA). You may designate an authorized agent where permitted by law.
+                </p>
+                <p class="mt-4">
+                    To exercise rights, contact us using the <a class="text-sky-400 hover:text-sky-300" asp-controller="Home" asp-action="Contact">Contact</a> page. We may need to verify your request before acting.
+                </p>
+            </section>
+
+            <section data-anim="reveal" id="children" class="scroll-mt-24">
+                <h2 class="font-display text-xl font-semibold text-white">9. Children</h2>
+                <p class="mt-4">
+                    The Services are not directed to children under 13 (or the minimum age in your jurisdiction), and we do not knowingly collect personal information from children. If you believe we have collected information from a child, please contact us and we will take appropriate steps to delete it.
+                </p>
+            </section>
+
+            <section data-anim="reveal" id="international" class="scroll-mt-24">
+                <h2 class="font-display text-xl font-semibold text-white">10. International users</h2>
+                <p class="mt-4">
+                    If you access the Services from outside the United States, your information may be processed in the United States or other countries where our providers operate. Those countries may have different data protection laws than your own.
+                </p>
+            </section>
+
+            <section data-anim="reveal" id="changes" class="scroll-mt-24">
+                <h2 class="font-display text-xl font-semibold text-white">11. Changes to this policy</h2>
+                <p class="mt-4">
+                    We may update this Privacy Policy from time to time. We will post the revised version on this page and update the effective date above. Where changes are material, we will provide additional notice as appropriate (for example, a banner or email).
+                </p>
+            </section>
+
+            <section data-anim="reveal" id="contact" class="scroll-mt-24 rounded-2xl border border-sky-500/25 bg-sky-500/5 p-6 sm:p-8">
+                <h2 class="font-display text-xl font-semibold text-white">12. Contact</h2>
+                <p class="mt-4">
+                    For privacy-related questions or requests, reach us through the
+                    <a class="font-medium text-sky-400 hover:text-sky-300" asp-controller="Home" asp-action="Contact">Contact</a>
+                    page. We will respond within a reasonable time frame.
+                </p>
+            </section>
+        </article>
     </div>
 </div>
 
-<style>
-    .privacy-container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 2rem 1.5rem;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-        line-height: 1.6;
-        color: #333;
-    }
-
-    .privacy-header {
-        text-align: center;
-        margin-bottom: 3rem;
-        padding-bottom: 1.5rem;
-        border-bottom: 2px solid #f0f0f0;
-    }
-
-    .privacy-title {
-        font-size: 2.5rem;
-        font-weight: 600;
-        color: #2c3e50;
-        margin-bottom: 0.5rem;
-    }
-
-    .privacy-subtitle {
-        color: #7f8c8d;
-        font-size: 0.9rem;
-    }
-
-    .privacy-section {
-        margin-bottom: 2.5rem;
-        padding: 1.5rem;
-        background-color: #f9f9f9;
-        border-radius: 8px;
-        transition: transform 0.2s ease;
-    }
-
-    .privacy-section:hover {
-        transform: translateX(5px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    }
-
-    .privacy-section.highlight {
-        background-color: #e8f4f8;
-        border-left: 4px solid #3498db;
-    }
-
-    .section-title {
-        font-size: 1.5rem;
-        font-weight: 500;
-        color: #34495e;
-        margin-bottom: 1rem;
-        padding-bottom: 0.5rem;
-        border-bottom: 1px solid #e0e0e0;
-    }
-
-    .section-text {
-        font-size: 1rem;
-        color: #555;
-        margin: 0;
-    }
-
-    .privacy-link {
-        color: #3498db;
-        text-decoration: none;
-        font-weight: 500;
-    }
-
-    .privacy-link:hover {
-        text-decoration: underline;
-        color: #2980b9;
-    }
-
-    .privacy-footer {
-        margin-top: 3rem;
-        padding-top: 1.5rem;
-        text-align: center;
-        border-top: 2px solid #f0f0f0;
-        color: #7f8c8d;
-    }
-
-    @@media (max-width: 600px) {
-        .privacy-container {
-            padding: 1rem;
-        }
-        
-        .privacy-title {
-            font-size: 2rem;
-        }
-        
-        .privacy-section {
-            padding: 1rem;
-        }
-    }
-</style>
-@*Made by Sarvarbek Rahmonov and Benson Xue*@
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+        gsap.from('[data-anim="hero-line"]', {
+            opacity: 0,
+            y: 24,
+            duration: 0.8,
+            stagger: 0.08,
+            ease: 'power3.out',
+        });
+        gsap.utils.toArray('[data-anim="reveal"]').forEach(function (el) {
+            gsap.from(el, {
+                opacity: 0,
+                y: 28,
+                duration: 0.65,
+                ease: 'power2.out',
+                scrollTrigger: { trigger: el, start: 'top 92%', toggleActions: 'play none none none' },
+            });
+        });
+    </script>
+}

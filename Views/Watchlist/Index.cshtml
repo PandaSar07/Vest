@@ -315,12 +315,20 @@
 
 @section Scripts {
     <script>
-        const STORAGE_KEY = 'vest_watchlist';
+        let watchlistSymbols = [];
         let refreshTimer;
 
         // ── Helpers ─────────────────────────────────────────────────────────
-        const getWatchlist = () => JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-        const saveWatchlist = arr => localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+        async function fetchWatchlist() {
+            const r = await fetch('/api/watchlist');
+            if (r.status === 401) {
+                window.location.href = '/Home/Log';
+                return [];
+            }
+            if (!r.ok) throw new Error('watchlist fetch failed');
+            const list = await r.json();
+            return Array.isArray(list) ? list : [];
+        }
 
         const fmt = (n, d = 2) =>
             n == null ? '—' : Number(n).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -343,7 +351,8 @@
 
         // ── Render ───────────────────────────────────────────────────────────
         async function renderWatchlist() {
-            const symbols = getWatchlist();
+            watchlistSymbols = await fetchWatchlist();
+            const symbols = watchlistSymbols;
             const grid = document.getElementById('wlGrid');
             const countEl = document.getElementById('wlCount');
 
@@ -435,9 +444,19 @@
         }
 
         // ── Remove stock ─────────────────────────────────────────────────────
-        function removeStock(sym) {
-            const list = getWatchlist().filter(s => s !== sym);
-            saveWatchlist(list);
+        async function removeStock(sym) {
+            try {
+                const r = await fetch(`/api/watchlist/${encodeURIComponent(sym)}`, { method: 'DELETE' });
+                if (r.status === 401) {
+                    window.location.href = '/Home/Log';
+                    return;
+                }
+                if (!r.ok) throw new Error('remove failed');
+                watchlistSymbols = watchlistSymbols.filter(s => s !== sym);
+            } catch {
+                alert('Could not remove symbol from watchlist right now. Please try again.');
+                return;
+            }
             // Animate card out then re-render
             const card = document.getElementById(`wl-card-${sym}`);
             if (card) {
@@ -452,7 +471,7 @@
 
         // ── Refresh loop ─────────────────────────────────────────────────────
         async function refreshPrices() {
-            const symbols = getWatchlist();
+            const symbols = watchlistSymbols;
             if (symbols.length === 0) return;
             const results = await Promise.all(
                 symbols.map(sym => Promise.all([fetchQuote(sym), fetchProfile(sym)]).then(([q, p]) => ({ sym, q, p })))

@@ -27,8 +27,25 @@ public class HomeController : Controller
         ViewData["FluidMain"] = true;
         return View();
     }
-    public IActionResult Privacy() => View();
-    public IActionResult About() => View();
+    public IActionResult Privacy()
+    {
+        ViewData["FluidMain"] = true;
+        return View();
+    }
+
+    public IActionResult About()
+    {
+        ViewData["FluidMain"] = true;
+        return View();
+    }
+
+    public IActionResult Contact()
+    {
+        ViewData["FluidMain"] = true;
+        var email = _config["Vest:PublicContactEmail"]?.Trim();
+        ViewData["PublicContactEmail"] = string.IsNullOrEmpty(email) ? null : email;
+        return View();
+    }
 
     // GET: /Home/Log
     [HttpGet]

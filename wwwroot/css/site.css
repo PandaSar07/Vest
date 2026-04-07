@@ -99,6 +99,11 @@ h4 {
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
 }
 
+/* Tailwind CDN defines a `.collapse` utility (visibility: collapse) that breaks Bootstrap `.navbar-collapse.collapse`. */
+header.navbar .navbar-collapse.collapse {
+  visibility: visible;
+}
+
 .navbar-brand {
   font-family: var(--font-brand);
   font-weight: 700;
@@ -638,3 +643,17 @@ label {
 .d-flex { display: flex; }
 .justify-content-between { justify-content: space-between; }
 .align-items-center { align-items: center; }
+
+/* Tailwind marketing/legal pages — undo global gradient headings */
+.vest-marketing h1,
+.vest-marketing h2,
+.vest-marketing h3,
+.vest-marketing h4 {
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  -webkit-text-fill-color: currentColor !important;
+  color: inherit;
+  font-family: inherit;
+  letter-spacing: inherit;
+}

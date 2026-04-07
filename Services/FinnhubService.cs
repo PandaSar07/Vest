@@ -109,5 +109,17 @@ namespace Vest.Services
             using var doc = JsonDocument.Parse(json);
             return doc.RootElement.Clone();
         }
+
+        /// <summary>Symbol search autocomplete from Finnhub.</summary>
+        public async Task<JsonElement?> SearchSymbolsAsync(string query)
+        {
+            var url = $"https://finnhub.io/api/v1/search?q={Uri.EscapeDataString(query)}&token={_apiKey}";
+            var response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadAsStringAsync();
+            using var doc = JsonDocument.Parse(json);
+            return doc.RootElement.Clone();
+        }
     }
 }

@@ -173,6 +173,15 @@
 <script>
     const fmt = (n, d = 2) =>
         n == null ? '—' : Number(n).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+    const parseApiDate = (value) => {
+        if (!value) return null;
+        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+            const [y, m, d] = value.split('-').map(Number);
+            return new Date(y, m - 1, d);
+        }
+        const dt = new Date(value);
+        return Number.isNaN(dt.getTime()) ? null : dt;
+    };
 
     // ── Summary + Charts ────────────────────────────────────────────────────
     async function loadSummary() {
@@ -223,12 +232,29 @@
             const r = await fetch('/portfolio/snapshots?days=60');
             if (!r.ok) return;
             const snaps = await r.json();
-            if (snaps.length < 2) {
+            if (!Array.isArray(snaps) || snaps.length < 2) {
                 document.getElementById('perfMsg').style.display = 'block';
                 return;
             }
-            const labels = snaps.map(s => new Date(s.snappedAt).toLocaleDateString('en-US', { month:'short', day:'numeric' }));
-            const values = snaps.map(s => s.value);
+
+            // Support both snake_case and camelCase payload shapes.
+            const normalized = snaps
+                .map(s => ({
+                    value: Number(s.value),
+                    date: parseApiDate(s.snappedAt ?? s.snapped_at)
+                }))
+                .filter(s => Number.isFinite(s.value) && s.date);
+
+            // Ensure stable chronological plotting.
+            normalized.sort((a, b) => a.date - b.date);
+
+            const validSnaps = normalized;
+            if (validSnaps.length < 2) {
+                document.getElementById('perfMsg').style.display = 'block';
+                return;
+            }
+            const labels = validSnaps.map(s => s.date.toLocaleDateString('en-US', { month:'short', day:'numeric' }));
+            const values = validSnaps.map(s => s.value);
             const isUp   = values[values.length - 1] >= values[0];
             const color  = isUp ? '#10b981' : '#ef4444';
 
