@@ -1,4 +1,4 @@
-﻿@{
+@{
     var fluidMain = ViewData["FluidMain"] as bool? == true;
     var navCtrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
     var navAct = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
@@ -550,5 +550,496 @@
         })();
     </script>
     @await RenderSectionAsync("Scripts", required: false)
+
+    <!-- ── Vest AI Floating Chat ── -->
+    <style>
+        /* ── FAB Button ── */
+        #vest-ai-fab {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0ea5e9 0%, #7c3aed 100%);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 32px rgba(14, 165, 233, 0.45), 0 2px 8px rgba(0,0,0,0.4);
+            z-index: 9998;
+            transition: transform 0.2s cubic-bezier(.34,1.56,.64,1), box-shadow 0.2s;
+            padding: 0;
+            overflow: hidden;
+        }
+        #vest-ai-fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 40px rgba(14, 165, 233, 0.6), 0 4px 12px rgba(0,0,0,0.5);
+        }
+        #vest-ai-fab img {
+            width: 38px;
+            height: 38px;
+            object-fit: contain;
+            border-radius: 50%;
+        }
+        #vest-ai-fab .fab-pulse {
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            border: 2px solid rgba(14, 165, 233, 0.5);
+            animation: vestPulse 2.5s ease-out infinite;
+            pointer-events: none;
+        }
+        @@keyframes vestPulse {
+            0%   { transform: scale(1);   opacity: 0.7; }
+            70%  { transform: scale(1.4); opacity: 0; }
+            100% { transform: scale(1.4); opacity: 0; }
+        }
+
+        /* ── Chat Panel ── */
+        #vest-ai-chat {
+            position: fixed;
+            bottom: 96px;
+            right: 28px;
+            width: 370px;
+            max-height: 560px;
+            background: rgba(8, 12, 22, 0.97);
+            border: 1px solid rgba(14, 165, 233, 0.2);
+            border-radius: 20px;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04);
+            backdrop-filter: blur(20px);
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            transition: opacity 0.2s, transform 0.2s;
+            opacity: 0;
+            transform: translateY(12px) scale(0.97);
+            user-select: none;
+        }
+        #vest-ai-chat.vest-open {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        /* ── Chat Header (drag handle) ── */
+        .vest-chat-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 16px 12px;
+            cursor: grab;
+            background: linear-gradient(135deg, rgba(14,165,233,0.12) 0%, rgba(124,58,237,0.08) 100%);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            flex-shrink: 0;
+        }
+        .vest-chat-header:active { cursor: grabbing; }
+        .vest-chat-logo {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0ea5e9, #7c3aed);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 0 12px rgba(14,165,233,0.4);
+        }
+        .vest-chat-logo img { width: 22px; height: 22px; object-fit: contain; }
+        .vest-chat-title {
+            flex: 1;
+        }
+        .vest-chat-title h4 {
+            margin: 0;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #f0f6ff;
+            letter-spacing: 0.2px;
+        }
+        .vest-chat-title p {
+            margin: 0;
+            font-size: 0.7rem;
+            color: #38bdf8;
+            opacity: 0.85;
+        }
+        .vest-chat-online {
+            width: 7px;
+            height: 7px;
+            background: #22c55e;
+            border-radius: 50%;
+            box-shadow: 0 0 6px #22c55e;
+            flex-shrink: 0;
+        }
+        #vest-ai-close {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.4);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 6px;
+            display: flex;
+            transition: color 0.15s, background 0.15s;
+        }
+        #vest-ai-close:hover { color: #fff; background: rgba(255,255,255,0.08); }
+
+        /* ── Chat Body ── */
+        .vest-chat-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .vest-chat-body::-webkit-scrollbar { width: 4px; }
+        .vest-chat-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+        /* ── Welcome state ── */
+        .vest-welcome {
+            text-align: center;
+            padding: 8px 4px 4px;
+        }
+        .vest-welcome-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(14,165,233,0.2), rgba(124,58,237,0.2));
+            border: 1px solid rgba(14,165,233,0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+        }
+        .vest-welcome-icon img { width: 32px; height: 32px; object-fit: contain; }
+        .vest-welcome h5 {
+            margin: 0 0 4px;
+            color: #f0f6ff;
+            font-size: 0.92rem;
+            font-weight: 700;
+        }
+        .vest-welcome p {
+            margin: 0 0 14px;
+            color: rgba(255,255,255,0.45);
+            font-size: 0.75rem;
+            line-height: 1.5;
+        }
+
+        /* ── Suggested questions ── */
+        .vest-suggestions {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .vest-suggestion-label {
+            font-size: 0.67rem;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.3);
+            margin-bottom: 2px;
+        }
+        .vest-suggestion-btn {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            padding: 9px 12px;
+            color: rgba(255,255,255,0.75);
+            font-size: 0.78rem;
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s, color 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+        }
+        .vest-suggestion-btn:hover {
+            background: rgba(14, 165, 233, 0.1);
+            border-color: rgba(14, 165, 233, 0.3);
+            color: #e0f2fe;
+        }
+        .vest-suggestion-btn .vest-sug-icon {
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        /* ── Message bubbles ── */
+        .vest-msg {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+        .vest-msg.user { flex-direction: row-reverse; }
+        .vest-bubble {
+            max-width: 82%;
+            padding: 9px 13px;
+            border-radius: 14px;
+            font-size: 0.8rem;
+            line-height: 1.5;
+        }
+        .vest-msg.user .vest-bubble {
+            background: linear-gradient(135deg, #0ea5e9, #2563eb);
+            color: #fff;
+            border-bottom-right-radius: 4px;
+        }
+        .vest-msg.ai .vest-bubble {
+            background: rgba(255,255,255,0.07);
+            color: rgba(255,255,255,0.88);
+            border-bottom-left-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .vest-msg-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0ea5e9, #7c3aed);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .vest-msg-avatar img { width: 16px; height: 16px; object-fit: contain; }
+
+        /* ── Input bar ── */
+        .vest-chat-footer {
+            padding: 12px 14px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            flex-shrink: 0;
+            background: rgba(255,255,255,0.02);
+        }
+        .vest-input-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 6px 6px 6px 12px;
+            transition: border-color 0.2s;
+        }
+        .vest-input-row:focus-within {
+            border-color: rgba(14, 165, 233, 0.4);
+        }
+        .vest-chat-input {
+            flex: 1;
+            background: none;
+            border: none;
+            outline: none;
+            color: #e0f2fe;
+            font-size: 0.8rem;
+            caret-color: #38bdf8;
+        }
+        .vest-chat-input::placeholder { color: rgba(255,255,255,0.28); }
+        .vest-send-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #0ea5e9, #7c3aed);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: opacity 0.15s, transform 0.15s;
+        }
+        .vest-send-btn:hover { opacity: 0.85; transform: scale(1.05); }
+        .vest-send-btn svg { color: #fff; }
+
+        .vest-coming-soon {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.22);
+            text-align: center;
+            margin-top: 6px;
+        }
+    </style>
+
+    <!-- FAB Button -->
+    <button id="vest-ai-fab" aria-label="Open Vest AI">
+        <div class="fab-pulse"></div>
+        <img src="~/images/VestLogo.png" alt="Vest AI" />
+    </button>
+
+    <!-- Chat Panel -->
+    <div id="vest-ai-chat" role="dialog" aria-label="Vest AI Chat">
+        <div class="vest-chat-header" id="vest-drag-handle">
+            <div class="vest-chat-logo">
+                <img src="~/images/VestLogo.png" alt="Vest" />
+            </div>
+            <div class="vest-chat-title">
+                <h4>Vest AI</h4>
+                <p>Market Intelligence Assistant</p>
+            </div>
+            <div class="vest-chat-online" title="Coming soon"></div>
+            <button id="vest-ai-close" aria-label="Close chat">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="vest-chat-body" id="vest-chat-messages">
+            <!-- Welcome screen -->
+            <div class="vest-welcome" id="vest-welcome-screen">
+                <div class="vest-welcome-icon">
+                    <img src="~/images/VestLogo.png" alt="Vest" />
+                </div>
+                <h5>Hey, I'm Vest AI 👋</h5>
+                <p>Your intelligent market assistant. Ask me about stocks, signals, setups, and more.</p>
+            </div>
+
+            <!-- Suggested questions -->
+            <div class="vest-suggestions">
+                <div class="vest-suggestion-label">Try asking</div>
+                <button class="vest-suggestion-btn" onclick="vestAskSuggestion(this)">
+                    <span class="vest-sug-icon">📈</span>
+                    <span>Which stocks have bullish momentum right now?</span>
+                </button>
+                <button class="vest-suggestion-btn" onclick="vestAskSuggestion(this)">
+                    <span class="vest-sug-icon">🎯</span>
+                    <span>Explain what RSI and MACD signals mean</span>
+                </button>
+                <button class="vest-suggestion-btn" onclick="vestAskSuggestion(this)">
+                    <span class="vest-sug-icon">🛡️</span>
+                    <span>How do I manage risk as a beginner investor?</span>
+                </button>
+                <button class="vest-suggestion-btn" onclick="vestAskSuggestion(this)">
+                    <span class="vest-sug-icon">🔍</span>
+                    <span>What makes a stock worth watching this week?</span>
+                </button>
+                <button class="vest-suggestion-btn" onclick="vestAskSuggestion(this)">
+                    <span class="vest-sug-icon">⚡</span>
+                    <span>Score my watchlist by opportunity and risk</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="vest-chat-footer">
+            <div class="vest-input-row">
+                <input class="vest-chat-input" id="vest-chat-input" type="text"
+                       placeholder="Ask Vest AI anything…" autocomplete="off"
+                       onkeydown="if(event.key==='Enter')vestSendMessage()" />
+                <button class="vest-send-btn" onclick="vestSendMessage()" aria-label="Send">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083zm-1.833 1.89L6.637 10.07l-.215-.338L1.65 6.47l11.48-3.893z"/>
+                    </svg>
+                </button>
+            </div>
+            <p class="vest-coming-soon">AI responses coming soon · Preview mode</p>
+        </div>
+    </div>
+
+    <script>
+        // ── Toggle open/close ──
+        const fab      = document.getElementById('vest-ai-fab');
+        const chatPanel = document.getElementById('vest-ai-chat');
+        const closeBtn = document.getElementById('vest-ai-close');
+        const chatInput = document.getElementById('vest-chat-input');
+
+        fab.addEventListener('click', () => {
+            const isOpen = chatPanel.classList.contains('vest-open');
+            if (isOpen) {
+                chatPanel.style.opacity = '0';
+                chatPanel.style.transform = 'translateY(12px) scale(0.97)';
+                setTimeout(() => { chatPanel.classList.remove('vest-open'); }, 180);
+            } else {
+                chatPanel.classList.add('vest-open');
+                requestAnimationFrame(() => {
+                    chatPanel.style.opacity = '1';
+                    chatPanel.style.transform = 'translateY(0) scale(1)';
+                });
+                chatInput.focus();
+            }
+        });
+
+        closeBtn.addEventListener('click', () => {
+            chatPanel.style.opacity = '0';
+            chatPanel.style.transform = 'translateY(12px) scale(0.97)';
+            setTimeout(() => { chatPanel.classList.remove('vest-open'); }, 180);
+        });
+
+        // ── Dragging ──
+        (function () {
+            const handle = document.getElementById('vest-drag-handle');
+            let dragging = false, startX, startY, origLeft, origBottom, origTop, origRight;
+
+            handle.addEventListener('mousedown', (e) => {
+                if (e.target.closest('#vest-ai-close')) return;
+                dragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                const rect = chatPanel.getBoundingClientRect();
+                origLeft = rect.left;
+                origTop  = rect.top;
+                chatPanel.style.right   = 'auto';
+                chatPanel.style.bottom  = 'auto';
+                chatPanel.style.left    = origLeft + 'px';
+                chatPanel.style.top     = origTop  + 'px';
+                chatPanel.style.transition = 'none';
+                document.body.style.userSelect = 'none';
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!dragging) return;
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                chatPanel.style.left = (origLeft + dx) + 'px';
+                chatPanel.style.top  = (origTop  + dy) + 'px';
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (!dragging) return;
+                dragging = false;
+                chatPanel.style.transition = '';
+                document.body.style.userSelect = '';
+            });
+        })();
+
+        // ── Suggested question click ──
+        function vestAskSuggestion(btn) {
+            const text = btn.querySelector('span:last-child').textContent.trim();
+            chatInput.value = text;
+            chatInput.focus();
+            vestSendMessage();
+        }
+
+        // ── Send message ──
+        function vestSendMessage() {
+            const text = chatInput.value.trim();
+            if (!text) return;
+            chatInput.value = '';
+
+            const body = document.getElementById('vest-chat-messages');
+
+            // Hide welcome + suggestions on first message
+            const welcome = document.getElementById('vest-welcome-screen');
+            const suggestions = body.querySelector('.vest-suggestions');
+            if (welcome) { welcome.style.display = 'none'; }
+            if (suggestions) { suggestions.style.display = 'none'; }
+
+            // User bubble
+            const userMsg = document.createElement('div');
+            userMsg.className = 'vest-msg user';
+            userMsg.innerHTML = `<div class="vest-bubble">${escapeHtml(text)}</div>`;
+            body.appendChild(userMsg);
+
+            // AI placeholder bubble
+            const aiMsg = document.createElement('div');
+            aiMsg.className = 'vest-msg ai';
+            aiMsg.innerHTML = `
+                <div class="vest-msg-avatar"><img src="/images/VestLogo.png" alt="Vest" /></div>
+                <div class="vest-bubble" style="opacity:0.6;font-style:italic;">
+                    Vest AI is coming soon — stay tuned! 🚀
+                </div>`;
+            body.appendChild(aiMsg);
+            body.scrollTop = body.scrollHeight;
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+    </script>
 </body>
 </html>
