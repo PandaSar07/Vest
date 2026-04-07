@@ -262,6 +262,59 @@
         margin-bottom: 0.45rem;
     }
 
+    /* Glossary */
+    .glossary-grid {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.9rem;
+    }
+
+    .glossary-term {
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        background: rgba(17, 25, 40, 0.62);
+        padding: 1rem 1.1rem;
+        transition: var(--transition);
+    }
+
+    .glossary-term:hover {
+        border-color: rgba(56, 189, 248, 0.35);
+        transform: translateY(-2px);
+    }
+
+    .glossary-term-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--accent-color);
+        margin-bottom: 0.3rem;
+    }
+
+    .glossary-term h4 {
+        font-size: 1rem;
+        margin: 0 0 0.4rem;
+    }
+
+    .glossary-term p {
+        margin: 0;
+        font-size: 0.88rem;
+        color: var(--text-secondary);
+    }
+
+    @@media (max-width: 992px) {
+        .glossary-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .glossary-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
     .landing-steps {
         margin-top: 1rem;
         display: grid;
@@ -514,6 +567,45 @@
                     <h3>Account Settings</h3>
                     <p>Manage your profile, adjust your learning preferences, set up security features like 2FA, and configure visual themes like dark mode.</p>
                 </article>
+            </div>
+        </section>
+
+        <section class="landing-section reveal">
+            <h2 class="landing-section-title">Key Investing Terms</h2>
+            <p class="landing-section-copy">
+                New to investing? Here are plain-English definitions for the terms you'll come across most often on Vest.
+            </p>
+            <div class="glossary-grid">
+                <div class="glossary-term">
+                    <div class="glossary-term-label">Order Type</div>
+                    <h4>Market Order</h4>
+                    <p>An instruction to buy or sell a stock immediately at the current market price. Fast, but you get whatever price the market is at that moment.</p>
+                </div>
+                <div class="glossary-term">
+                    <div class="glossary-term-label">Order Type</div>
+                    <h4>Limit Order</h4>
+                    <p>An order to buy or sell only at a specific price (or better). Gives you price control, but the trade may not execute if the market never hits your target.</p>
+                </div>
+                <div class="glossary-term">
+                    <div class="glossary-term-label">Your Account</div>
+                    <h4>Portfolio Value</h4>
+                    <p>The total current worth of all the investments you hold. It rises and falls with the market prices of the stocks in your portfolio.</p>
+                </div>
+                <div class="glossary-term">
+                    <div class="glossary-term-label">Returns</div>
+                    <h4>Dividend</h4>
+                    <p>A cash payment some companies send to shareholders, usually quarterly. It's a share of the company's profits given back to investors who hold the stock.</p>
+                </div>
+                <div class="glossary-term">
+                    <div class="glossary-term-label">Company Size</div>
+                    <h4>Market Cap</h4>
+                    <p>Short for "market capitalization" — the total value of all a company's shares. Large-cap companies (e.g. Apple) are generally more stable than small-caps.</p>
+                </div>
+                <div class="glossary-term">
+                    <div class="glossary-term-label">Market Mood</div>
+                    <h4>Bull vs. Bear Market</h4>
+                    <p>A <strong>bull market</strong> is a period of rising prices and optimism. A <strong>bear market</strong> is a prolonged decline of 20% or more — a good time to stay calm and think long-term.</p>
+                </div>
             </div>
         </section>
 
