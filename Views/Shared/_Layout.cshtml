@@ -268,6 +268,9 @@
                                     <a class="nav-link @(navCtrl == "Home" && navAct == "Index" ? "active" : null)" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                                 </li>
                                 <li class="nav-item">
+                                    <a class="nav-link @(navCtrl == "Tutorial" ? "active" : null)" asp-area="" asp-controller="Tutorial" asp-action="Index">Tutorial</a>
+                                </li>
+                                <li class="nav-item">
                                     <a class="nav-link @(navCtrl == "Home" && navAct == "About" ? "active" : null)" asp-area="" asp-controller="Home" asp-action="About">About</a>
                                 </li>
                                 <li class="nav-item">
@@ -300,6 +303,9 @@
                                     <a class="nav-link @(navCtrl == "Watchlist" ? "active" : null)" asp-area="" asp-controller="Watchlist" asp-action="Index" id="navWatchlist">
                                         Watchlist <span id="wlNavBadge" style="display:none;background:var(--accent-color);color:#05070a;border-radius:9999px;font-size:0.65rem;font-weight:800;padding:1px 7px;margin-left:3px;vertical-align:middle;">0</span>
                                     </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link @(navCtrl == "Tutorial" ? "active" : null)" asp-area="" asp-controller="Tutorial" asp-action="Index">Tutorial</a>
                                 </li>
                             }
                         </ul>
