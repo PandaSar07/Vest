@@ -1,0 +1,37 @@
+@model Vest.Models.CompleteGoogleSignupViewModel
+
+@{
+    ViewData["Title"] = "Complete Sign Up";
+}
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header text-center">
+            <h1 class="auth-title">Almost There!</h1>
+            <p class="auth-subtitle">Hello @Model.FullName, please pick a username to complete your registration.</p>
+        </div>
+
+        <form asp-action="CompleteGoogleSignup" method="post">
+            @Html.AntiForgeryToken()
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "block")"></div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Username">Username</label>
+                <input asp-for="Username" class="form-control mt-1" placeholder="Choose a username" />
+                <span asp-validation-for="Username" class="text-danger small"></span>
+            </div>
+
+            <input type="hidden" asp-for="Email" />
+            <input type="hidden" asp-for="FullName" />
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary w-100">Complete Sign Up</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

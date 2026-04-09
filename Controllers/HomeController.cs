@@ -3,6 +3,10 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
+using System.Security.Claims;
 using Vest.Models;
 
 namespace Vest.Controllers;
@@ -291,6 +295,163 @@ public class HomeController : Controller
     {
         HttpContext.Session.Clear();
         return RedirectToAction("Index");
+    }
+
+    [HttpGet]
+    [HttpPost]
+    public IActionResult GoogleLogin()
+    {
+        var properties = new AuthenticationProperties { RedirectUri = Url.Action("GoogleCallback") };
+        return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GoogleCallback()
+    {
+        var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        if (result.Principal == null)
+            return RedirectToAction("Log");
+
+        var email = result.Principal.FindFirstValue(ClaimTypes.Email);
+        var name = result.Principal.FindFirstValue(ClaimTypes.Name);
+
+        if (string.IsNullOrEmpty(email))
+        {
+            TempData["ErrorMessage"] = "Could not retrieve email from Google.";
+            return RedirectToAction("Log");
+        }
+
+        try
+        {
+            var http = _httpClientFactory.CreateClient("supabase");
+            var response = await http.GetAsync($"users?email=eq.{Uri.EscapeDataString(email)}&select=id,email,username,password_hash");
+            var json = await response.Content.ReadAsStringAsync();
+            var users = JsonSerializer.Deserialize<List<StoredUser>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (users != null && users.Count > 0)
+            {
+                // User exists, log them in
+                var user = users[0];
+                HttpContext.Session.SetString("UserId", user.Id);
+                HttpContext.Session.SetString("UserEmail", user.Email);
+                HttpContext.Session.SetString("Username", user.Username);
+
+                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                return RedirectToAction("Index", "Dashboard");
+            }
+            else
+            {
+                // New user, redirect to complete signup to pick a username
+                TempData["GoogleEmail"] = email;
+                TempData["GoogleName"] = name ?? email.Split('@')[0];
+                
+                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                return RedirectToAction("CompleteGoogleSignup");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "GoogleCallback failed");
+            TempData["ErrorMessage"] = "An error occurred during Google sign in.";
+            return RedirectToAction("Log");
+        }
+    }
+
+    [HttpGet]
+    public IActionResult CompleteGoogleSignup()
+    {
+        var email = TempData["GoogleEmail"]?.ToString();
+        var name = TempData["GoogleName"]?.ToString();
+
+        if (string.IsNullOrEmpty(email))
+            return RedirectToAction("Signup"); // Lost state, restart
+
+        // Re-store in TempData for the POST
+        TempData.Keep("GoogleEmail");
+        TempData.Keep("GoogleName");
+
+        var model = new CompleteGoogleSignupViewModel
+        {
+            Email = email,
+            FullName = name!
+        };
+
+        return View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CompleteGoogleSignup(CompleteGoogleSignupViewModel model)
+    {
+        var email = TempData["GoogleEmail"]?.ToString() ?? model.Email;
+        var name = TempData["GoogleName"]?.ToString() ?? model.FullName;
+
+        if (string.IsNullOrEmpty(email))
+            return RedirectToAction("Signup");
+
+        TempData.Keep("GoogleEmail");
+        TempData.Keep("GoogleName");
+
+        if (!ModelState.IsValid)
+            return View(model);
+
+        try
+        {
+            var http = _httpClientFactory.CreateClient("supabase");
+
+            // Random placeholder password hash since they use Google auth
+            var placeholderPassword = Guid.NewGuid().ToString("N");
+
+            var payload = new
+            {
+                full_name = name,
+                email = email,
+                username = model.Username,
+                password_hash = BCrypt.Net.BCrypt.HashPassword(placeholderPassword)
+            };
+
+            var content = new StringContent(
+                JsonSerializer.Serialize(payload),
+                Encoding.UTF8,
+                "application/json");
+
+            var response = await http.PostAsync("users", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                // Fetch the newly created user to get the ID
+                var fetchRes = await http.GetAsync($"users?email=eq.{Uri.EscapeDataString(email)}&select=id,email,username");
+                if (fetchRes.IsSuccessStatusCode)
+                {
+                    var fetchJson = await fetchRes.Content.ReadAsStringAsync();
+                    var users = JsonSerializer.Deserialize<List<StoredUser>>(fetchJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    if (users != null && users.Count > 0)
+                    {
+                        var user = users[0];
+                        HttpContext.Session.SetString("UserId", user.Id);
+                        HttpContext.Session.SetString("UserEmail", user.Email);
+                        HttpContext.Session.SetString("Username", user.Username);
+
+                        TempData.Remove("GoogleEmail");
+                        TempData.Remove("GoogleName");
+                        return RedirectToAction("Index", "Dashboard");
+                    }
+                }
+            }
+
+            var error = await response.Content.ReadAsStringAsync();
+            if (error.Contains("duplicate") || error.Contains("unique"))
+                ModelState.AddModelError(string.Empty, "That username is already taken. Please choose another.");
+            else
+                ModelState.AddModelError(string.Empty, "Signup failed. Please try again.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "CompleteGoogleSignup failed");
+            ModelState.AddModelError(string.Empty, "Signup failed. Please try again.");
+        }
+
+        return View(model);
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
