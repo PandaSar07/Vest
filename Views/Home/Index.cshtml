@@ -2,13 +2,4 @@
     ViewData["Title"] = "Vest | Invest Smarter";
 }
 
-<div id="landing-root">
-    <div class="container py-5">
-        <h1 class="text-white">Loading premium landing...</h1>
-    </div>
-</div>
-
-@section Scripts {
-    <link rel="stylesheet" href="~/landing/landing.css" asp-append-version="true" />
-    <script type="module" src="~/landing/landing.js" asp-append-version="true"></script>
-}
+@await Html.PartialAsync("Tutorial")

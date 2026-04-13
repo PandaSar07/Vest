@@ -13,11 +13,6 @@ public class TutorialController : Controller
 
     public IActionResult Index()
     {
-        ViewData["Title"] = "Tutorial | Vest";
-        ViewData["FluidMain"] = true; // Use the same fluid layout as the homepage
-        
-        // Explicitly returning the view we created earlier 
-        // (if you move the file to Views/Tutorial/Index.cshtml, you can just return View())
-        return View("~/Views/Home/Tutorial.cshtml");
+        return RedirectToAction("Index", "Home");
     }
 }
