@@ -951,6 +951,30 @@
                 chatPanel.style.transform = 'translateY(12px) scale(0.97)';
                 setTimeout(() => { chatPanel.classList.remove('vest-open'); }, 180);
             } else {
+                // Reposition chat panel relative to FAB if FAB was moved and chat wasn't
+                if (fab.dataset.dragged === 'true' && chatPanel.dataset.dragged !== 'true') {
+                    const rect = fab.getBoundingClientRect();
+                    const chatWidth = 370;
+                    const vh = window.innerHeight;
+                    const vw = window.innerWidth;
+                    
+                    chatPanel.style.right = 'auto';
+                    chatPanel.style.bottom = 'auto';
+                    
+                    // Preferably align right edge of chat with right edge of FAB
+                    let left = rect.left + rect.width - chatWidth;
+                    let top = rect.top - 570; // 560 max height + 10 margin
+                    
+                    // Stay within viewport
+                    if (left < 10) left = 10;
+                    if (left + chatWidth > vw - 10) left = vw - chatWidth - 10;
+                    if (top < 10) top = 10;
+                    if (top + 560 > vh - 10) top = vh - 560 - 10;
+
+                    chatPanel.style.left = left + 'px';
+                    chatPanel.style.top = top + 'px';
+                }
+
                 chatPanel.classList.add('vest-open');
                 requestAnimationFrame(() => {
                     chatPanel.style.opacity = '1';
@@ -966,41 +990,105 @@
             setTimeout(() => { chatPanel.classList.remove('vest-open'); }, 180);
         });
 
-        // ── Dragging ──
+        // ── Unified Draggable Logic ──
         (function () {
-            const handle = document.getElementById('vest-drag-handle');
-            let dragging = false, startX, startY, origLeft, origBottom, origTop, origRight;
+            function makeDraggable(el, handle, options = {}) {
+                let dragging = false;
+                let startX, startY, origX, origY;
+                let hasMoved = false;
 
-            handle.addEventListener('mousedown', (e) => {
-                if (e.target.closest('#vest-ai-close')) return;
-                dragging = true;
-                startX = e.clientX;
-                startY = e.clientY;
-                const rect = chatPanel.getBoundingClientRect();
-                origLeft = rect.left;
-                origTop  = rect.top;
-                chatPanel.style.right   = 'auto';
-                chatPanel.style.bottom  = 'auto';
-                chatPanel.style.left    = origLeft + 'px';
-                chatPanel.style.top     = origTop  + 'px';
-                chatPanel.style.transition = 'none';
-                document.body.style.userSelect = 'none';
+                const start = (e) => {
+                    if (e.target.closest('#vest-ai-close')) return;
+                    
+                    const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+                    const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+
+                    dragging = true;
+                    hasMoved = false;
+                    startX = clientX;
+                    startY = clientY;
+
+                    const rect = el.getBoundingClientRect();
+                    origX = rect.left;
+                    origY = rect.top;
+
+                    el.style.transition = 'none';
+                    el.style.right = 'auto';
+                    el.style.bottom = 'auto';
+                    el.style.left = origX + 'px';
+                    el.style.top = origY + 'px';
+                    
+                    document.body.style.userSelect = 'none';
+                    document.body.style.touchAction = 'none';
+                };
+
+                const move = (e) => {
+                    if (!dragging) return;
+                    
+                    const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+                    const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+
+                    const dx = clientX - startX;
+                    const dy = clientY - startY;
+
+                    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+                        hasMoved = true;
+                    }
+
+                    if (hasMoved) {
+                        el.style.left = (origX + dx) + 'px';
+                        el.style.top = (origY + dy) + 'px';
+                        if (options.onDrag) options.onDrag(el, origX + dx, origY + dy);
+                    }
+                };
+
+                const stop = () => {
+                    if (!dragging) return;
+                    dragging = false;
+                    el.style.transition = '';
+                    document.body.style.userSelect = '';
+                    document.body.style.touchAction = '';
+                    if (options.onStop) options.onStop(hasMoved);
+                };
+
+                handle.addEventListener('mousedown', start);
+                handle.addEventListener('touchstart', start, { passive: false });
+                document.addEventListener('mousemove', move);
+                document.addEventListener('touchmove', move, { passive: false });
+                document.addEventListener('mouseup', stop);
+                document.addEventListener('touchend', stop);
+
+                return {
+                    wasDragged: () => hasMoved
+                };
+            }
+
+            // Drag for Chat Panel
+            const chatHandle = document.getElementById('vest-drag-handle');
+            makeDraggable(chatPanel, chatHandle, {
+                onStop: (moved) => {
+                    if (moved) chatPanel.dataset.dragged = 'true';
+                }
             });
 
-            document.addEventListener('mousemove', (e) => {
-                if (!dragging) return;
-                const dx = e.clientX - startX;
-                const dy = e.clientY - startY;
-                chatPanel.style.left = (origLeft + dx) + 'px';
-                chatPanel.style.top  = (origTop  + dy) + 'px';
+            // Drag for FAB
+            let fabIsDraggingRightNow = false;
+            makeDraggable(fab, fab, {
+                onStop: (moved) => {
+                    if (moved) fab.dataset.dragged = 'true';
+                    fabIsDraggingRightNow = moved;
+                }
             });
 
-            document.addEventListener('mouseup', () => {
-                if (!dragging) return;
-                dragging = false;
-                chatPanel.style.transition = '';
-                document.body.style.userSelect = '';
-            });
+            // Intercept FAB click to prevent opening during/after drag
+            fab.addEventListener('click', (e) => {
+                if (fabIsDraggingRightNow) {
+                    e.stopImmediatePropagation();
+                    e.preventDefault();
+                    fabIsDraggingRightNow = false;
+                    return;
+                }
+            }, true);
         })();
 
         // ── Suggested question click ──
