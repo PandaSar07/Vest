@@ -1071,24 +1071,7 @@
                 }
             });
 
-            // Drag for FAB
-            let fabIsDraggingRightNow = false;
-            makeDraggable(fab, fab, {
-                onStop: (moved) => {
-                    if (moved) fab.dataset.dragged = 'true';
-                    fabIsDraggingRightNow = moved;
-                }
-            });
-
-            // Intercept FAB click to prevent opening during/after drag
-            fab.addEventListener('click', (e) => {
-                if (fabIsDraggingRightNow) {
-                    e.stopImmediatePropagation();
-                    e.preventDefault();
-                    fabIsDraggingRightNow = false;
-                    return;
-                }
-            }, true);
+            // FAB remains fixed; only the chat panel is draggable.
         })();
 
         // ── Suggested question click ──
