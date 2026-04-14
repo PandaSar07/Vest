@@ -3,7 +3,33 @@
 }
 
 <style>
-    .crypto-hero { padding: 2.5rem 0 1.5rem; }
+    .crypto-hero { padding: 2rem 0 1.5rem; }
+
+    .crypto-breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        margin-bottom: 1.25rem;
+        letter-spacing: 0.3px;
+    }
+
+    .crypto-breadcrumb a {
+        color: var(--accent-color);
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .crypto-breadcrumb a:hover { text-decoration: underline; }
+    .crypto-breadcrumb .sep { opacity: 0.4; }
+
+    .section-divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(56,189,248,0.2), rgba(139,92,246,0.15), transparent);
+        margin: 1.5rem 0;
+        border: none;
+    }
 
     .search-wrap {
         position: relative;
@@ -125,7 +151,7 @@
 
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
         gap: 0.75rem;
         margin: 1.5rem 0;
     }
@@ -133,13 +159,28 @@
     .stat-box {
         background: var(--glass-bg);
         border: 1px solid var(--glass-border);
+        border-left: 3px solid rgba(56,189,248,0.35);
         border-radius: var(--radius-sm);
         padding: 0.9rem 1rem;
         backdrop-filter: var(--glass-blur);
         transition: var(--transition);
     }
 
-    .stat-box:hover { border-color: rgba(56,189,248,0.3); }
+    .stat-box:hover {
+        border-color: rgba(56,189,248,0.3);
+        border-left-color: var(--accent-color);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px -4px rgba(56,189,248,0.15);
+    }
+
+    .stat-box:nth-child(2) { border-left-color: rgba(139,92,246,0.4); }
+    .stat-box:nth-child(3) { border-left-color: rgba(16,185,129,0.4); }
+    .stat-box:nth-child(4) { border-left-color: rgba(251,191,36,0.4); }
+    .stat-box:nth-child(5) { border-left-color: rgba(244,63,94,0.4); }
+    .stat-box:nth-child(2):hover { border-left-color: #8b5cf6; }
+    .stat-box:nth-child(3):hover { border-left-color: #10b981; }
+    .stat-box:nth-child(4):hover { border-left-color: #fbbf24; }
+    .stat-box:nth-child(5):hover { border-left-color: #f43e5e; }
 
     .stat-label {
         font-size: 0.7rem;
@@ -162,11 +203,18 @@
         font-variant-numeric: tabular-nums;
         line-height: 1;
         color: var(--text-primary);
+        font-family: var(--font-brand);
     }
 
-    .price-change { font-size: 1.15rem; font-weight: 600; margin-left: 0.75rem; }
-    .change-up { color: var(--success-color); }
-    .change-down { color: var(--danger-color); }
+    .price-change {
+        font-size: 1rem;
+        font-weight: 700;
+        margin-left: 0.75rem;
+        padding: 4px 10px;
+        border-radius: 8px;
+    }
+    .change-up { color: var(--success-color); background: rgba(16,185,129,0.1); }
+    .change-down { color: var(--danger-color); background: rgba(239,68,68,0.1); }
 
     .chart-card {
         background: var(--glass-bg);
@@ -200,6 +248,18 @@
     }
 
     #cryptoChart { width: 100% !important; height: 380px !important; }
+
+    .chart-trade-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    @@media (min-width: 992px) {
+        .chart-trade-grid {
+            grid-template-columns: 1fr 360px;
+        }
+    }
 
     .news-grid {
         display: grid;
@@ -422,6 +482,14 @@
 
 <div class="container crypto-hero">
 
+    <div class="crypto-breadcrumb">
+        <a href="/Dashboard">Dashboard</a>
+        <span class="sep">›</span>
+        <a href="/Crypto">Market</a>
+        <span class="sep">›</span>
+        <span id="breadcrumbSymbol">Crypto</span>
+    </div>
+
     <div class="mb-4">
         <div class="search-wrap">
             <input type="text" id="symbolInput" placeholder="Symbol — e.g. BTC, ETH, SOL or BTC-USD" value="BTC" autocomplete="off" />
@@ -456,6 +524,10 @@
         <div class="stats-grid" id="statsGrid"></div>
     </div>
 
+    <div class="section-divider"></div>
+
+    <div class="chart-trade-grid">
+
     <div class="chart-card">
         <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
             <div>
@@ -477,7 +549,7 @@
         </div>
     </div>
 
-    <div class="trade-card mb-4" id="tradePanel">
+    <div class="trade-card" id="tradePanel" style="margin-bottom:0;height:fit-content;">
         <div id="tradeLoggedIn">
             <p class="section-header mb-3">Trade (paper)</p>
             <p class="text-secondary small mb-3" style="font-size:0.82rem;margin-top:-0.5rem;">Uses the same cash balance as stocks. Positions are stored as <code style="color:var(--accent-color);">BTC-USD</code> style symbols in your portfolio.</p>
@@ -512,8 +584,12 @@
         </div>
     </div>
 
+    </div><!-- end chart-trade-grid -->
+
+    <div class="section-divider"></div>
+
     <div class="mb-5">
-        <p class="section-header">Crypto news</p>
+        <p class="section-header">📰 Latest crypto news</p>
         <div class="news-grid" id="newsGrid"></div>
     </div>
 
@@ -573,16 +649,17 @@
         function renderProfile(r) {
             const el = document.getElementById('profileHeader');
             const initials = (r.base || '?').slice(0, 3);
+            document.getElementById('breadcrumbSymbol').textContent = r.name;
             el.innerHTML = `
                 <div class="crypto-icon" aria-hidden="true">${initials}</div>
                 <div>
                     <h1 class="asset-name">${r.name} <span style="font-size:1rem;color:var(--text-secondary);font-family:var(--font-family);-webkit-text-fill-color:var(--text-secondary);">${r.yahoo}</span></h1>
                     <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.35rem;">
-                        <span class="meta-pill">${r.finnhub}</span>
-                        <span class="meta-pill">Spot · USD</span>
+                        <span class="meta-pill">🔗 ${r.finnhub}</span>
+                        <span class="meta-pill">💱 Spot · USD</span>
                     </div>
                 </div>
-                <span class="crypto-247 ms-auto d-none d-sm-inline">24/7 markets</span>`;
+                <span class="crypto-247 ms-auto d-none d-sm-inline">🟢 24/7 markets</span>`;
         }
 
         async function loadQuote(r) {
