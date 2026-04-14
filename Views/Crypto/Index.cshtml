@@ -24,6 +24,18 @@
     .crypto-breadcrumb a:hover { text-decoration: underline; }
     .crypto-breadcrumb .sep { opacity: 0.4; }
 
+    .crypto-desc {
+        font-size: 0.82rem;
+        color: var(--text-secondary);
+        line-height: 1.55;
+        margin-top: 0.75rem;
+        max-width: 600px;
+        padding: 0.6rem 0.85rem;
+        background: rgba(56,189,248,0.04);
+        border-left: 2px solid rgba(56,189,248,0.25);
+        border-radius: 0 8px 8px 0;
+    }
+
     .section-divider {
         height: 1px;
         background: linear-gradient(90deg, transparent, rgba(56,189,248,0.2), rgba(139,92,246,0.15), transparent);
@@ -508,12 +520,8 @@
     <div id="profileSection" class="mb-3" style="min-height:70px;">
         <div class="profile-header" id="profileHeader">
             <div class="skeleton" style="width:56px;height:56px;border-radius:12px;"></div>
-            <div>
-                <div class="skeleton" style="width:200px;height:28px;margin-bottom:8px;border-radius:6px;"></div>
-                <div class="skeleton" style="width:180px;height:18px;border-radius:6px;"></div>
-            </div>
-            <span class="crypto-247 ms-auto d-none d-sm-inline">24/7 markets</span>
         </div>
+        <div class="crypto-desc" id="cryptoDesc">The original cryptocurrency and largest by market cap. Bitcoin is a decentralized digital currency that enables peer-to-peer transactions without intermediaries.</div>
     </div>
 
     <div id="quoteSection" class="mb-2">
@@ -601,14 +609,14 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
     <script>
         const KNOWN = {
-            BTC:  { name: 'Bitcoin',     finnhub: 'BINANCE:BTCUSDT',  yahoo: 'BTC-USD' },
-            ETH:  { name: 'Ethereum',    finnhub: 'BINANCE:ETHUSDT',  yahoo: 'ETH-USD' },
-            SOL:  { name: 'Solana',      finnhub: 'BINANCE:SOLUSDT',  yahoo: 'SOL-USD' },
-            XRP:  { name: 'XRP',         finnhub: 'BINANCE:XRPUSDT',  yahoo: 'XRP-USD' },
-            DOGE: { name: 'Dogecoin',    finnhub: 'BINANCE:DOGEUSDT', yahoo: 'DOGE-USD' },
-            ADA:  { name: 'Cardano',     finnhub: 'BINANCE:ADAUSDT',  yahoo: 'ADA-USD' },
-            LTC:  { name: 'Litecoin',    finnhub: 'BINANCE:LTCUSDT',  yahoo: 'LTC-USD' },
-            BNB:  { name: 'BNB',         finnhub: 'BINANCE:BNBUSDT',  yahoo: 'BNB-USD' },
+            BTC:  { name: 'Bitcoin',     finnhub: 'BINANCE:BTCUSDT',  yahoo: 'BTC-USD',  desc: 'The original cryptocurrency and largest by market cap. Bitcoin is a decentralized digital currency that enables peer-to-peer transactions without intermediaries.' },
+            ETH:  { name: 'Ethereum',    finnhub: 'BINANCE:ETHUSDT',  yahoo: 'ETH-USD',  desc: 'A programmable blockchain platform that powers smart contracts, DeFi applications, and NFTs. Ethereum is the backbone of decentralized finance.' },
+            SOL:  { name: 'Solana',      finnhub: 'BINANCE:SOLUSDT',  yahoo: 'SOL-USD',  desc: 'A high-performance blockchain known for fast transaction speeds and low fees. Solana supports DeFi, NFTs, and Web3 applications at scale.' },
+            XRP:  { name: 'XRP',         finnhub: 'BINANCE:XRPUSDT',  yahoo: 'XRP-USD',  desc: 'Designed for fast, low-cost international money transfers. XRP is used by financial institutions to settle cross-border payments in seconds.' },
+            DOGE: { name: 'Dogecoin',    finnhub: 'BINANCE:DOGEUSDT', yahoo: 'DOGE-USD', desc: 'Originally created as a meme coin, Dogecoin has grown into a widely recognized cryptocurrency used for tipping, donations, and everyday transactions.' },
+            ADA:  { name: 'Cardano',     finnhub: 'BINANCE:ADAUSDT',  yahoo: 'ADA-USD',  desc: 'A research-driven blockchain platform focused on security and sustainability. Cardano uses a proof-of-stake consensus mechanism for energy efficiency.' },
+            LTC:  { name: 'Litecoin',    finnhub: 'BINANCE:LTCUSDT',  yahoo: 'LTC-USD',  desc: 'Often called the silver to Bitcoin\'s gold. Litecoin offers faster transaction confirmation times and a different hashing algorithm.' },
+            BNB:  { name: 'BNB',         finnhub: 'BINANCE:BNBUSDT',  yahoo: 'BNB-USD',  desc: 'The native token of the Binance ecosystem. BNB is used to pay trading fees, participate in token sales, and power the BNB Smart Chain.' },
         };
 
         function resolveCrypto(raw) {
@@ -650,6 +658,7 @@
             const el = document.getElementById('profileHeader');
             const initials = (r.base || '?').slice(0, 3);
             document.getElementById('breadcrumbSymbol').textContent = r.name;
+            const descText = r.desc || '';
             el.innerHTML = `
                 <div class="crypto-icon" aria-hidden="true">${initials}</div>
                 <div>
@@ -660,6 +669,8 @@
                     </div>
                 </div>
                 <span class="crypto-247 ms-auto d-none d-sm-inline">🟢 24/7 markets</span>`;
+            const descEl = document.getElementById('cryptoDesc');
+            if (descEl) descEl.textContent = descText;
         }
 
         async function loadQuote(r) {
