@@ -30,6 +30,54 @@ public class PortfolioController : ControllerBase
         return now >= new TimeSpan(9, 30, 0) && now < new TimeSpan(16, 0, 0);
     }
 
+    private static bool IsOptionSymbol(string symbol) =>
+        symbol.Contains("|OPT|", StringComparison.Ordinal);
+
+    private static string BuildOptionHoldingSymbol(OptionTradeRequest req)
+    {
+        var underlying = req.Underlying.Trim().ToUpperInvariant();
+        var expiry = req.Expiration.ToString("yyyyMMdd");
+        var type = req.OptionType.Trim().ToUpperInvariant();
+        var strike = req.Strike.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+        return $"{underlying}|OPT|{expiry}|{type}|{strike}";
+    }
+
+    private static bool TryParseOptionSymbol(string symbol, out ParsedOptionContract parsed)
+    {
+        parsed = default;
+        var parts = symbol.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (parts.Length != 5 || !parts[1].Equals("OPT", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (!DateOnly.TryParseExact(parts[2], "yyyyMMdd", out var expiration))
+            return false;
+
+        if (!decimal.TryParse(parts[4], System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var strike))
+            return false;
+
+        parsed = new ParsedOptionContract(
+            parts[0].ToUpperInvariant(),
+            expiration,
+            parts[3].ToUpperInvariant(),
+            strike);
+        return parsed.OptionType is "CALL" or "PUT";
+    }
+
+    private static decimal EstimateOptionPremiumPerShare(decimal underlyingPrice, ParsedOptionContract contract, DateOnly utcToday)
+    {
+        var days = Math.Max(0, contract.Expiration.DayNumber - utcToday.DayNumber);
+        var years = Math.Max(0.01m, days / 365m);
+        const decimal volatility = 0.30m;
+        const decimal timeValueFloor = 0.10m;
+        var timeValue = Math.Max(timeValueFloor, underlyingPrice * volatility * (decimal)Math.Sqrt((double)years) * 0.15m);
+
+        var intrinsic = contract.OptionType == "CALL"
+            ? Math.Max(0m, underlyingPrice - contract.Strike)
+            : Math.Max(0m, contract.Strike - underlyingPrice);
+
+        return Math.Round(intrinsic + timeValue, 2, MidpointRounding.AwayFromZero);
+    }
+
     // ── GET /portfolio/summary ──────────────────────────────────────────────
 
     [HttpGet("summary")]
@@ -49,6 +97,19 @@ public class PortfolioController : ControllerBase
             {
                 try
                 {
+                    if (TryParseOptionSymbol(h.Symbol, out var optionContract))
+                    {
+                        var underlyingQuoteSym = QuoteSymbolResolver.ForFinnhubQuote(optionContract.Underlying);
+                        var uq = await _finnhub.GetFullQuoteAsync(underlyingQuoteSym);
+                        if (uq.HasValue && uq.Value.TryGetProperty("c", out var uc) && uc.GetDecimal() != 0)
+                        {
+                            var premium = EstimateOptionPremiumPerShare(uc.GetDecimal(), optionContract, DateOnly.FromDateTime(DateTime.UtcNow));
+                            priceMap[h.Symbol] = premium * 100m; // per-contract price
+                        }
+                        sectorMap[h.Symbol] = "Options";
+                        return;
+                    }
+
                     var quoteSym = QuoteSymbolResolver.ForFinnhubQuote(h.Symbol);
                     var q = await _finnhub.GetFullQuoteAsync(quoteSym);
                     if (q.HasValue && q.Value.TryGetProperty("c", out var c) && c.GetDecimal() != 0)
@@ -134,6 +195,44 @@ public class PortfolioController : ControllerBase
         catch (Exception ex) { return StatusCode(500, new { error = ex.Message }); }
     }
 
+    [HttpGet("options/position")]
+    public async Task<IActionResult> OptionPosition([FromQuery] string underlying)
+    {
+        var userId = CurrentUserId;
+        if (userId == null) return Unauthorized(new { error = "Not logged in." });
+        if (string.IsNullOrWhiteSpace(underlying)) return BadRequest(new { error = "Underlying is required." });
+
+        try
+        {
+            var portfolio = await _portfolio.GetOrCreatePortfolioAsync(userId);
+            var under = underlying.Trim().ToUpperInvariant();
+            var holdings = await _portfolio.GetHoldingsAsync(userId);
+            var optionHoldings = holdings
+                .Where(h => h.Symbol.StartsWith($"{under}|OPT|", StringComparison.Ordinal))
+                .Select(h =>
+                {
+                    if (!TryParseOptionSymbol(h.Symbol, out var c)) return null;
+                    return new
+                    {
+                        Symbol = h.Symbol,
+                        c.Expiration,
+                        c.OptionType,
+                        c.Strike,
+                        Contracts = h.Shares,
+                        AvgContractCost = h.AvgCost
+                    };
+                })
+                .Where(x => x != null)
+                .OrderBy(x => x!.Expiration)
+                .ThenBy(x => x!.OptionType)
+                .ThenBy(x => x!.Strike)
+                .ToList();
+
+            return Ok(new { Cash = portfolio.Cash, Contracts = optionHoldings });
+        }
+        catch (Exception ex) { return StatusCode(500, new { error = ex.Message }); }
+    }
+
     // ── POST /portfolio/buy ─────────────────────────────────────────────────
 
     [HttpPost("buy")]
@@ -192,6 +291,58 @@ public class PortfolioController : ControllerBase
         catch (Exception ex) { return StatusCode(500, new { error = ex.Message }); }
     }
 
+    [HttpPost("options/buy")]
+    public async Task<IActionResult> BuyOption([FromBody] OptionTradeRequest req)
+    {
+        var userId = CurrentUserId;
+        if (userId == null) return Unauthorized(new { error = "Not logged in." });
+        var validation = ValidateOptionRequest(req);
+        if (validation != null) return BadRequest(new { error = validation });
+        if (!IsUsEquityMarketOpen())
+            return BadRequest(new { error = "Options trading is only available during regular market hours (9:30 AM - 4:00 PM ET)." });
+
+        try
+        {
+            var symbol = BuildOptionHoldingSymbol(req);
+            var contractPrice = Math.Round(req.Premium * 100m, 2, MidpointRounding.AwayFromZero);
+            var (ok, error) = await _portfolio.ExecuteBuyAsync(userId, symbol, req.Contracts, contractPrice);
+            if (!ok) return BadRequest(new { error });
+            var p = await _portfolio.GetOrCreatePortfolioAsync(userId);
+            return Ok(new
+            {
+                message = $"Bought {req.Contracts} {req.OptionType.ToUpperInvariant()} contract(s) on {req.Underlying.ToUpperInvariant()} {req.Expiration:yyyy-MM-dd} ${req.Strike:N2} @ ${req.Premium:N2}/share",
+                newCash = p.Cash
+            });
+        }
+        catch (Exception ex) { return StatusCode(500, new { error = ex.Message }); }
+    }
+
+    [HttpPost("options/sell")]
+    public async Task<IActionResult> SellOption([FromBody] OptionTradeRequest req)
+    {
+        var userId = CurrentUserId;
+        if (userId == null) return Unauthorized(new { error = "Not logged in." });
+        var validation = ValidateOptionRequest(req);
+        if (validation != null) return BadRequest(new { error = validation });
+        if (!IsUsEquityMarketOpen())
+            return BadRequest(new { error = "Options trading is only available during regular market hours (9:30 AM - 4:00 PM ET)." });
+
+        try
+        {
+            var symbol = BuildOptionHoldingSymbol(req);
+            var contractPrice = Math.Round(req.Premium * 100m, 2, MidpointRounding.AwayFromZero);
+            var (ok, error) = await _portfolio.ExecuteSellAsync(userId, symbol, req.Contracts, contractPrice);
+            if (!ok) return BadRequest(new { error });
+            var p = await _portfolio.GetOrCreatePortfolioAsync(userId);
+            return Ok(new
+            {
+                message = $"Sold {req.Contracts} {req.OptionType.ToUpperInvariant()} contract(s) on {req.Underlying.ToUpperInvariant()} {req.Expiration:yyyy-MM-dd} ${req.Strike:N2} @ ${req.Premium:N2}/share",
+                newCash = p.Cash
+            });
+        }
+        catch (Exception ex) { return StatusCode(500, new { error = ex.Message }); }
+    }
+
     // ── GET /portfolio/orders ───────────────────────────────────────────────
 
     [HttpGet("orders")]
@@ -227,6 +378,24 @@ public class PortfolioController : ControllerBase
         catch (Exception ex) { return StatusCode(500, new { error = ex.Message }); }
     }
 
+    private static string? ValidateOptionRequest(OptionTradeRequest req)
+    {
+        if (string.IsNullOrWhiteSpace(req.Underlying))
+            return "Underlying symbol is required.";
+        if (req.Contracts <= 0 || decimal.Truncate(req.Contracts) != req.Contracts)
+            return "Contracts must be a positive whole number.";
+        if (req.Strike <= 0)
+            return "Strike price must be positive.";
+        if (req.Premium <= 0)
+            return "Premium must be positive.";
+        if (req.Expiration < DateOnly.FromDateTime(DateTime.UtcNow.Date))
+            return "Expiration must be today or later.";
+        var type = req.OptionType?.Trim().ToUpperInvariant();
+        if (type is not ("CALL" or "PUT"))
+            return "Option type must be CALL or PUT.";
+        return null;
+    }
+
     // ── DELETE /portfolio/order/{id} ────────────────────────────────────────
 
     [HttpDelete("order/{id:long}")]
@@ -245,3 +414,18 @@ public class PortfolioController : ControllerBase
 
 public class TradeRequest      { public string Symbol { get; set; } = ""; public decimal Shares { get; set; } }
 public class LimitOrderRequest { public string? Action { get; set; } public string Symbol { get; set; } = ""; public decimal Shares { get; set; } public decimal LimitPrice { get; set; } }
+public class OptionTradeRequest
+{
+    public string Underlying { get; set; } = "";
+    public string OptionType { get; set; } = "CALL";
+    public decimal Strike { get; set; }
+    public DateOnly Expiration { get; set; }
+    public decimal Contracts { get; set; }
+    public decimal Premium { get; set; } // per-share premium, brokerage-style quote
+}
+
+public readonly record struct ParsedOptionContract(
+    string Underlying,
+    DateOnly Expiration,
+    string OptionType,
+    decimal Strike);

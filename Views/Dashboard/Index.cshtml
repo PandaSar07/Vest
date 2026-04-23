@@ -210,9 +210,14 @@
                 tbody.innerHTML = d.holdings.map(h => {
                     const glClass = h.gainLoss >= 0 ? 'up' : 'down';
                     const sign    = h.gainLoss >= 0 ? '+' : '';
+                    const isOption = typeof h.symbol === 'string' && h.symbol.includes('|OPT|');
+                    const displaySymbol = isOption
+                        ? h.symbol.replace('|OPT|', ' OPT ').replaceAll('|', ' ')
+                        : h.symbol;
+                    const qtyLabel = isOption ? `${fmt(h.shares, 0)} ctr` : fmt(h.shares, 4);
                     return `<tr>
-                        <td><a href="/Stocks?symbol=${h.symbol}" style="color:var(--accent-color);font-weight:700;">${h.symbol}</a></td>
-                        <td>${fmt(h.shares, 4)}</td>
+                        <td><a href="/Stocks?symbol=${h.symbol}" style="color:var(--accent-color);font-weight:700;">${displaySymbol}</a></td>
+                        <td>${qtyLabel}</td>
                         <td>$${fmt(h.avgCost)}</td>
                         <td>$${fmt(h.livePrice)}</td>
                         <td>$${fmt(h.marketValue)}</td>
