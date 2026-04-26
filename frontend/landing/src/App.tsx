@@ -1,13 +1,15 @@
 import { useLayoutEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { Navbar } from '@/components/landing/Navbar'
 import { Hero } from '@/sections/Hero'
 import { Features } from '@/sections/Features'
 import { HowItWorks } from '@/sections/HowItWorks'
-import { Benefits } from '@/sections/Benefits'
+import { StepProcess } from '@/sections/StepProcess'
+import { KeyTerms } from '@/sections/KeyTerms'
+import { Checklist } from '@/sections/Checklist'
 import { SocialProof } from '@/sections/SocialProof'
 import { FinalCta } from '@/sections/FinalCta'
-import { BlankDeveloperSection } from '@/sections/BlankDeveloperSection'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -19,8 +21,6 @@ function App() {
 
     const ctx = gsap.context(() => {
       // GSAP: cinematic progressive reveals
-      // - We animate *each* element individually so the page feels paced and deliberate.
-      // - Using toggleActions gives a premium "reveal as you scroll" behavior.
       gsap.utils.toArray<HTMLElement>('.gsap-reveal').forEach((el) => {
         gsap.fromTo(
           el,
@@ -40,20 +40,6 @@ function App() {
             },
           },
         )
-      })
-
-      // GSAP: background parallax (slower than foreground) for depth.
-      gsap.utils.toArray<HTMLElement>('.hero-parallax').forEach((el) => {
-        gsap.to(el, {
-          yPercent: 18,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: '.hero-wrap',
-            start: 'top top',
-            end: 'bottom top',
-            scrub: true,
-          },
-        })
       })
 
       // GSAP: scroll progress cue (subtle, premium).
@@ -77,21 +63,29 @@ function App() {
   }, [])
 
   return (
-    <div ref={rootRef} className="bg-[#060a12] text-slate-100">
-      <div className="pointer-events-none fixed left-6 top-1/2 hidden h-40 w-px -translate-y-1/2 bg-white/10 md:block">
-        <div data-scroll-progress className="h-full w-full origin-top scale-y-0 bg-sky-300/70" />
+    <div ref={rootRef} className="bg-[#0a0e1a] text-slate-100 min-h-screen font-mono">
+      <div className="pointer-events-none fixed left-6 top-1/2 hidden h-40 w-px -translate-y-1/2 bg-white/10 md:block z-50">
+        <div data-scroll-progress className="h-full w-full origin-top scale-y-0 bg-[#00c2ff]/70" />
       </div>
-      <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_15%_10%,rgba(56,189,248,0.12),transparent_40%),radial-gradient(circle_at_85%_75%,rgba(168,85,247,0.10),transparent_40%)]" />
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_15%_10%,rgba(0,194,255,0.08),transparent_40%),radial-gradient(circle_at_85%_75%,rgba(0,194,255,0.03),transparent_40%)]" />
 
-      <div className="mx-auto w-full max-w-7xl px-6 pb-24 pt-10 md:pt-14">
+      <Navbar />
+
+      <main className="flex flex-col gap-12 pb-24 pt-10 md:pt-14">
         <Hero />
-        <Features />
-        <HowItWorks />
-        <BlankDeveloperSection />
-        <Benefits />
-        <SocialProof />
+
+        
+        <div className="mx-auto w-full max-w-7xl px-6">
+          <Features />
+          <HowItWorks />
+          <StepProcess />
+          <KeyTerms />
+          <Checklist />
+          <SocialProof />
+        </div>
+        
         <FinalCta />
-      </div>
+      </main>
     </div>
   )
 }

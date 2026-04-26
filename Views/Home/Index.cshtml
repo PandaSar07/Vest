@@ -1,5 +1,20 @@
 @{
     ViewData["Title"] = "Vest | Invest Smarter";
+    ViewData["FluidMain"] = true;
 }
 
-@await Html.PartialAsync("Tutorial")
+@section Head {
+    <style>
+        body > header { display: none !important; }
+        .footer { display: none !important; }
+        main.pb-5 { padding-bottom: 0 !important; padding-top: 0 !important; }
+        .container-fluid { padding-left: 0 !important; padding-right: 0 !important; }
+    </style>
+    <link rel="stylesheet" href="~/landing/landing.css" asp-append-version="true" />
+}
+
+<div id="landing-root"></div>
+
+@section Scripts {
+    <script type="module" src="~/landing/landing.js" asp-append-version="true"></script>
+}

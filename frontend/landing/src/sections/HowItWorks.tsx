@@ -1,23 +1,31 @@
 import { motion } from 'framer-motion'
+import { Search, Filter, BookmarkPlus, LineChart } from 'lucide-react'
 import { Section, SectionHeader } from '@/components/landing/Section'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-const steps = [
+const strategies = [
   {
-    k: 'Browse',
-    v: 'Start broad. Build intuition for movement and context.',
+    title: 'Discover Opportunities',
+    description: 'Find companies that match your investing philosophy through intuitive discovery tools rather than overwhelming screeners.',
+    icon: Search,
+    color: 'bg-emerald-500',
   },
   {
-    k: 'Filter',
-    v: 'Use a screener-style workflow to reduce noise fast.',
+    title: 'Filter the Noise',
+    description: 'Quickly eliminate companies with poor fundamentals or high risk profiles using preset health checks.',
+    icon: Filter,
+    color: 'bg-purple-500',
   },
   {
-    k: 'Save',
-    v: 'Create a watchlist that behaves like a decision queue.',
+    title: 'Curate a Watchlist',
+    description: 'Save high-conviction ideas to a dedicated watchlist that behaves like a focused decision queue.',
+    icon: BookmarkPlus,
+    color: 'bg-[#00c2ff]',
   },
   {
-    k: 'Track',
-    v: 'Review ideas and positions with a calmer dashboard loop.',
+    title: 'Track Performance',
+    description: 'Monitor your portfolio with clear, actionable insights that help you stay disciplined during market volatility.',
+    icon: LineChart,
+    color: 'bg-amber-500',
   },
 ]
 
@@ -25,32 +33,38 @@ export function HowItWorks() {
   return (
     <Section id="how-it-works">
       <SectionHeader
-        eyebrow="How it works"
-        title="A disciplined flow that feels effortless"
-        description="A long-scroll narrative works best when the user always knows what comes next."
+        eyebrow="The Workflow"
+        title="A disciplined approach to investing"
+        description="Learn to evaluate companies like an owner with our simplified 4-pillar methodology."
       />
 
-      <div className="mx-auto mt-14 max-w-6xl">
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-4">
-          {steps.map((s, idx) => (
+      <div className="mx-auto mt-14 max-w-5xl">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          {strategies.map((s, idx) => (
             <motion.div
-              key={s.k}
-              className="gsap-reveal"
+              key={s.title}
+              className="group relative flex overflow-hidden rounded-2xl bg-[#0a0e1a] border border-white/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/50"
               initial={{ opacity: 0, y: 18 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.25 }}
-              transition={{ duration: 0.45, delay: idx * 0.04 }}
-              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.45, delay: idx * 0.1 }}
             >
-              <Card className="h-full">
-                <CardHeader>
-                  <div className="mb-3 inline-flex h-8 w-8 items-center justify-center rounded-xl border border-sky-300/25 bg-sky-300/10 text-sm font-semibold text-sky-200">
-                    {idx + 1}
+              {/* Left accent border */}
+              <div className={`w-1.5 shrink-0 ${s.color} transition-opacity opacity-70 group-hover:opacity-100`} />
+              
+              <div className="flex p-6 sm:p-8">
+                <div className="mr-6 shrink-0">
+                  <div className={`flex h-12 w-12 items-center justify-center rounded-xl bg-slate-900 ring-1 ring-white/10 text-white transition-all duration-300 group-hover:bg-white/5`}>
+                    <s.icon className="h-6 w-6" />
                   </div>
-                  <CardTitle>{s.k}</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0 text-sm text-slate-400">{s.v}</CardContent>
-              </Card>
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-white tracking-tight mb-2">{s.title}</h3>
+                  <p className="text-slate-400 leading-relaxed text-sm sm:text-base">
+                    {s.description}
+                  </p>
+                </div>
+              </div>
             </motion.div>
           ))}
         </div>
