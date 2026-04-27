@@ -48,106 +48,27 @@ export function Hero() {
             Vest is the premium platform for mastering stocks and crypto. We strip away the noise and give you the signal.
           </p>
 
-          {/* Hero CTA buttons — Antigravity style */}
-          <style>{`
-            @keyframes shimmer-sweep {
-              0%   { transform: translateX(-130%) skewX(-12deg); }
-              100% { transform: translateX(230%) skewX(-12deg); }
-            }
-            .hero-cta-primary {
-              position: relative;
-              display: inline-flex;
-              align-items: center;
-              gap: 0.5rem;
-              padding: 0.85rem 2rem;
-              border-radius: 9999px;
-              font-weight: 700;
-              font-size: 0.95rem;
-              letter-spacing: 0.03em;
-              color: #0a0e1a;
-              background: linear-gradient(135deg, #33ddff 0%, #00c2ff 45%, #0099cc 100%);
-              box-shadow:
-                0 0 0 1px rgba(0,194,255,0.5),
-                0 4px 16px rgba(0,194,255,0.35),
-                0 12px 40px rgba(0,194,255,0.2),
-                inset 0 1px 0 rgba(255,255,255,0.35);
-              transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease;
-              will-change: transform;
-              overflow: hidden;
-              cursor: pointer;
-              text-decoration: none;
-            }
-            .hero-cta-primary::before {
-              content: '';
-              position: absolute;
-              inset: 0;
-              background: linear-gradient(135deg, #55eeff 0%, #00c2ff 50%, #0088bb 100%);
-              opacity: 0;
-              transition: opacity 0.3s ease;
-              border-radius: inherit;
-            }
-            .hero-cta-primary::after {
-              content: '';
-              position: absolute;
-              top: 0; bottom: 0;
-              left: 0; width: 45%;
-              background: linear-gradient(90deg, transparent, rgba(255,255,255,0.38), transparent);
-              animation: shimmer-sweep 3.2s ease-in-out infinite;
-              pointer-events: none;
-            }
-            .hero-cta-primary:hover {
-              transform: translateY(-3px) scale(1.03);
-            }
-            .hero-cta-primary:hover::before { opacity: 1; }
-            .hero-cta-primary:active { transform: translateY(-1px) scale(1.01); }
-
-            .hero-cta-secondary {
-              position: relative;
-              display: inline-flex;
-              align-items: center;
-              gap: 0.5rem;
-              padding: 0.85rem 1.75rem;
-              border-radius: 9999px;
-              font-weight: 600;
-              font-size: 0.95rem;
-              letter-spacing: 0.03em;
-              color: rgba(226,232,240,0.9);
-              background: rgba(255,255,255,0.04);
-              border: 1px solid rgba(255,255,255,0.12);
-              backdrop-filter: blur(12px);
-              -webkit-backdrop-filter: blur(12px);
-              box-shadow:
-                inset 0 1px 0 rgba(255,255,255,0.08),
-                0 2px 12px rgba(0,0,0,0.25);
-              transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
-              will-change: transform;
-              cursor: pointer;
-              text-decoration: none;
-            }
-            .hero-cta-secondary:hover {
-              transform: translateY(-2px) scale(1.02);
-              background: rgba(255,255,255,0.08);
-              border-color: rgba(0,194,255,0.35);
-              color: #fff;
-            }
-            .hero-cta-secondary:active { transform: translateY(0) scale(1); }
-          `}</style>
-
           <div className="mt-8 flex flex-wrap items-center gap-4">
-            {/* Primary CTA */}
-            <a href="/Home/Signup" className="hero-cta-primary" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
-              <span style={{ position: 'relative', zIndex: 1 }}>Start for free</span>
-              <ArrowRight style={{ position: 'relative', zIndex: 1, width: '1rem', height: '1rem' }} />
+            <a
+              href="/Home/Signup"
+              className="nav-link inline-flex items-center gap-2 rounded-full px-5 py-2 text-[0.85rem] font-medium text-slate-400 transition-all duration-300 hover:text-white hover:bg-white/[0.06] hover:backdrop-blur-sm"
+              style={{ fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '0.02em' }}
+            >
+              Start for free
+              <ArrowRight className="h-4 w-4" />
             </a>
 
-            {/* Secondary ghost CTA */}
-            <a href="/Home/Log" className="hero-cta-secondary" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
+            <a
+              href="/Home/Log"
+              className="nav-link rounded-full px-5 py-2 text-[0.85rem] font-medium text-slate-400 transition-all duration-300 hover:text-white hover:bg-white/[0.06] hover:backdrop-blur-sm"
+              style={{ fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '0.02em' }}
+            >
               Log in
             </a>
 
             <Dialog>
               <DialogTrigger asChild>
-                <button className="hero-cta-secondary" style={{ fontFamily: "'Inter', system-ui, sans-serif", border: 'none', background: 'transparent', padding: '0.85rem 0', color: 'rgba(148,163,184,0.8)', cursor: 'pointer', fontSize: '0.9rem' }}>
+                <button className="nav-link rounded-full px-5 py-2 text-[0.85rem] font-medium text-slate-400 transition-all duration-300 hover:text-white hover:bg-white/[0.06] hover:backdrop-blur-sm" style={{ fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '0.02em', border: 'none', background: 'transparent', cursor: 'pointer' }}>
                   See how it works
                 </button>
               </DialogTrigger>

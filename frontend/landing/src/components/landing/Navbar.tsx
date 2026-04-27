@@ -1,5 +1,4 @@
 import { Rocket } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 
 export function Navbar() {
   return (
@@ -50,15 +49,23 @@ export function Navbar() {
               </a>
             ))}
           </nav>
-          
+
           {/* Auth Buttons */}
           <div className="flex items-center gap-3">
-            <Button variant="ghost" asChild className="hidden rounded-full border border-white/[0.08] px-5 py-2 text-[0.85rem] font-medium text-slate-300 hover:text-white hover:bg-white/[0.06] hover:border-white/[0.15] transition-all duration-300 md:inline-flex" style={{ fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '0.02em' }}>
-              <a href="/Home/Log">Log in</a>
-            </Button>
-            <Button asChild className="signup-btn rounded-full bg-gradient-to-r from-[#00d4ff] to-[#00a8e0] px-6 py-2 text-[0.85rem] font-semibold text-[#0a0e1a] hover:from-[#33ddff] hover:to-[#00b8f0] hover:shadow-[0_0_32px_rgba(0,194,255,0.5)] transition-all duration-300" style={{ fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '0.02em' }}>
-              <a href="/Home/Signup">Sign up</a>
-            </Button>
+            <a
+              href="/Home/Log"
+              className="nav-link hidden rounded-full px-5 py-2 text-[0.85rem] font-medium text-slate-400 transition-all duration-300 hover:text-white hover:bg-white/[0.06] hover:backdrop-blur-sm md:inline-flex"
+              style={{ fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '0.02em' }}
+            >
+              Log in
+            </a>
+            <a
+              href="/Home/Signup"
+              className="nav-link rounded-full px-5 py-2 text-[0.85rem] font-medium text-slate-400 transition-all duration-300 hover:text-white hover:bg-white/[0.06] hover:backdrop-blur-sm"
+              style={{ fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '0.02em' }}
+            >
+              Sign up
+            </a>
           </div>
         </div>
       </header>

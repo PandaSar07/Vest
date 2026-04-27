@@ -282,6 +282,12 @@
                                 <li class="nav-item">
                                     <a class="nav-link @(navCtrl == "Home" && navAct == "Privacy" ? "active" : null)" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                                 </li>
+                                <li class="nav-item">
+                                    <a class="nav-link @(navCtrl == "Home" && navAct == "Log" ? "active" : null)" asp-area="" asp-controller="Home" asp-action="Log">Log in</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link @(navCtrl == "Home" && navAct == "Signup" ? "active" : null)" asp-area="" asp-controller="Home" asp-action="Signup">Sign up</a>
+                                </li>
                             }
                             else
                             {
@@ -378,12 +384,6 @@
                         }
                         else
                         {
-                            <li class="nav-item">
-                                <a class="nav-link @(navCtrl == "Home" && navAct == "Signup" ? "active" : null)" asp-area="" asp-controller="Home" asp-action="Signup">Sign up</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link btn btn-outline btn-sm px-3 @(navCtrl == "Home" && navAct == "Log" ? "active" : null)" asp-area="" asp-controller="Home" asp-action="Log">Log in</a>
-                            </li>
                         }
                     </ul>
                 </div>
