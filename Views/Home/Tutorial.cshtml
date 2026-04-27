@@ -1,5 +1,6 @@
 @{
-    ViewData["Title"] = "Vest | Invest Smarter";
+    ViewData["Title"] = "Vest | Learning Hub — Invest Smarter";
+    ViewData["MetaDescription"] = "New to investing? Learn the basics of stocks, key investing terms, and how to use Vest — all in one place. No jargon, just clarity.";
 }
 
 <style>
@@ -405,6 +406,102 @@
         font-size: 0.9rem;
     }
 
+    /* Interactive checklist cards */
+    .checklist-grid {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 0.8rem;
+    }
+
+    .checklist-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.85rem;
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        background: rgba(17, 25, 40, 0.62);
+        padding: 1rem 1.1rem;
+        cursor: pointer;
+        user-select: none;
+        transition: border-color 0.25s ease, background 0.25s ease, transform 0.2s ease;
+    }
+
+    .checklist-card:hover {
+        border-color: rgba(56, 189, 248, 0.35);
+        transform: translateY(-2px);
+    }
+
+    .checklist-card.checked {
+        border-color: rgba(52, 211, 153, 0.5);
+        background: rgba(52, 211, 153, 0.07);
+    }
+
+    .checklist-box {
+        flex-shrink: 0;
+        width: 1.45rem;
+        height: 1.45rem;
+        border-radius: 50%;
+        border: 2px solid rgba(100, 116, 139, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: border-color 0.25s ease, background 0.25s ease;
+        margin-top: 0.1rem;
+    }
+
+    .checklist-card.checked .checklist-box {
+        border-color: rgba(52, 211, 153, 0.8);
+        background: rgba(52, 211, 153, 0.18);
+    }
+
+    .checklist-tick {
+        display: none;
+        width: 0.7rem;
+        height: 0.7rem;
+        stroke: #34d399;
+        stroke-width: 3;
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .checklist-card.checked .checklist-tick {
+        display: block;
+    }
+
+    .checklist-text {
+        font-size: 0.92rem;
+        color: var(--text-secondary);
+        line-height: 1.45;
+        transition: color 0.25s ease;
+    }
+
+    .checklist-card.checked .checklist-text {
+        color: #cbd5e1;
+    }
+
+    .checklist-progress {
+        margin-top: 1rem;
+        font-size: 0.82rem;
+        color: var(--text-secondary);
+    }
+
+    .checklist-progress-bar-wrap {
+        margin-top: 0.4rem;
+        height: 4px;
+        border-radius: 99px;
+        background: rgba(100, 116, 139, 0.2);
+        overflow: hidden;
+    }
+
+    .checklist-progress-bar {
+        height: 100%;
+        border-radius: 99px;
+        background: linear-gradient(90deg, #34d399, #38bdf8);
+        transition: width 0.35s ease;
+    }
+
     .landing-final-cta {
         margin-top: 2rem;
         border: 1px solid rgba(56, 189, 248, 0.24);
@@ -638,19 +735,48 @@
             </div>
         </section>
 
-        <section class="landing-section reveal">
+        <section class="landing-section reveal" id="checklist">
             <h2 class="landing-section-title">Before you invest: quick checklist</h2>
             <p class="landing-section-copy">
-                Ask yourself these five questions before every trade. These habits help more than any hot tip.
+                Tap each card to check it off. These habits help more than any hot tip.
             </p>
-            <div class="landing-panel" style="max-width: 680px;">
-                <ul class="landing-list" style="line-height: 2;">
-                    <li>✅ Do I understand what this company actually does?</li>
-                    <li>✅ Have I checked the stock's recent performance and key metrics?</li>
-                    <li>✅ Am I investing money I won't need in the near future?</li>
-                    <li>✅ Have I added the stock to my Watchlist first to observe it?</li>
-                    <li>✅ Do I know whether I'm placing a market order or a limit order?</li>
-                </ul>
+            <div class="checklist-grid" id="preTradeChecklist" role="group" aria-label="Pre-trade checklist">
+                <div class="checklist-card" role="checkbox" aria-checked="false" tabindex="0" data-checklist-item>
+                    <div class="checklist-box" aria-hidden="true">
+                        <svg class="checklist-tick" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+                    </div>
+                    <span class="checklist-text">Do I understand what this company actually does?</span>
+                </div>
+                <div class="checklist-card" role="checkbox" aria-checked="false" tabindex="0" data-checklist-item>
+                    <div class="checklist-box" aria-hidden="true">
+                        <svg class="checklist-tick" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+                    </div>
+                    <span class="checklist-text">Have I checked the stock's recent performance and key metrics?</span>
+                </div>
+                <div class="checklist-card" role="checkbox" aria-checked="false" tabindex="0" data-checklist-item>
+                    <div class="checklist-box" aria-hidden="true">
+                        <svg class="checklist-tick" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+                    </div>
+                    <span class="checklist-text">Am I investing money I won't need in the near future?</span>
+                </div>
+                <div class="checklist-card" role="checkbox" aria-checked="false" tabindex="0" data-checklist-item>
+                    <div class="checklist-box" aria-hidden="true">
+                        <svg class="checklist-tick" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+                    </div>
+                    <span class="checklist-text">Have I added the stock to my Watchlist first to observe it?</span>
+                </div>
+                <div class="checklist-card" role="checkbox" aria-checked="false" tabindex="0" data-checklist-item>
+                    <div class="checklist-box" aria-hidden="true">
+                        <svg class="checklist-tick" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+                    </div>
+                    <span class="checklist-text">Do I know whether I'm placing a market order or a limit order?</span>
+                </div>
+            </div>
+            <div class="checklist-progress">
+                <span id="checklistCount">0 / 5 completed</span>
+                <div class="checklist-progress-bar-wrap">
+                    <div class="checklist-progress-bar" id="checklistBar" style="width: 0%;"></div>
+                </div>
             </div>
         </section>
 
@@ -669,6 +795,7 @@
 
 <script>
     (() => {
+        // --- Scroll reveal ---
         const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         const revealEls = Array.from(document.querySelectorAll('.reveal'));
 
@@ -686,5 +813,33 @@
         } else {
             revealEls.forEach(el => el.classList.add('in-view'));
         }
+
+        // --- Interactive pre-trade checklist ---
+        const cards   = Array.from(document.querySelectorAll('[data-checklist-item]'));
+        const countEl = document.getElementById('checklistCount');
+        const barEl   = document.getElementById('checklistBar');
+        const total   = cards.length;
+
+        function updateProgress() {
+            const done = cards.filter(c => c.classList.contains('checked')).length;
+            countEl.textContent = `${done} / ${total} completed`;
+            barEl.style.width   = `${(done / total) * 100}%`;
+        }
+
+        function toggleCard(card) {
+            const isChecked = card.classList.toggle('checked');
+            card.setAttribute('aria-checked', String(isChecked));
+            updateProgress();
+        }
+
+        cards.forEach(card => {
+            card.addEventListener('click', () => toggleCard(card));
+            card.addEventListener('keydown', e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleCard(card);
+                }
+            });
+        });
     })();
 </script>
