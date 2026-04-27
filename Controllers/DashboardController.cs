@@ -12,5 +12,13 @@ namespace Vest.Controllers
 
             return View();
         }
+
+        public IActionResult Settings()
+        {
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("UserId")))
+                return RedirectToAction("Log", "Home");
+
+            return View();
+        }
     }
 }
