@@ -4,6 +4,19 @@
 }
 
 <style>
+    /* Reading progress bar */
+    #readingProgress {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 0%;
+        height: 3px;
+        background: linear-gradient(90deg, #38bdf8, #818cf8);
+        z-index: 9999;
+        transition: width 0.1s linear;
+        border-radius: 0 2px 2px 0;
+        box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+    }
     .landing-shell {
         max-width: 1200px;
         margin: 0 auto;
@@ -589,6 +602,8 @@
     }
 </style>
 
+<div id="readingProgress" role="progressbar" aria-label="Reading progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+
 <div class="landing-shell">
     <div class="landing-orb landing-orb-a"></div>
     <div class="landing-orb landing-orb-b"></div>
@@ -813,6 +828,18 @@
         } else {
             revealEls.forEach(el => el.classList.add('in-view'));
         }
+
+        // --- Reading progress bar ---
+        const progressBar = document.getElementById('readingProgress');
+        function updateProgress() {
+            const scrollTop  = window.scrollY;
+            const docHeight  = document.documentElement.scrollHeight - window.innerHeight;
+            const pct        = docHeight > 0 ? Math.min(100, (scrollTop / docHeight) * 100) : 0;
+            progressBar.style.width = pct + '%';
+            progressBar.setAttribute('aria-valuenow', Math.round(pct));
+        }
+        window.addEventListener('scroll', updateProgress, { passive: true });
+        updateProgress();
 
         // --- Interactive pre-trade checklist ---
         const cards   = Array.from(document.querySelectorAll('[data-checklist-item]'));
