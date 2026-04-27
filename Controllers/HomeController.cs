@@ -43,6 +43,12 @@ public class HomeController : Controller
         return View();
     }
 
+    public IActionResult Settings()
+    {
+        ViewData["FluidMain"] = false;
+        return View();
+    }
+
     public IActionResult Contact()
     {
         ViewData["FluidMain"] = true;
