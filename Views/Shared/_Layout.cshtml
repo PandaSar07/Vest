@@ -267,7 +267,7 @@
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <div class="d-flex flex-column flex-lg-row align-items-lg-center flex-grow-1 gap-lg-2">
-                        <ul class="navbar-nav align-items-sm-center flex-wrap">
+                        <ul class="navbar-nav mx-auto align-items-sm-center flex-wrap">
                             @if (!isLoggedIn)
                             {
                                 <li class="nav-item">
@@ -281,15 +281,6 @@
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link @(navCtrl == "Home" && navAct == "Privacy" ? "active" : null)" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link @(navCtrl == "Home" && navAct == "Settings" ? "active" : null)" asp-area="" asp-controller="Home" asp-action="Settings">Settings</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link @(navCtrl == "Home" && navAct == "Log" ? "active" : null)" asp-area="" asp-controller="Home" asp-action="Log">Log in</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link @(navCtrl == "Home" && navAct == "Signup" ? "active" : null)" asp-area="" asp-controller="Home" asp-action="Signup">Sign up</a>
                                 </li>
                             }
                             else
@@ -387,6 +378,15 @@
                         }
                         else
                         {
+                            <li class="nav-item">
+                                <a class="nav-link @(navCtrl == "Home" && navAct == "Settings" ? "active" : null)" asp-area="" asp-controller="Home" asp-action="Settings">Settings</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(navCtrl == "Home" && navAct == "Log" ? "active" : null)" asp-area="" asp-controller="Home" asp-action="Log">Log in</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(navCtrl == "Home" && navAct == "Signup" ? "active" : null)" asp-area="" asp-controller="Home" asp-action="Signup">Sign up</a>
+                            </li>
                         }
                     </ul>
                 </div>
