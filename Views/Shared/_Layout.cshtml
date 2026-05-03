@@ -700,17 +700,33 @@
         }
         #vest-ai-close:hover { color: #fff; background: rgba(255,255,255,0.08); }
 
-        /* ── Chat Body ── */
+        /* ── Chat body: messages scroll; choice strip stays visible ── */
         .vest-chat-body {
             flex: 1;
+            min-height: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+        }
+        .vest-chat-thread {
+            flex: 1;
+            min-height: 0;
+            overflow-x: hidden;
             overflow-y: auto;
-            padding: 16px;
+            padding: 16px 16px 8px;
             display: flex;
             flex-direction: column;
             gap: 10px;
         }
-        .vest-chat-body::-webkit-scrollbar { width: 4px; }
-        .vest-chat-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+        .vest-chat-thread::-webkit-scrollbar { width: 4px; }
+        .vest-chat-thread::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+        .vest-guided-suggestions-wrap {
+            flex-shrink: 0;
+            padding: 10px 16px 14px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            background: rgba(0,0,0,0.18);
+        }
 
         /* ── Welcome state ── */
         .vest-welcome {
@@ -780,6 +796,11 @@
             font-size: 1rem;
             flex-shrink: 0;
         }
+        .vest-suggestion-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
 
         /* ── Message bubbles ── */
         .vest-msg {
@@ -794,6 +815,7 @@
             border-radius: 14px;
             font-size: 0.8rem;
             line-height: 1.5;
+            white-space: pre-line;
         }
         .vest-msg.user .vest-bubble {
             background: linear-gradient(135deg, #0ea5e9, #2563eb);
@@ -817,58 +839,40 @@
             flex-shrink: 0;
         }
         .vest-msg-avatar img { width: 16px; height: 16px; object-fit: contain; }
+        .vest-msg.ai .vest-bubble.vest-typing-bubble { padding: 10px 14px; }
 
-        /* ── Input bar ── */
+        .vest-typing-dots {
+            display: inline-flex;
+            gap: 4px;
+            align-items: center;
+        }
+        .vest-typing-dots span {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.35);
+            animation: vestTypingBounce 1.1s ease-in-out infinite;
+        }
+        .vest-typing-dots span:nth-child(2) { animation-delay: 0.15s; }
+        .vest-typing-dots span:nth-child(3) { animation-delay: 0.3s; }
+        @@keyframes vestTypingBounce {
+            0%, 80%, 100% { transform: translateY(0); opacity: 0.35; }
+            40% { transform: translateY(-4px); opacity: 1; }
+        }
+
+        /* ── Footer hint (no text input) ── */
         .vest-chat-footer {
             padding: 12px 14px;
             border-top: 1px solid rgba(255,255,255,0.06);
             flex-shrink: 0;
             background: rgba(255,255,255,0.02);
         }
-        .vest-input-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 6px 6px 6px 12px;
-            transition: border-color 0.2s;
-        }
-        .vest-input-row:focus-within {
-            border-color: rgba(14, 165, 233, 0.4);
-        }
-        .vest-chat-input {
-            flex: 1;
-            background: none;
-            border: none;
-            outline: none;
-            color: #e0f2fe;
-            font-size: 0.8rem;
-            caret-color: #38bdf8;
-        }
-        .vest-chat-input::placeholder { color: rgba(255,255,255,0.28); }
-        .vest-send-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            background: linear-gradient(135deg, #0ea5e9, #7c3aed);
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            transition: opacity 0.15s, transform 0.15s;
-        }
-        .vest-send-btn:hover { opacity: 0.85; transform: scale(1.05); }
-        .vest-send-btn svg { color: #fff; }
-
-        .vest-coming-soon {
-            font-size: 0.65rem;
-            color: rgba(255,255,255,0.22);
+        .vest-guided-hint {
+            font-size: 0.68rem;
+            color: rgba(255,255,255,0.35);
             text-align: center;
-            margin-top: 6px;
+            margin: 0;
+            line-height: 1.45;
         }
     </style>
 
@@ -897,85 +901,300 @@
         </div>
 
         <div class="vest-chat-body" id="vest-chat-messages">
-            <!-- Welcome screen -->
-            <div class="vest-welcome" id="vest-welcome-screen">
-                <div class="vest-welcome-icon">
-                    <img src="~/images/VestLogo.png" alt="Vest" />
+            <div id="vest-chat-thread" class="vest-chat-thread" aria-live="polite">
+                <div class="vest-welcome" id="vest-welcome-screen">
+                    <div class="vest-welcome-icon">
+                        <img src="~/images/VestLogo.png" alt="Vest" />
+                    </div>
+                    <h5>Hey, I'm Vest AI 👋</h5>
+                    <p>Tap a question below. I’ll reply and offer follow-ups — no typing needed.</p>
                 </div>
-                <h5>Hey, I'm Vest AI 👋</h5>
-                <p>Your intelligent market assistant. Ask me about stocks, signals, setups, and more.</p>
             </div>
-
-            <!-- Suggested questions -->
-            <div class="vest-suggestions">
-                <div class="vest-suggestion-label">Try asking</div>
-                <button class="vest-suggestion-btn" onclick="vestAskSuggestion(this)">
-                    <span class="vest-sug-icon">📈</span>
-                    <span>Which stocks have bullish momentum right now?</span>
-                </button>
-                <button class="vest-suggestion-btn" onclick="vestAskSuggestion(this)">
-                    <span class="vest-sug-icon">🎯</span>
-                    <span>Explain what RSI and MACD signals mean</span>
-                </button>
-                <button class="vest-suggestion-btn" onclick="vestAskSuggestion(this)">
-                    <span class="vest-sug-icon">🛡️</span>
-                    <span>How do I manage risk as a beginner investor?</span>
-                </button>
-                <button class="vest-suggestion-btn" onclick="vestAskSuggestion(this)">
-                    <span class="vest-sug-icon">🔍</span>
-                    <span>What makes a stock worth watching this week?</span>
-                </button>
-                <button class="vest-suggestion-btn" onclick="vestAskSuggestion(this)">
-                    <span class="vest-sug-icon">⚡</span>
-                    <span>Score my watchlist by opportunity and risk</span>
-                </button>
+            <div class="vest-suggestions vest-guided-suggestions-wrap" id="vest-guided-suggestions">
+                <div class="vest-suggestion-label" id="vest-guided-label">Pick a topic</div>
+                <div id="vest-guided-choices"></div>
             </div>
         </div>
 
         <div class="vest-chat-footer">
-            <div class="vest-input-row">
-                <input class="vest-chat-input" id="vest-chat-input" type="text"
-                       placeholder="Ask Vest AI anything…" autocomplete="off"
-                       onkeydown="if(event.key==='Enter')vestSendMessage()" />
-                <button class="vest-send-btn" onclick="vestSendMessage()" aria-label="Send">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083zm-1.833 1.89L6.637 10.07l-.215-.338L1.65 6.47l11.48-3.893z"/>
-                    </svg>
-                </button>
-            </div>
-            <p class="vest-coming-soon">AI responses coming soon · Preview mode</p>
+            <p class="vest-guided-hint">Educational guidance only — not financial advice.</p>
         </div>
     </div>
 
     <script>
-        // ── Toggle open/close ──
-        const fab      = document.getElementById('vest-ai-fab');
+        const fab = document.getElementById('vest-ai-fab');
         const chatPanel = document.getElementById('vest-ai-chat');
         const closeBtn = document.getElementById('vest-ai-close');
-        const chatInput = document.getElementById('vest-chat-input');
+        const chatThreadEl = document.getElementById('vest-chat-thread');
+        const guidedChoicesEl = document.getElementById('vest-guided-choices');
+        const guidedLabelEl = document.getElementById('vest-guided-label');
+
+        let vestGuidedBusy = false;
+        let vestGuidedTurnCount = 0;
+        let vestReplyTimer = null;
+
+        const VEST_GUIDED_ROOT = [
+            {
+                icon: '📈',
+                question: 'Which stocks have bullish momentum right now?',
+                answer: "Here is a practical way to answer that with Vest:\n\n1) Open your watchlist or a sector list and sort by strength or recent performance (use whatever columns Vest exposes).\n2) On the chart, check higher highs and higher lows, and stronger volume on up days than on pullbacks.\n3) Keep names that hold above the short averages you care about.\n\nNo one should hand-pick tickers for you without live data—those steps turn the question into a repeatable screen.",
+                followUps: [
+                    {
+                        icon: '📊',
+                        question: 'What should I check to confirm momentum?',
+                        answer: 'Confirm momentum when:\n\n• Price structure trends your direction on your timeframe.\n• Participation shows up on rallies and fades on dips.\n• Key averages or trendlines still support the move.\n\nWhen volume drops off or price starts closing under your line in the sand, momentum is usually weakening first—tighten risk or wait.',
+                        followUps: [
+                            {
+                                icon: '⚠️',
+                                question: 'What mistakes do people make chasing momentum?',
+                                answer: 'Common traps: buying late after a vertical move, sizing too big without an exit rule, and treating a hot chart as “safe.” Fix it by deciding entry, size, and what would prove you wrong before you buy—then note what actually happened afterward.',
+                                followUps: []
+                            }
+                        ]
+                    },
+                    {
+                        icon: '⚖️',
+                        question: 'How is momentum different from value investing?',
+                        answer: 'Momentum asks whether price behavior is strong recently. Value asks whether the business looks cheap versus what you think it is worth. One is shorter-cycle and trend-led; the other is slower and fundamentals-led. Same account can use both—just know which question you are answering.',
+                        followUps: []
+                    }
+                ]
+            },
+            {
+                icon: '🎯',
+                question: 'Explain what RSI and MACD signals mean',
+                answer: 'RSI is an oscillator (often 0–100) comparing recent gains versus losses over N bars. High RSI means upside moves dominated lately; low RSI means downside dominated. It summarizes recent strength, not the future.\n\nMACD is built from moving averages of price. Traders read MACD crossing its signal line as a shift in short-term pressure versus a slightly slower line. The histogram is just the gap between those two lines drawn as bars.\n\nUse both as context with trend and volume—not as lone triggers.',
+                followUps: [
+                    {
+                        icon: '🔔',
+                        question: 'If RSI is overbought, should I sell?',
+                        answer: 'Not automatically. Overbought means upside momentum stretched—in a strong trend RSI can stay high a long time.\n\nTreat it as a risk-management hint: consider trims, tighter stops, or waiting for a pullback—especially if trend support is still intact. Combine it with your plan and levels, not one number alone.',
+                        followUps: []
+                    },
+                    {
+                        icon: '📉',
+                        question: 'What is the MACD histogram for?',
+                        answer: 'It shows MACD minus its signal. Bars shrinking toward zero often mean the push is slowing; bars expanding can mean acceleration. It is an early visual before some crossover signals—useful for timing tweaks, not magic.',
+                        followUps: []
+                    }
+                ]
+            },
+            {
+                icon: '🛡️',
+                question: 'How do I manage risk as a beginner investor?',
+                answer: 'Start simple:\n\n• Size small enough that one name cannot wreck the account.\n• Spread across a few ideas you actually understand.\n• Decide what loss means “I was wrong” before you enter.\n• Skip margin until your emotions and process are steady.\n• One-line journal per trade: why in, why out, what to repeat.\n\nRisk is mostly discipline; spreadsheets are the easy part.',
+                followUps: [
+                    {
+                        icon: '🛑',
+                        question: 'What is a stop-loss in plain terms?',
+                        answer: 'A rule or order to exit near a price so a loss does not run away from you. Examples: a percent below entry, or below a level that would break your thesis.\n\nGaps and fast markets can fill worse than your stop price—stops are about having a plan, not perfect fills.',
+                        followUps: []
+                    },
+                    {
+                        icon: '📝',
+                        question: 'How much should I risk on one trade?',
+                        answer: 'Many active traders risk only a small fraction of the account on any one trade’s planned loss—often discussed around sub–2% territory depending on style. Long-term holders sometimes think in max pain per position instead. Never risk near-term rent money.',
+                        followUps: []
+                    }
+                ]
+            },
+            {
+                icon: '🔍',
+                question: 'What makes a stock worth watching this week?',
+                answer: 'Worth watching usually means you can name a trigger in one sentence:\n\n• A dated catalyst (earnings, product, regulatory, investor day).\n• A clean technical level or volatility squeeze about to resolve.\n• Unusual volume or price versus its normal behavior.\n• A sector or macro print that matters to this name.\n\nIf you cannot name the trigger, it is noise—trim the list.',
+                followUps: [
+                    {
+                        icon: '📰',
+                        question: 'What counts as a catalyst?',
+                        answer: 'Something that could change the valuation story in your timeframe: results, guidance, M&A, legal outcome, leadership, regulation, or a macro shock to the group. Ask what assumption about growth, margins, or risk would change if the event goes well or poorly.',
+                        followUps: []
+                    },
+                    {
+                        icon: '🧾',
+                        question: 'How do I keep a simple watchlist?',
+                        answer: 'One row per ticker: why it is on the list, the date or level that matters, your bull case in one line, and what would make you remove it. Review on a schedule—not every headline.',
+                        followUps: []
+                    }
+                ]
+            },
+            {
+                icon: '⚡',
+                question: 'Score my watchlist by opportunity and risk',
+                answer: 'Use the same 1–5 scale for every ticker so you can compare:\n\nOpportunity\n• Trend quality on your timeframe\n• Catalyst clarity (you can name it)\n• Reward versus what is already priced in\n\nRisk (higher score = calmer)\n• Volatility and gap risk\n• Valuation versus history or peers\n• Balance sheet comfort\n• How concentrated your portfolio is in the name\n\nRe-score after earnings, broken levels, or major news—not every tick.',
+                followUps: [
+                    {
+                        icon: '✅',
+                        question: 'What metrics help compare two setups?',
+                        answer: 'Short-term: relative strength, extension from averages, volatility, how price behaves at obvious levels.\nLonger-term: revenue and margin trajectory, cash generation, debt, valuation versus peers.\nDrop any metric that never changes your decision.',
+                        followUps: []
+                    },
+                    {
+                        icon: '🔄',
+                        question: 'How often should I rescore?',
+                        answer: 'When facts change: earnings, guidance, big news, or an obvious trend break. If you are trading actively, a weekly rhythm can help; otherwise avoid rescoring from boredom.',
+                        followUps: []
+                    }
+                ]
+            }
+        ];
+
+        function vestScrollThreadToBottom() {
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    chatThreadEl.scrollTop = chatThreadEl.scrollHeight;
+                });
+            });
+        }
+
+        function vestHideWelcome() {
+            const welcome = document.getElementById('vest-welcome-screen');
+            if (welcome) welcome.style.display = 'none';
+        }
+
+        function vestSetChoicesDisabled(disabled) {
+            guidedChoicesEl.querySelectorAll('.vest-suggestion-btn').forEach((b) => {
+                b.disabled = disabled;
+            });
+        }
+
+        function vestAppendUserBubble(text) {
+            const row = document.createElement('div');
+            row.className = 'vest-msg user';
+            const bubble = document.createElement('div');
+            bubble.className = 'vest-bubble';
+            bubble.textContent = text;
+            row.appendChild(bubble);
+            chatThreadEl.appendChild(row);
+        }
+
+        function vestAppendTypingIndicator() {
+            const row = document.createElement('div');
+            row.className = 'vest-msg ai vest-typing-row';
+            const av = document.createElement('div');
+            av.className = 'vest-msg-avatar';
+            const img = document.createElement('img');
+            img.src = '/images/VestLogo.png';
+            img.alt = '';
+            av.appendChild(img);
+            const bubble = document.createElement('div');
+            bubble.className = 'vest-bubble vest-typing-bubble';
+            const wrap = document.createElement('span');
+            wrap.className = 'vest-typing-dots';
+            for (let i = 0; i < 3; i++) wrap.appendChild(document.createElement('span'));
+            bubble.appendChild(wrap);
+            row.appendChild(av);
+            row.appendChild(bubble);
+            chatThreadEl.appendChild(row);
+            vestScrollThreadToBottom();
+            return row;
+        }
+
+        function vestAppendAiBubble(text) {
+            const row = document.createElement('div');
+            row.className = 'vest-msg ai';
+            const av = document.createElement('div');
+            av.className = 'vest-msg-avatar';
+            const img = document.createElement('img');
+            img.src = '/images/VestLogo.png';
+            img.alt = 'Vest';
+            av.appendChild(img);
+            const bubble = document.createElement('div');
+            bubble.className = 'vest-bubble';
+            bubble.textContent = text;
+            row.appendChild(av);
+            row.appendChild(bubble);
+            chatThreadEl.appendChild(row);
+        }
+
+        function vestRenderChoices(optionList, isRoot) {
+            if (guidedLabelEl) {
+                guidedLabelEl.textContent = isRoot
+                    ? (vestGuidedTurnCount > 0 ? 'Pick another topic' : 'Pick a topic')
+                    : 'Continue the conversation';
+            }
+            guidedChoicesEl.innerHTML = '';
+            optionList.forEach((item) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'vest-suggestion-btn';
+                const ic = document.createElement('span');
+                ic.className = 'vest-sug-icon';
+                ic.textContent = item.icon || '💬';
+                const lab = document.createElement('span');
+                lab.textContent = item.question;
+                btn.appendChild(ic);
+                btn.appendChild(lab);
+                btn.addEventListener('click', () => vestOnGuidedChoice(item));
+                guidedChoicesEl.appendChild(btn);
+            });
+        }
+
+        function vestAbortPendingReply() {
+            if (vestReplyTimer != null) {
+                clearTimeout(vestReplyTimer);
+                vestReplyTimer = null;
+                const typing = chatThreadEl.querySelector('.vest-typing-row');
+                if (typing) {
+                    const prev = typing.previousElementSibling;
+                    typing.remove();
+                    if (prev && prev.classList.contains('vest-msg') && prev.classList.contains('user')) {
+                        prev.remove();
+                    }
+                }
+            } else {
+                chatThreadEl.querySelectorAll('.vest-typing-row').forEach((n) => n.remove());
+            }
+            vestGuidedBusy = false;
+            vestSetChoicesDisabled(false);
+            if (!chatThreadEl.querySelector('.vest-msg')) {
+                const welcome = document.getElementById('vest-welcome-screen');
+                if (welcome) welcome.style.display = '';
+            }
+        }
+
+        function vestOnGuidedChoice(item) {
+            if (vestGuidedBusy) return;
+            vestGuidedBusy = true;
+            vestSetChoicesDisabled(true);
+            vestHideWelcome();
+            vestAppendUserBubble(item.question);
+            vestScrollThreadToBottom();
+
+            const typingRow = vestAppendTypingIndicator();
+            vestReplyTimer = window.setTimeout(() => {
+                vestReplyTimer = null;
+                typingRow.remove();
+                vestAppendAiBubble(item.answer);
+                const next = item.followUps && item.followUps.length ? item.followUps : VEST_GUIDED_ROOT;
+                vestGuidedTurnCount++;
+                vestRenderChoices(next, next === VEST_GUIDED_ROOT);
+                vestGuidedBusy = false;
+                vestScrollThreadToBottom();
+            }, 320);
+        }
+
+        vestRenderChoices(VEST_GUIDED_ROOT, true);
 
         fab.addEventListener('click', () => {
             const isOpen = chatPanel.classList.contains('vest-open');
             if (isOpen) {
+                vestAbortPendingReply();
                 chatPanel.style.opacity = '0';
                 chatPanel.style.transform = 'translateY(12px) scale(0.97)';
                 setTimeout(() => { chatPanel.classList.remove('vest-open'); }, 180);
             } else {
-                // Reposition chat panel relative to FAB if FAB was moved and chat wasn't
                 if (fab.dataset.dragged === 'true' && chatPanel.dataset.dragged !== 'true') {
                     const rect = fab.getBoundingClientRect();
                     const chatWidth = 370;
                     const vh = window.innerHeight;
                     const vw = window.innerWidth;
-                    
+
                     chatPanel.style.right = 'auto';
                     chatPanel.style.bottom = 'auto';
-                    
-                    // Preferably align right edge of chat with right edge of FAB
+
                     let left = rect.left + rect.width - chatWidth;
-                    let top = rect.top - 570; // 560 max height + 10 margin
-                    
-                    // Stay within viewport
+                    let top = rect.top - 570;
+
                     if (left < 10) left = 10;
                     if (left + chatWidth > vw - 10) left = vw - chatWidth - 10;
                     if (top < 10) top = 10;
@@ -990,11 +1209,12 @@
                     chatPanel.style.opacity = '1';
                     chatPanel.style.transform = 'translateY(0) scale(1)';
                 });
-                chatInput.focus();
+                vestScrollThreadToBottom();
             }
         });
 
         closeBtn.addEventListener('click', () => {
+            vestAbortPendingReply();
             chatPanel.style.opacity = '0';
             chatPanel.style.transform = 'translateY(12px) scale(0.97)';
             setTimeout(() => { chatPanel.classList.remove('vest-open'); }, 180);
@@ -1083,50 +1303,6 @@
 
             // FAB remains fixed; only the chat panel is draggable.
         })();
-
-        // ── Suggested question click ──
-        function vestAskSuggestion(btn) {
-            const text = btn.querySelector('span:last-child').textContent.trim();
-            chatInput.value = text;
-            chatInput.focus();
-            vestSendMessage();
-        }
-
-        // ── Send message ──
-        function vestSendMessage() {
-            const text = chatInput.value.trim();
-            if (!text) return;
-            chatInput.value = '';
-
-            const body = document.getElementById('vest-chat-messages');
-
-            // Hide welcome + suggestions on first message
-            const welcome = document.getElementById('vest-welcome-screen');
-            const suggestions = body.querySelector('.vest-suggestions');
-            if (welcome) { welcome.style.display = 'none'; }
-            if (suggestions) { suggestions.style.display = 'none'; }
-
-            // User bubble
-            const userMsg = document.createElement('div');
-            userMsg.className = 'vest-msg user';
-            userMsg.innerHTML = `<div class="vest-bubble">${escapeHtml(text)}</div>`;
-            body.appendChild(userMsg);
-
-            // AI placeholder bubble
-            const aiMsg = document.createElement('div');
-            aiMsg.className = 'vest-msg ai';
-            aiMsg.innerHTML = `
-                <div class="vest-msg-avatar"><img src="/images/VestLogo.png" alt="Vest" /></div>
-                <div class="vest-bubble" style="opacity:0.6;font-style:italic;">
-                    Vest AI is coming soon — stay tuned! 🚀
-                </div>`;
-            body.appendChild(aiMsg);
-            body.scrollTop = body.scrollHeight;
-        }
-
-        function escapeHtml(str) {
-            return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-        }
     </script>
 </body>
 </html>
