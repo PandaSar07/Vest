@@ -1,16 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  /* Core Palette - Deep Space & Neon */
-  --bg-color: #05070a;
-  --bg-card: rgba(17, 25, 40, 0.75);
-  --bg-nav: rgba(5, 7, 10, 0.8);
-  --text-primary: #ffffff;
+  /* Core palette — aligned with landing (#0a0e1a / #00c2ff) */
+  --bg-color: #0a0e1a;
+  --bg-card: rgba(15, 23, 42, 0.72);
+  --bg-nav: rgba(10, 14, 26, 0.82);
+  --text-primary: #f1f5f9;
   --text-secondary: #94a3b8;
-  --accent-color: #38bdf8;
-  /* Sky Blue */
-  --accent-glow: rgba(56, 189, 248, 0.2);
-  --accent-hover: #7dd3fc;
+  --accent-color: #00c2ff;
+  --accent-glow: rgba(0, 194, 255, 0.22);
+  --accent-hover: #33d6ff;
   --border-color: rgba(255, 255, 255, 0.1);
   --success-color: #10b981;
   --danger-color: #ef4444;
@@ -34,12 +33,12 @@
 [data-theme="light"] {
   --bg-color: #f8fafc;
   --bg-card: rgba(255, 255, 255, 0.85);
-  --bg-nav: rgba(255, 255, 255, 0.95);
+  --bg-nav: rgba(255, 255, 255, 0.92);
   --text-primary: #0f172a;
   --text-secondary: #475569;
-  --accent-color: #0284c7;
-  --accent-glow: rgba(2, 132, 199, 0.2);
-  --accent-hover: #0369a1;
+  --accent-color: #0090c9;
+  --accent-glow: rgba(0, 144, 201, 0.18);
+  --accent-hover: #0077b3;
   --border-color: rgba(0, 0, 0, 0.1);
   --glass-bg: rgba(255, 255, 255, 0.85);
   --glass-border: rgba(0, 0, 0, 0.1);
@@ -80,8 +79,8 @@ html {
 body {
   background-color: var(--bg-color);
   background-image:
-    radial-gradient(at 0% 0%, hsla(200, 100%, 15%, 0.15) 0, transparent 50%),
-    radial-gradient(at 50% 0%, hsla(260, 100%, 15%, 0.1) 0, transparent 50%);
+    radial-gradient(circle at 15% 10%, rgba(0, 194, 255, 0.08) 0, transparent 42%),
+    radial-gradient(circle at 85% 72%, rgba(0, 194, 255, 0.04) 0, transparent 45%);
   color: var(--text-primary);
   font-family: var(--font-family);
   line-height: 1.6;
@@ -123,17 +122,26 @@ h4 {
   -webkit-text-fill-color: transparent;
 }
 
-/* Navbar Premium Look */
+/* Navbar — landing-style rail */
 .navbar {
   background-color: var(--bg-nav) !important;
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border-bottom: 1px solid var(--border-color) !important;
-  padding: 1.25rem 0;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  padding: 0;
+  min-height: 72px;
   position: sticky;
   top: 0;
   z-index: 1000;
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 12px 40px -18px rgba(0, 0, 0, 0.65);
+}
+
+.navbar .container-fluid {
+  padding-left: clamp(1rem, 4vw, 1.5rem);
+  padding-right: clamp(1rem, 4vw, 1.5rem);
+  max-width: 80rem;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* Tailwind CDN defines a `.collapse` utility (visibility: collapse) that breaks Bootstrap `.navbar-collapse.collapse`. */
@@ -141,65 +149,83 @@ header.navbar .navbar-collapse.collapse {
   visibility: visible;
 }
 
+.navbar-toggler {
+  border-color: rgba(255, 255, 255, 0.12);
+  padding: 0.4rem 0.55rem;
+}
+
+.navbar-toggler:focus {
+  box-shadow: 0 0 0 3px rgba(0, 194, 255, 0.25);
+}
+
+.navbar-toggler-icon {
+  filter: invert(1) brightness(1.05);
+}
+
+[data-theme="light"] .navbar-toggler-icon {
+  filter: none;
+}
+
 .navbar-brand {
-  font-family: var(--font-brand);
-  font-weight: 700;
-  color: var(--accent-color) !important;
-  font-size: 1.5rem;
+  font-family: inherit;
+  font-weight: inherit;
+  color: inherit !important;
+  font-size: inherit;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.vest-brand-label {
+  font-family: var(--font-family);
+  font-weight: 800;
+  font-size: 1.35rem;
+  letter-spacing: 0.12em;
+  color: #ffffff !important;
   text-transform: uppercase;
-  letter-spacing: 2px;
+}
+
+[data-theme="light"] .vest-brand-label {
+  color: var(--text-primary) !important;
 }
 
 .navbar-logo {
-  height: 40px;
+  height: 36px;
   width: auto;
-  filter: drop-shadow(0 0 8px var(--accent-glow));
-  transition: var(--transition);
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 10px var(--accent-glow));
+  transition: transform 0.25s ease, filter 0.25s ease;
 }
 
 .navbar-brand:hover .navbar-logo {
-  transform: rotate(-5deg) scale(1.1);
-  filter: drop-shadow(0 0 12px var(--accent-color));
+  transform: scale(1.04);
+  filter: drop-shadow(0 0 14px rgba(0, 194, 255, 0.45));
 }
 
 .nav-link {
   color: var(--text-secondary) !important;
   font-weight: 500;
-  font-size: 0.95rem;
-  transition: var(--transition);
+  font-size: 0.875rem;
+  letter-spacing: 0.02em;
+  transition: background 0.2s ease, color 0.2s ease;
   position: relative;
-  padding: 0.5rem 1rem !important;
+  padding: 0.45rem 1.15rem !important;
+  border-radius: 9999px;
 }
 
 .nav-link:hover {
   color: var(--text-primary) !important;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .nav-link::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  width: 0;
-  height: 2px;
-  background: var(--accent-color);
-  transition: var(--transition);
-  transform: translateX(-50%);
-}
-
-.nav-link:hover::after {
-  width: 70%;
+  display: none;
 }
 
 .nav-link.active {
   color: var(--text-primary) !important;
-}
-
-.nav-link.active::after {
-  width: 70%;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .nav-link.btn-outline.active {
@@ -244,8 +270,8 @@ header.navbar .navbar-collapse.collapse {
 
 .card:hover {
   transform: translateY(-8px);
-  border-color: rgba(56, 189, 248, 0.4) !important;
-  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5), 0 0 20px rgba(56, 189, 248, 0.1);
+  border-color: rgba(0, 194, 255, 0.35) !important;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5), 0 0 24px rgba(0, 194, 255, 0.08);
 }
 
 /* FinTech Tables */
@@ -338,13 +364,13 @@ tr:hover td {
 
 .btn-primary {
   background: var(--accent-color);
-  color: var(--bg-color);
+  color: #0a0e1a;
 }
 
 .btn-primary:hover {
   background: var(--accent-hover);
   transform: scale(1.05);
-  box-shadow: 0 0 15px var(--accent-glow);
+  box-shadow: 0 0 18px var(--accent-glow);
 }
 
 .btn-outline {
@@ -361,10 +387,15 @@ tr:hover td {
 /* Footer Modernization */
 footer {
   margin-top: auto;
+  background-color: rgba(10, 14, 26, 0.92);
+  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+  padding: 3rem 0 2rem;
+  backdrop-filter: blur(18px);
+}
+
+[data-theme="light"] footer {
   background-color: var(--bg-nav);
-  border-top: 1px solid var(--border-color) !important;
-  padding: 4rem 0 2rem;
-  backdrop-filter: var(--glass-blur);
+  border-top-color: var(--border-color) !important;
 }
 
 .footer-link {
@@ -415,7 +446,7 @@ main {
 
 /* Utilities */
 .text-gradient {
-  background: linear-gradient(90deg, var(--accent-color), #a855f7);
+  background: linear-gradient(90deg, #00c2ff, #c084fc);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -434,7 +465,7 @@ main {
   padding: 10rem 2rem 6rem;
   text-align: center;
   overflow: hidden;
-  background: radial-gradient(circle at 50% 30%, rgba(56, 189, 248, 0.15), transparent 50%);
+  background: radial-gradient(circle at 50% 28%, rgba(0, 194, 255, 0.14), transparent 52%);
 }
 
 .hero-title {
@@ -501,7 +532,7 @@ main {
 
 .cta-section {
   padding: 6rem 1.5rem;
-  background: linear-gradient(180deg, transparent 0%, rgba(56, 189, 248, 0.05) 100%);
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 194, 255, 0.06) 100%);
   border-top: 1px solid var(--border-color);
   margin-top: 4rem;
 }

@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+#dashboard-root {
+  font-family: var(--font-family, ui-sans-serif, system-ui, sans-serif);
+  color: var(--text-primary, #f1f5f9);
+}

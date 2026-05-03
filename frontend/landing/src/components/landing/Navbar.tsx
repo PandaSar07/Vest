@@ -1,5 +1,3 @@
-import { Rocket } from 'lucide-react'
-
 export function Navbar() {
   return (
     <>
@@ -23,8 +21,14 @@ export function Navbar() {
         <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-6">
           {/* Brand */}
           <a href="/" className="flex items-center gap-2.5 group">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#00c2ff]/10 border border-[#00c2ff]/20 transition-all group-hover:bg-[#00c2ff]/20 group-hover:shadow-[0_0_14px_rgba(0,194,255,0.25)]">
-              <Rocket className="h-5 w-5 text-[#00c2ff]" />
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#00c2ff]/10 border border-[#00c2ff]/20 transition-all group-hover:bg-[#00c2ff]/20 group-hover:shadow-[0_0_14px_rgba(0,194,255,0.25)]">
+              <img
+                src="/images/vest-mark.svg"
+                alt=""
+                width={23}
+                height={22}
+                className="h-[22px] w-[23px] object-contain drop-shadow-[0_0_10px_rgba(0,194,255,0.35)]"
+              />
             </div>
             <span className="text-[1.35rem] font-extrabold tracking-[0.12em] text-white uppercase" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
               VEST

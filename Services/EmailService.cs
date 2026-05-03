@@ -32,11 +32,11 @@ public class EmailService
         message.Body = new TextPart("html")
         {
             Text = $"""
-            <div style="font-family:Inter,sans-serif;background:#05070a;color:#fff;padding:40px;max-width:520px;margin:auto;border-radius:16px;border:1px solid rgba(255,255,255,0.1);">
+            <div style="font-family:Inter,sans-serif;background:#0a0e1a;color:#fff;padding:40px;max-width:520px;margin:auto;border-radius:16px;border:1px solid rgba(255,255,255,0.1);">
               <h2 style="font-size:1.5rem;margin-bottom:8px;color:#38bdf8;">Reset Your Password</h2>
               <p style="color:#94a3b8;margin-bottom:24px;">Click the button below to reset your Vest password. This link expires in <strong>1 hour</strong>.</p>
               <a href="{resetUrl}"
-                 style="display:inline-block;background:#38bdf8;color:#05070a;font-weight:700;text-decoration:none;padding:14px 28px;border-radius:8px;font-size:0.95rem;">
+                 style="display:inline-block;background:#00c2ff;color:#0a0e1a;font-weight:700;text-decoration:none;padding:14px 28px;border-radius:8px;font-size:0.95rem;">
                 Reset Password
               </a>
               <p style="color:#94a3b8;font-size:0.8rem;margin-top:24px;">

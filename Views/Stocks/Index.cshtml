@@ -43,7 +43,7 @@
         transform: translateY(-50%);
         background: var(--accent-color);
         border: none;
-        color: #05070a;
+        color: #0a0e1a;
         border-radius: 10px;
         padding: 0.5rem 1.25rem;
         font-weight: 700;
@@ -233,7 +233,7 @@
     .range-btn.active {
         background: var(--accent-color);
         border-color: var(--accent-color);
-        color: #05070a;
+        color: #0a0e1a;
     }
 
     #stockChart {
@@ -452,7 +452,7 @@
         min-width: 90px;
     }
 
-    .trade-submit.buy-btn  { background: #10b981; color: #05070a; }
+    .trade-submit.buy-btn  { background: #10b981; color: #0a0e1a; }
     .trade-submit.sell-btn { background: #ef4444; color: #fff; }
     .trade-submit:hover    { transform: scale(1.04); filter: brightness(1.1); }
     .trade-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
@@ -461,68 +461,6 @@
         font-size: 0.8rem;
         color: var(--text-secondary);
         margin-top: 0.4rem;
-    }
-
-    .instrument-tabs {
-        display: flex;
-        gap: 0.5rem;
-        margin-bottom: 1rem;
-    }
-
-    .instrument-tab {
-        flex: 1;
-        background: transparent;
-        border: 1px solid var(--border-color);
-        color: var(--text-secondary);
-        border-radius: var(--radius-sm);
-        padding: 0.5rem 0.75rem;
-        font-size: 0.82rem;
-        font-weight: 700;
-        letter-spacing: 0.4px;
-        cursor: pointer;
-    }
-
-    .instrument-tab.active {
-        border-color: var(--accent-color);
-        color: var(--accent-color);
-        background: rgba(56, 189, 248, 0.12);
-    }
-
-    .option-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
-        gap: 0.6rem;
-        margin-bottom: 0.8rem;
-    }
-
-    .option-position-list {
-        margin-top: 0.8rem;
-        font-size: 0.78rem;
-        color: var(--text-secondary);
-    }
-
-    .option-help-box {
-        margin-top: 0.7rem;
-        padding: 0.75rem 0.85rem;
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-sm);
-        background: rgba(255, 255, 255, 0.03);
-        font-size: 0.78rem;
-        color: var(--text-secondary);
-        line-height: 1.45;
-    }
-
-    .option-help-title {
-        color: var(--text-primary);
-        font-weight: 700;
-        margin-bottom: 0.35rem;
-        font-size: 0.8rem;
-    }
-
-    .field-hint {
-        margin-top: 0.35rem;
-        font-size: 0.74rem;
-        color: var(--text-secondary);
     }
 
     .trade-login-prompt {
@@ -633,30 +571,6 @@
                     <span class="trade-info-label">Avg Cost</span>
                     <span class="trade-info-value" id="tradeAvgCost">—</span>
                 </div>
-            </div>
-            <div class="instrument-tabs">
-                <button class="instrument-tab active" id="instStock" onclick="switchInstrument('stock')">STOCK</button>
-                <button class="instrument-tab" id="instOption" onclick="switchInstrument('option')">OPTION</button>
-            </div>
-            <div id="optionControls" style="display:none;">
-                <div class="option-grid">
-                    <select class="trade-input" id="optionTypeInput">
-                        <option value="CALL">Call</option>
-                        <option value="PUT">Put</option>
-                    </select>
-                    <input type="number" class="trade-input" id="optionStrikeInput" min="0.01" step="0.01" placeholder="Strike $" />
-                    <input type="date" class="trade-input" id="optionExpiryInput" />
-                    <input type="number" class="trade-input" id="contractsInput" min="1" step="1" placeholder="Contracts" value="1" />
-                    <input type="number" class="trade-input" id="premiumInput" min="0.01" step="0.01" placeholder="Premium $" />
-                </div>
-                <div class="field-hint" id="optionFieldHint">
-                    Premium is quoted per share. 1 contract controls 100 shares.
-                </div>
-                <div class="option-help-box" id="optionHelpBox">
-                    <div class="option-help-title">Quick guide</div>
-                    <div id="optionHelpText">Call generally benefits from price going up. Put generally benefits from price going down.</div>
-                </div>
-                <div class="option-position-list" id="optionPositions">No option contracts loaded.</div>
             </div>
             <!-- Buy / Sell / Limit tabs -->
             <div class="trade-tabs">
@@ -1038,7 +952,6 @@
 
         // ── Trade panel ───────────────────────────────────────────────────
         let tradeMode = 'buy';
-        let tradeInstrument = 'stock';
         let livePriceForTrade = 0;
         let userLoggedIn = false;
 
@@ -1064,49 +977,6 @@
             } catch(e) { console.warn('loadHolding error', e); }
         }
 
-        async function loadOptionPosition(underlying) {
-            try {
-                const r = await fetch(`/portfolio/options/position?underlying=${encodeURIComponent(underlying)}`);
-                if (!r.ok) return;
-                const d = await r.json();
-                const contracts = Array.isArray(d.contracts) ? d.contracts : [];
-                const totalContracts = contracts.reduce((sum, c) => sum + Number(c.contracts || 0), 0);
-                document.getElementById('tradeCash').textContent = '$' + fmt(d.cash);
-                document.getElementById('tradeShares').textContent = fmt(totalContracts, 0);
-                document.getElementById('tradeAvgCost').textContent = contracts.length
-                    ? '$' + fmt(contracts.reduce((sum, c) => sum + Number(c.avgContractCost || 0), 0) / contracts.length)
-                    : '—';
-
-                const list = contracts.map(c =>
-                    `${c.optionType} ${fmt(c.strike)} exp ${new Date(c.expiration).toLocaleDateString()} · ${fmt(c.contracts, 0)} contract(s) avg $${fmt(c.avgContractCost)}`
-                );
-                document.getElementById('optionPositions').innerHTML = list.length
-                    ? list.join('<br/>')
-                    : 'No open option contracts for this symbol.';
-            } catch (e) {
-                console.warn('loadOptionPosition error', e);
-            }
-        }
-
-        function switchInstrument(mode) {
-            tradeInstrument = mode;
-            const isOption = mode === 'option';
-            document.getElementById('instStock').classList.toggle('active', !isOption);
-            document.getElementById('instOption').classList.toggle('active', isOption);
-            document.getElementById('optionControls').style.display = isOption ? 'block' : 'none';
-            document.getElementById('tabLimit').style.display = isOption ? 'none' : 'block';
-            document.getElementById('sharesInput').style.display = isOption ? 'none' : 'block';
-            document.getElementById('limitPriceInput').style.display = (!isOption && tradeMode === 'limit') ? 'block' : 'none';
-            document.getElementById('positionLabel').textContent = isOption ? 'Contracts Owned' : 'Shares Owned';
-            if (isOption && tradeMode === 'limit') {
-                switchTab('buy');
-            } else {
-                updateEst();
-            }
-            if (isOption) loadOptionPosition(currentSymbol);
-            else loadHolding(currentSymbol);
-        }
-
         function switchTab(mode) {
             tradeMode = mode;
             const isLimit = mode === 'limit';
@@ -1115,13 +985,6 @@
             document.getElementById('tabSell').classList.toggle('active', mode === 'sell');
             document.getElementById('tabLimit').classList.toggle('active', isLimit);
             const btn = document.getElementById('tradeSubmitBtn');
-            if (tradeInstrument === 'option') {
-                btn.textContent = isBuy ? 'Buy Contracts' : 'Sell Contracts';
-                btn.className = 'trade-submit ' + (isBuy ? 'buy-btn' : 'sell-btn');
-                btn.disabled = !isMarketOpen();
-                updateEst();
-                return;
-            }
             if (isLimit) {
                 btn.textContent = 'Place Limit Order';
                 btn.className   = 'trade-submit';
@@ -1139,18 +1002,6 @@
         }
 
         function updateEst() {
-            if (tradeInstrument === 'option') {
-                const contracts = parseFloat(document.getElementById('contractsInput').value) || 0;
-                const premium = parseFloat(document.getElementById('premiumInput').value) || 0;
-                const total = contracts * premium * 100;
-                const label = tradeMode === 'buy' ? 'Est. debit' : 'Est. credit';
-                updateOptionHelp();
-                document.getElementById('tradeEst').textContent =
-                    total > 0
-                        ? `${label}: $${fmt(total)} (${fmt(contracts, 0)} contract(s) x 100 shares x $${fmt(premium)} premium)`
-                        : `${label}: —`;
-                return;
-            }
             const shares = parseFloat(document.getElementById('sharesInput').value) || 0;
             const cost = shares * livePriceForTrade;
             const label = tradeMode === 'buy' ? 'Est. cost' : 'Est. proceeds';
@@ -1161,86 +1012,8 @@
         }
 
         document.getElementById('sharesInput').addEventListener('input', updateEst);
-        document.getElementById('contractsInput').addEventListener('input', updateEst);
-        document.getElementById('premiumInput').addEventListener('input', updateEst);
-        document.getElementById('optionStrikeInput').addEventListener('input', updateEst);
-        document.getElementById('optionTypeInput').addEventListener('change', updateEst);
-        document.getElementById('optionExpiryInput').addEventListener('change', updateEst);
-
-        function updateOptionHelp() {
-            const optionType = document.getElementById('optionTypeInput')?.value || 'CALL';
-            const strike = parseFloat(document.getElementById('optionStrikeInput')?.value || '0') || 0;
-            const premium = parseFloat(document.getElementById('premiumInput')?.value || '0') || 0;
-            const expiration = document.getElementById('optionExpiryInput')?.value;
-            const expirationText = expiration ? new Date(expiration).toLocaleDateString() : 'the selected expiration';
-            const directionText = optionType === 'CALL'
-                ? 'Call: you usually want the stock to finish above strike.'
-                : 'Put: you usually want the stock to finish below strike.';
-
-            let breakEvenText = 'Enter strike and premium to see break-even.';
-            if (strike > 0 && premium > 0) {
-                const breakEven = optionType === 'CALL' ? strike + premium : strike - premium;
-                breakEvenText = `Approx break-even at expiration: $${fmt(Math.abs(breakEven))}.`;
-            }
-
-            document.getElementById('optionHelpText').textContent =
-                `${directionText} Expires on ${expirationText}. ${breakEvenText}`;
-        }
 
         async function submitTrade() {
-            if (tradeInstrument === 'option') {
-                const contracts = parseFloat(document.getElementById('contractsInput').value);
-                const strike = parseFloat(document.getElementById('optionStrikeInput').value);
-                const premium = parseFloat(document.getElementById('premiumInput').value);
-                const expiration = document.getElementById('optionExpiryInput').value;
-                const optionType = document.getElementById('optionTypeInput').value;
-
-                if (!contracts || contracts <= 0 || Math.floor(contracts) !== contracts) {
-                    showToast('Contracts must be a whole number.', false);
-                    return;
-                }
-                if (!strike || strike <= 0) { showToast('Enter a valid strike price.', false); return; }
-                if (!premium || premium <= 0) { showToast('Enter a valid premium.', false); return; }
-                if (!expiration) { showToast('Select an expiration date.', false); return; }
-
-                if (!isMarketOpen()) {
-                    showToast('Options trading is only available 9:30 AM - 4:00 PM ET.', false);
-                    updateMarketBadge();
-                    return;
-                }
-
-                const endpoint = tradeMode === 'buy' ? '/portfolio/options/buy' : '/portfolio/options/sell';
-                const payload = {
-                    underlying: currentSymbol,
-                    optionType,
-                    strike,
-                    expiration,
-                    contracts,
-                    premium
-                };
-
-                const btn = document.getElementById('tradeSubmitBtn');
-                btn.disabled = true;
-                try {
-                    const r = await fetch(endpoint, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    const data = await r.json();
-                    if (!r.ok) showToast(data.error || 'Option trade failed.', false);
-                    else {
-                        showToast(data.message, true);
-                        await loadOptionPosition(currentSymbol);
-                    }
-                } catch {
-                    showToast('Network error. Please try again.', false);
-                } finally {
-                    btn.disabled = false;
-                }
-                return;
-            }
-
             const shares = parseFloat(document.getElementById('sharesInput').value);
             if (!shares || shares <= 0) { showToast('Enter a valid number of shares.', false); return; }
             if (Math.round(shares * 100) !== shares * 100) {
@@ -1314,17 +1087,6 @@
                 loadNews(currentSymbol),
                 loadHolding(currentSymbol),
             ]);
-
-            const expiry = document.getElementById('optionExpiryInput');
-            if (expiry && !expiry.value) {
-                const d = new Date();
-                d.setDate(d.getDate() + 30);
-                expiry.value = d.toISOString().split('T')[0];
-            }
-            document.getElementById('optionStrikeInput').value = livePriceForTrade > 0 ? livePriceForTrade.toFixed(2) : '';
-            document.getElementById('premiumInput').value = livePriceForTrade > 0 ? Math.max(0.25, livePriceForTrade * 0.03).toFixed(2) : '';
-            if (tradeInstrument === 'option') await loadOptionPosition(currentSymbol);
-            updateOptionHelp();
 
             // Refresh quote every 30 s and update trade estimate
             refreshInterval = setInterval(async () => {

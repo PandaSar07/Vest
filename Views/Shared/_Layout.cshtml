@@ -28,7 +28,7 @@
             height: 32px;
             border-radius: 50%;
             background: linear-gradient(135deg, var(--accent-color) 0%, #0ea5e9 100%);
-            color: #05070a;
+            color: #0a0e1a;
             font-weight: 800;
             font-size: 0.78rem;
             display: flex;
@@ -36,7 +36,7 @@
             justify-content: center;
             flex-shrink: 0;
             letter-spacing: 0.5px;
-            border: 2px solid rgba(56,189,248,0.3);
+            border: 2px solid rgba(0,194,255,0.3);
         }
 
         .nav-avatar-lg {
@@ -59,7 +59,7 @@
         /* ── Profile dropdown ── */
         .nav-dropdown {
             background: rgba(10, 15, 25, 0.97);
-            border: 1px solid rgba(56, 189, 248, 0.15);
+            border: 1px solid rgba(0, 194, 255, 0.15);
             border-radius: 14px;
             backdrop-filter: blur(16px);
             padding: 0.5rem;
@@ -115,7 +115,7 @@
         }
 
         .nav-dropdown-item:hover {
-            background: rgba(56, 189, 248, 0.08);
+            background: rgba(0, 194, 255, 0.08);
             color: var(--text-primary) !important;
         }
 
@@ -154,8 +154,8 @@
 
         .nav-search-input:focus {
             outline: none;
-            border-color: rgba(56, 189, 248, 0.75);
-            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+            border-color: rgba(0, 194, 255, 0.75);
+            box-shadow: 0 0 0 3px rgba(0, 194, 255, 0.2);
         }
 
         .nav-search-icon {
@@ -176,7 +176,7 @@
             right: 0;
             top: calc(100% + 8px);
             background: rgba(8, 13, 24, 0.97);
-            border: 1px solid rgba(56, 189, 248, 0.2);
+            border: 1px solid rgba(0, 194, 255, 0.2);
             border-radius: 12px;
             padding: 0.35rem;
             box-shadow: 0 18px 45px -18px rgba(0,0,0,0.9);
@@ -209,7 +209,7 @@
 
         .nav-search-item:hover,
         .nav-search-item.active {
-            background: rgba(56, 189, 248, 0.12);
+            background: rgba(0, 194, 255, 0.12);
         }
 
         .nav-search-symbol {
@@ -238,7 +238,7 @@
         }
 
         .nav-quick-chip:hover {
-            border-color: rgba(56, 189, 248, 0.6);
+            border-color: rgba(0, 194, 255, 0.6);
             color: var(--text-primary);
         }
 
@@ -258,8 +258,8 @@
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm">
             <div class="container-fluid">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
-                    <img src="~/images/VestLogo.png" alt="Vest Logo" class="navbar-logo" />
-                    <span>Vest</span>
+                    <img src="~/images/vest-mark.svg" alt="" class="navbar-logo" width="36" height="35" />
+                    <span class="vest-brand-label">Vest</span>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
@@ -304,7 +304,7 @@
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link @(navCtrl == "Watchlist" ? "active" : null)" asp-area="" asp-controller="Watchlist" asp-action="Index" id="navWatchlist">
-                                        Watchlist <span id="wlNavBadge" style="display:none;background:var(--accent-color);color:#05070a;border-radius:9999px;font-size:0.65rem;font-weight:800;padding:1px 7px;margin-left:3px;vertical-align:middle;">0</span>
+                                        Watchlist <span id="wlNavBadge" style="display:none;background:var(--accent-color);color:#0a0e1a;border-radius:9999px;font-size:0.65rem;font-weight:800;padding:1px 7px;margin-left:3px;vertical-align:middle;">0</span>
                                     </a>
                                 </li>
                             }
@@ -879,14 +879,14 @@
     <!-- FAB Button -->
     <button id="vest-ai-fab" aria-label="Open Vest AI">
         <div class="fab-pulse"></div>
-        <img src="~/images/VestLogo.png" alt="Vest AI" />
+        <img src="~/images/vest-mark.svg" alt="Vest AI" width="38" height="37" />
     </button>
 
     <!-- Chat Panel -->
     <div id="vest-ai-chat" role="dialog" aria-label="Vest AI Chat">
         <div class="vest-chat-header" id="vest-drag-handle">
             <div class="vest-chat-logo">
-                <img src="~/images/VestLogo.png" alt="Vest" />
+                <img src="~/images/vest-mark.svg" alt="" width="22" height="21" />
             </div>
             <div class="vest-chat-title">
                 <h4>Vest AI</h4>
@@ -904,7 +904,7 @@
             <div id="vest-chat-thread" class="vest-chat-thread" aria-live="polite">
                 <div class="vest-welcome" id="vest-welcome-screen">
                     <div class="vest-welcome-icon">
-                        <img src="~/images/VestLogo.png" alt="Vest" />
+                        <img src="~/images/vest-mark.svg" alt="" width="32" height="31" />
                     </div>
                     <h5>Hey, I'm Vest AI 👋</h5>
                     <p>Tap a question below. I’ll reply and offer follow-ups — no typing needed.</p>
@@ -1073,7 +1073,7 @@
             const av = document.createElement('div');
             av.className = 'vest-msg-avatar';
             const img = document.createElement('img');
-            img.src = '/images/VestLogo.png';
+            img.src = '/images/vest-mark.svg';
             img.alt = '';
             av.appendChild(img);
             const bubble = document.createElement('div');
@@ -1095,7 +1095,7 @@
             const av = document.createElement('div');
             av.className = 'vest-msg-avatar';
             const img = document.createElement('img');
-            img.src = '/images/VestLogo.png';
+            img.src = '/images/vest-mark.svg';
             img.alt = 'Vest';
             av.appendChild(img);
             const bubble = document.createElement('div');
