@@ -1,13 +1,6 @@
 import { motion } from 'framer-motion'
 import { ArrowRight, TrendingUp } from 'lucide-react'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+
 
 export function Hero() {
   return (
@@ -66,21 +59,13 @@ export function Hero() {
               Log in
             </a>
 
-            <Dialog>
-              <DialogTrigger asChild>
-                <button className="nav-link rounded-full px-5 py-2 text-[0.85rem] font-medium text-slate-400 transition-all duration-300 hover:text-white hover:bg-white/[0.06] hover:backdrop-blur-sm" style={{ fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '0.02em', border: 'none', background: 'transparent', cursor: 'pointer' }}>
-                  See how it works
-                </button>
-              </DialogTrigger>
-              <DialogContent className="border-white/10 bg-[#0a0e1a] text-white">
-                <DialogHeader>
-                  <DialogTitle className="text-[#00c2ff]">Designed for calm momentum</DialogTitle>
-                  <DialogDescription className="text-slate-400">
-                    This landing uses staged sections, parallax, and pinned chapters so the experience unfolds over scroll—like a high-end product reveal.
-                  </DialogDescription>
-                </DialogHeader>
-              </DialogContent>
-            </Dialog>
+            <button 
+              onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
+              className="nav-link rounded-full px-5 py-2 text-[0.85rem] font-medium text-slate-400 transition-all duration-300 hover:text-white hover:bg-white/[0.06] hover:backdrop-blur-sm" 
+              style={{ fontFamily: "'Inter', system-ui, sans-serif", letterSpacing: '0.02em', border: 'none', background: 'transparent', cursor: 'pointer' }}
+            >
+              See how it works
+            </button>
           </div>
         </motion.div>
 

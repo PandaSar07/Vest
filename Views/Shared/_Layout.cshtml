@@ -257,7 +257,7 @@
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                <a class="navbar-brand" asp-area="" asp-controller="@(isLoggedIn ? "Dashboard" : "Home")" asp-action="Index">
                     <img src="~/images/vest-mark.svg" alt="" class="navbar-logo" width="36" height="35" />
                     <span class="vest-brand-label">Vest</span>
                 </a>
