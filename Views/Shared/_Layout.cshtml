@@ -258,7 +258,7 @@
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm">
             <div class="container-fluid">
                 <a class="navbar-brand" asp-area="" asp-controller="@(isLoggedIn ? "Dashboard" : "Home")" asp-action="Index">
-                    <img src="~/images/vest-mark.svg" alt="" class="navbar-logo" width="36" height="35" />
+                    <img src="~/images/vest-rocket.png" alt="" class="navbar-logo" width="36" height="35" style="object-fit:contain;" />
                     <span class="vest-brand-label">Vest</span>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
@@ -879,14 +879,14 @@
     <!-- FAB Button -->
     <button id="vest-ai-fab" aria-label="Open Vest AI">
         <div class="fab-pulse"></div>
-        <img src="~/images/vest-mark.svg" alt="Vest AI" width="38" height="37" />
+        <img src="~/images/vest-rocket.png" alt="Vest AI" width="50" height="50" style="object-fit:contain;" />
     </button>
 
     <!-- Chat Panel -->
     <div id="vest-ai-chat" role="dialog" aria-label="Vest AI Chat">
         <div class="vest-chat-header" id="vest-drag-handle">
             <div class="vest-chat-logo">
-                <img src="~/images/vest-mark.svg" alt="" width="22" height="21" />
+                <img src="~/images/vest-rocket.png" alt="" width="30" height="30" style="object-fit:contain;" />
             </div>
             <div class="vest-chat-title">
                 <h4>Vest AI</h4>
@@ -904,7 +904,7 @@
             <div id="vest-chat-thread" class="vest-chat-thread" aria-live="polite">
                 <div class="vest-welcome" id="vest-welcome-screen">
                     <div class="vest-welcome-icon">
-                        <img src="~/images/vest-mark.svg" alt="" width="32" height="31" />
+                        <img src="~/images/vest-rocket.png" alt="" width="44" height="44" style="object-fit:contain;" />
                     </div>
                     <h5>Hey, I'm Vest AI 👋</h5>
                     <p>Tap a question below. I’ll reply and offer follow-ups — no typing needed.</p>
@@ -1073,7 +1073,7 @@
             const av = document.createElement('div');
             av.className = 'vest-msg-avatar';
             const img = document.createElement('img');
-            img.src = '/images/vest-mark.svg';
+            img.src = '/images/vest-rocket.png';
             img.alt = '';
             av.appendChild(img);
             const bubble = document.createElement('div');
@@ -1095,7 +1095,7 @@
             const av = document.createElement('div');
             av.className = 'vest-msg-avatar';
             const img = document.createElement('img');
-            img.src = '/images/vest-mark.svg';
+            img.src = '/images/vest-rocket.png';
             img.alt = 'Vest';
             av.appendChild(img);
             const bubble = document.createElement('div');

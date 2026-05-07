@@ -191,7 +191,7 @@ header.navbar .navbar-collapse.collapse {
 }
 
 .navbar-logo {
-  height: 36px;
+  height: 52px;
   width: auto;
   flex-shrink: 0;
   filter: drop-shadow(0 0 10px var(--accent-glow));
