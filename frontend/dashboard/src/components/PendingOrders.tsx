@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { LimitOrder } from '@/types'
-import { fmtMoney } from '@/lib/format'
+import { fmtMoney, currencySymbol } from '@/lib/format'
 import { cancelOrder } from '@/api/portfolio'
 import { cn } from '@/lib/utils'
 
@@ -57,7 +57,7 @@ export function PendingOrders({ orders, onCancelled }: { orders: LimitOrder[]; o
                   </span>
                 </td>
                 <td className="px-4 py-3 tabular-nums">{fmtMoney(o.shares, 4)}</td>
-                <td className="px-4 py-3 tabular-nums">${fmtMoney(o.limitPrice)}</td>
+                <td className="px-4 py-3 tabular-nums">{currencySymbol}{fmtMoney(o.limitPrice)}</td>
                 <td className="px-4 py-3 text-[var(--text-secondary,#94a3b8)]">{placed}</td>
                 <td className="px-4 py-3 text-right">
                   <button

@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import type { PortfolioSummary, Snapshot } from '@/types'
 import type { ChartPoint } from '@/lib/chartData'
 import { estimateDailyChange, filterChartPoints } from '@/lib/chartData'
-import { fmtMoney } from '@/lib/format'
+import { fmtMoney, currencySymbol } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { Card } from '@/components/Card'
 import { Sparkline } from '@/components/Sparkline'
@@ -34,7 +34,7 @@ export function PortfolioHero({ summary, chartPoints, snapshots }: PortfolioHero
   const totalReturn = summary.stockValue - totalCost
   const retUp = totalReturn >= 0
 
-  const formattedTotal = `$${fmtMoney(summary.totalValue)}`
+  const formattedTotal = `${currencySymbol}${fmtMoney(summary.totalValue)}`
 
   return (
     <Card>
@@ -61,7 +61,7 @@ export function PortfolioHero({ summary, chartPoints, snapshots }: PortfolioHero
               )}
             >
               <span>
-                {dailyUp ? '+' : '-'}${fmtMoney(Math.abs(daily.abs))} ({dailyUp ? '+' : ''}
+                {dailyUp ? '+' : '-'}{currencySymbol}{fmtMoney(Math.abs(daily.abs))} ({dailyUp ? '+' : ''}
                 {fmtMoney(daily.pct)}%)
               </span>
               <span className="text-sm font-normal text-[var(--text-secondary,#94a3b8)]">
@@ -75,8 +75,8 @@ export function PortfolioHero({ summary, chartPoints, snapshots }: PortfolioHero
           )}
 
           <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <Stat label="Cash" value={`$${fmtMoney(summary.cash)}`} />
-            <Stat label="Invested" value={`$${fmtMoney(summary.stockValue)}`} />
+            <Stat label="Cash" value={`${currencySymbol}${fmtMoney(summary.cash)}`} />
+            <Stat label="Invested" value={`${currencySymbol}${fmtMoney(summary.stockValue)}`} />
             <Stat label="Positions" value={String(summary.holdings.length)} />
             <div className="rounded-xl border border-white/[0.06] bg-black/20 px-3 py-3 sm:px-4">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-secondary,#94a3b8)]">
@@ -88,7 +88,7 @@ export function PortfolioHero({ summary, chartPoints, snapshots }: PortfolioHero
                   retUp ? 'text-[var(--success-color,#10b981)]' : 'text-[var(--danger-color,#ef4444)]',
                 )}
               >
-                {retUp ? '+' : '-'}${fmtMoney(Math.abs(totalReturn))}
+                {retUp ? '+' : '-'}{currencySymbol}{fmtMoney(Math.abs(totalReturn))}
               </p>
             </div>
           </div>

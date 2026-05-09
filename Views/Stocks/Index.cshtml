@@ -614,15 +614,28 @@
         let refreshInterval;
 
         // ── Format helpers ──────────────────────────────────────────────
-        const fmt = (n, decimals = 2) =>
-            n == null ? '—' : Number(n).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+        const savedCurrency = localStorage.getItem('currencyDisplay') || 'USD';
+        const currencySymbols = { 'USD': '$', 'EUR': '€', 'GBP': '£' };
+        const currencySymbol = currencySymbols[savedCurrency] || '$';
+
+        const fmt = (n, decimals = 2) => {
+            if (n == null) return '—';
+            let val = Number(n);
+            if (savedCurrency === 'EUR') val *= 0.92;
+            else if (savedCurrency === 'GBP') val *= 0.79;
+            return val.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+        };
 
         const fmtBig = n => {
             if (n == null) return '—';
-            if (n >= 1e12) return '$' + (n / 1e12).toFixed(2) + 'T';
-            if (n >= 1e9)  return '$' + (n / 1e9).toFixed(2)  + 'B';
-            if (n >= 1e6)  return '$' + (n / 1e6).toFixed(2)  + 'M';
-            return '$' + Number(n).toLocaleString();
+            let val = Number(n);
+            if (savedCurrency === 'EUR') val *= 0.92;
+            else if (savedCurrency === 'GBP') val *= 0.79;
+            
+            if (val >= 1e12) return currencySymbol + (val / 1e12).toFixed(2) + 'T';
+            if (val >= 1e9)  return currencySymbol + (val / 1e9).toFixed(2)  + 'B';
+            if (val >= 1e6)  return currencySymbol + (val / 1e6).toFixed(2)  + 'M';
+            return currencySymbol + val.toLocaleString();
         };
 
         const fmtDate = ts => new Date(ts * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -684,17 +697,17 @@
                 const pct = q.dp;
                 const isUp = change >= 0;
 
-                document.getElementById('priceMain').textContent = '$' + fmt(price);
+                document.getElementById('priceMain').textContent = currencySymbol + fmt(price);
                 document.getElementById('priceChange').innerHTML =
                     `<span class="${isUp ? 'change-up' : 'change-down'}">
                         ${isUp ? '▲' : '▼'} ${fmt(Math.abs(change))} (${fmt(Math.abs(pct))}%)
                      </span>`;
 
                 const stats = [
-                    { label: 'Open',       value: '$' + fmt(q.o) },
-                    { label: 'Prev Close', value: '$' + fmt(q.pc) },
-                    { label: 'High',       value: '$' + fmt(q.h) },
-                    { label: 'Low',        value: '$' + fmt(q.l) },
+                    { label: 'Open',       value: currencySymbol + fmt(q.o) },
+                    { label: 'Prev Close', value: currencySymbol + fmt(q.pc) },
+                    { label: 'High',       value: currencySymbol + fmt(q.h) },
+                    { label: 'Low',        value: currencySymbol + fmt(q.l) },
                     { label: 'Updated',    value: q.t ? fmtTs(q.t) : '—' },
                 ];
 
@@ -803,7 +816,7 @@
                             ticks: {
                                 color: '#64748b',
                                 font: { size: 11 },
-                                callback: v => '$' + v.toLocaleString()
+                                callback: v => currencySymbol + v.toLocaleString()
                             },
                             border: { display: false }
                         },
@@ -829,7 +842,7 @@
                             bodyFont: { size: 14, weight: 'bold' },
                             padding: 12,
                             callbacks: {
-                                label: ctx => ' $' + fmt(ctx.parsed.y)
+                                label: ctx => ' ' + currencySymbol + fmt(ctx.parsed.y)
                             }
                         }
                     }
@@ -971,9 +984,9 @@
 
                 if (!r.ok) return;
                 const d = await r.json();
-                document.getElementById('tradeCash').textContent    = '$' + fmt(d.cash);
+                document.getElementById('tradeCash').textContent    = currencySymbol + fmt(d.cash);
                 document.getElementById('tradeShares').textContent  = fmt(d.shares, 4);
-                document.getElementById('tradeAvgCost').textContent = d.avgCost > 0 ? '$' + fmt(d.avgCost) : '—';
+                document.getElementById('tradeAvgCost').textContent = d.avgCost > 0 ? currencySymbol + fmt(d.avgCost) : '—';
             } catch(e) { console.warn('loadHolding error', e); }
         }
 
@@ -1007,7 +1020,7 @@
             const label = tradeMode === 'buy' ? 'Est. cost' : 'Est. proceeds';
             document.getElementById('tradeEst').textContent =
                 livePriceForTrade > 0
-                    ? `${label}: $${fmt(cost)} @@ $${fmt(livePriceForTrade)}/share`
+                    ? `${label}: ${currencySymbol}${fmt(cost)} @@ ${currencySymbol}${fmt(livePriceForTrade)}/share`
                     : `${label}: —`;
         }
 

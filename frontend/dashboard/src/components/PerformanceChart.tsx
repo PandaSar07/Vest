@@ -10,7 +10,7 @@ import {
 } from 'recharts'
 import type { ChartPoint } from '@/lib/chartData'
 import { filterChartPoints } from '@/lib/chartData'
-import { fmtMoney } from '@/lib/format'
+import { fmtMoney, currencySymbol } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { PerfRange } from '@/types'
 
@@ -92,7 +92,7 @@ export function PerformanceChart({ points, range, onRangeChange }: PerformanceCh
                 tick={{ fill: '#64748b', fontSize: 11 }}
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(v) => `$${fmtMoney(Number(v), 0)}`}
+                tickFormatter={(v) => `${currencySymbol}${fmtMoney(Number(v), 0)}`}
                 width={56}
               />
               <Tooltip
@@ -104,7 +104,7 @@ export function PerformanceChart({ points, range, onRangeChange }: PerformanceCh
                   fontSize: '12px',
                 }}
                 labelStyle={{ color: '#94a3b8' }}
-                formatter={(v: number) => [`$${fmtMoney(v)}`, 'Portfolio']}
+                formatter={(v: number) => [`${currencySymbol}${fmtMoney(v)}`, 'Portfolio']}
               />
               <Area
                 type="monotone"

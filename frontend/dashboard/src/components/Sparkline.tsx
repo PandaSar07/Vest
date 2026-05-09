@@ -7,7 +7,7 @@ import {
   YAxis,
 } from 'recharts'
 import type { ChartPoint } from '@/lib/chartData'
-import { fmtMoney } from '@/lib/format'
+import { fmtMoney, currencySymbol } from '@/lib/format'
 
 type SparklineProps = {
   data: ChartPoint[]
@@ -47,7 +47,7 @@ export function Sparkline({ data, positive }: SparklineProps) {
               fontSize: '12px',
             }}
             labelStyle={{ color: '#94a3b8' }}
-            formatter={(v: number) => [`$${fmtMoney(v)}`, 'Value']}
+            formatter={(v: number) => [`${currencySymbol}${fmtMoney(v)}`, 'Value']}
           />
           <Area
             type="monotone"

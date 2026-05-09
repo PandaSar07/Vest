@@ -87,7 +87,7 @@
                         <div class="mb-4">
                             <label class="form-label" style="color: var(--text-primary); font-weight: 500;">Currency Display</label>
                             <p class="text-secondary small mt-1">Select the primary currency for your portfolio display.</p>
-                            <select class="form-control" style="max-width: 300px; cursor: pointer;">
+                            <select class="form-control" id="currencyDisplay" style="max-width: 300px; cursor: pointer;">
                                 <option value="USD">USD - US Dollar ($)</option>
                                 <option value="EUR">EUR - Euro (€)</option>
                                 <option value="GBP">GBP - British Pound (£)</option>
@@ -98,7 +98,8 @@
                             <label class="form-check-label" for="publicProfile" style="color: var(--text-primary); font-weight: 500;">Public Profile Visibility</label>
                             <div class="text-secondary small mt-1">Allow other users to view your public trades and watchlist</div>
                         </div>
-                        <button class="btn btn-outline btn-sm px-4 mt-2">Save Preferences</button>
+                        <button class="btn btn-outline btn-sm px-4 mt-2" id="savePreferencesBtn">Save Preferences</button>
+                        <span id="preferencesSavedMsg" class="text-success small ms-2" style="display: none;">Preferences saved!</span>
                     </div>
                 </div>
 
@@ -161,6 +162,32 @@
                     localStorage.setItem('theme', 'dark');
                 }
             });
+
+            // Account Preferences
+            const currencyDisplay = document.getElementById('currencyDisplay');
+            const publicProfile = document.getElementById('publicProfile');
+            const savePreferencesBtn = document.getElementById('savePreferencesBtn');
+            const preferencesSavedMsg = document.getElementById('preferencesSavedMsg');
+
+            if (currencyDisplay && publicProfile && savePreferencesBtn) {
+                // Load existing preferences
+                const savedCurrency = localStorage.getItem('currencyDisplay') || 'USD';
+                currencyDisplay.value = savedCurrency;
+                
+                const savedVisibility = localStorage.getItem('publicProfileVisibility') === 'true';
+                publicProfile.checked = savedVisibility;
+
+                // Save on click
+                savePreferencesBtn.addEventListener('click', () => {
+                    localStorage.setItem('currencyDisplay', currencyDisplay.value);
+                    localStorage.setItem('publicProfileVisibility', publicProfile.checked);
+                    
+                    preferencesSavedMsg.style.display = 'inline';
+                    setTimeout(() => {
+                        preferencesSavedMsg.style.display = 'none';
+                    }, 3000);
+                });
+            }
 
             // Smooth scrolling for sidebar links
             const navLinks = document.querySelectorAll('.settings-nav-link');

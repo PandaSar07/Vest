@@ -1,5 +1,5 @@
 import type { Trade } from '@/types'
-import { fmtMoney } from '@/lib/format'
+import { fmtMoney, currencySymbol } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 export function TradesTable({ trades }: { trades: Trade[] }) {
@@ -57,7 +57,7 @@ export function TradesTable({ trades }: { trades: Trade[] }) {
                     {t.action}
                   </span>
                 </td>
-                <td className="px-4 py-3 tabular-nums">${fmtMoney(t.price)}</td>
+                <td className="px-4 py-3 tabular-nums">{currencySymbol}{fmtMoney(t.price)}</td>
                 <td className="px-4 py-3 text-[var(--text-secondary,#94a3b8)]">{date}</td>
               </tr>
             )

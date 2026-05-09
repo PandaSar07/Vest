@@ -330,8 +330,17 @@
             return Array.isArray(list) ? list : [];
         }
 
-        const fmt = (n, d = 2) =>
-            n == null ? '—' : Number(n).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+        const savedCurrency = localStorage.getItem('currencyDisplay') || 'USD';
+        const currencySymbols = { 'USD': '$', 'EUR': '€', 'GBP': '£' };
+        const currencySymbol = currencySymbols[savedCurrency] || '$';
+
+        const fmt = (n, d = 2) => {
+            if (n == null) return '—';
+            let val = Number(n);
+            if (savedCurrency === 'EUR') val *= 0.92;
+            else if (savedCurrency === 'GBP') val *= 0.79;
+            return val.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+        };
 
         // ── Fetch one quote ──────────────────────────────────────────────────
         async function fetchQuote(symbol) {
@@ -422,21 +431,21 @@
                 const dir = isUp ? '▲' : '▼';
                 const cls = isUp ? 'change-up' : 'change-down';
                 priceRow.innerHTML = `
-                    <span class="wl-price">$${fmt(q.c)}</span>
+                    <span class="wl-price">${currencySymbol}${fmt(q.c)}</span>
                     <span class="wl-change ${cls}">${dir} ${fmt(Math.abs(q.d))} (${fmt(Math.abs(q.dp))}%)</span>`;
 
                 document.getElementById(`wl-stats-${sym}`).innerHTML = `
                     <div class="wl-stat">
                         <div class="wl-stat-label">High</div>
-                        <div class="wl-stat-val">$${fmt(q.h)}</div>
+                        <div class="wl-stat-val">${currencySymbol}${fmt(q.h)}</div>
                     </div>
                     <div class="wl-stat">
                         <div class="wl-stat-label">Low</div>
-                        <div class="wl-stat-val">$${fmt(q.l)}</div>
+                        <div class="wl-stat-val">${currencySymbol}${fmt(q.l)}</div>
                     </div>
                     <div class="wl-stat">
                         <div class="wl-stat-label">Prev Close</div>
-                        <div class="wl-stat-val">$${fmt(q.pc)}</div>
+                        <div class="wl-stat-val">${currencySymbol}${fmt(q.pc)}</div>
                     </div>`;
             } else {
                 priceRow.innerHTML = `<span class="wl-price" style="font-size:1rem;color:var(--text-secondary);">No data</span>`;

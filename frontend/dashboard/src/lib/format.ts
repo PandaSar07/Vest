@@ -1,6 +1,13 @@
+const savedCurrency = localStorage.getItem('currencyDisplay') || 'USD'
+export const currencySymbols: Record<string, string> = { USD: '$', EUR: '€', GBP: '£' }
+export const currencySymbol = currencySymbols[savedCurrency] || '$'
+
 export function fmtMoney(n: number | null | undefined, digits = 2): string {
   if (n == null || Number.isNaN(n)) return '—'
-  return n.toLocaleString('en-US', {
+  let val = Number(n)
+  if (savedCurrency === 'EUR') val *= 0.92
+  else if (savedCurrency === 'GBP') val *= 0.79
+  return val.toLocaleString('en-US', {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
   })

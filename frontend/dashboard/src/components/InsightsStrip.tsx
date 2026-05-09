@@ -1,5 +1,5 @@
 import type { Holding } from '@/types'
-import { displaySymbol, fmtMoney } from '@/lib/format'
+import { displaySymbol, fmtMoney, currencySymbol } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 function InsightCard({
@@ -52,7 +52,7 @@ export function InsightsStrip({ holdings }: { holdings: Holding[] }) {
             bestToday.gainLoss >= 0 ? 'text-emerald-400' : 'text-rose-400',
           )}
         >
-          {bestToday.gainLoss >= 0 ? '+' : '-'}${fmtMoney(Math.abs(bestToday.gainLoss))}
+          {bestToday.gainLoss >= 0 ? '+' : '-'}{currencySymbol}{fmtMoney(Math.abs(bestToday.gainLoss))}
         </p>
         <p className="mt-1 text-xs text-[var(--text-secondary,#94a3b8)]">Largest dollar move in your book.</p>
       </div>

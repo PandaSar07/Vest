@@ -1,6 +1,6 @@
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 import type { Holding } from '@/types'
-import { fmtMoney } from '@/lib/format'
+import { fmtMoney, currencySymbol } from '@/lib/format'
 
 const PALETTE = [
   '#38bdf8',
@@ -64,7 +64,7 @@ export function SectorDonut({ holdings }: { holdings: Holding[] }) {
               return (
                 <div className="rounded-xl border border-white/10 bg-[rgba(10,14,26,0.96)] px-3 py-2 text-xs text-[var(--text-primary,#f1f5f9)] shadow-xl backdrop-blur-md">
                   <div className="font-semibold">{p.name}</div>
-                  <div className="mt-0.5 tabular-nums text-[var(--text-secondary,#94a3b8)]">${fmtMoney(p.value)}</div>
+                  <div className="mt-0.5 tabular-nums text-[var(--text-secondary,#94a3b8)]">{currencySymbol}{fmtMoney(p.value)}</div>
                   <div className="tabular-nums text-[var(--text-secondary,#94a3b8)]">{fmtMoney(p.pct, 1)}% of book</div>
                 </div>
               )

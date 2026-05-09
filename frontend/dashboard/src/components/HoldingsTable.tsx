@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import type { Holding } from '@/types'
-import { displaySymbol, fmtMoney, qtyLabel } from '@/lib/format'
+import { displaySymbol, fmtMoney, qtyLabel, currencySymbol } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 export function HoldingsTable({ holdings }: { holdings: Holding[] }) {
@@ -51,15 +51,15 @@ export function HoldingsTable({ holdings }: { holdings: Holding[] }) {
                 <td className="px-4 py-3 tabular-nums text-[var(--text-secondary,#94a3b8)]">
                   {qtyLabel(h.shares)}
                 </td>
-                <td className="px-4 py-3 tabular-nums">${fmtMoney(h.avgCost)}</td>
-                <td className="px-4 py-3 tabular-nums">${fmtMoney(h.livePrice)}</td>
+                <td className="px-4 py-3 tabular-nums">{currencySymbol}{fmtMoney(h.avgCost)}</td>
+                <td className="px-4 py-3 tabular-nums">{currencySymbol}{fmtMoney(h.livePrice)}</td>
                 <td
                   className={cn(
                     'px-4 py-3 text-right font-semibold tabular-nums',
                     positive ? 'text-[var(--success-color,#10b981)]' : 'text-[var(--danger-color,#ef4444)]',
                   )}
                 >
-                  {positive ? '+' : '-'}${fmtMoney(Math.abs(h.gainLoss))}{' '}
+                  {positive ? '+' : '-'}{currencySymbol}{fmtMoney(Math.abs(h.gainLoss))}{' '}
                   <span className="text-xs font-medium opacity-90">
                     ({positive ? '+' : ''}
                     {fmtMoney(h.gainLossPct)}%)
