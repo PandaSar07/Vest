@@ -231,6 +231,22 @@ public class PortfolioService
         return (true, string.Empty);
     }
 
+    // ── User helpers ──────────────────────────────────────────────────────────
+
+    /// <summary>Fetches the user's email from the public users table.</summary>
+    public async Task<string?> GetUserEmailAsync(string userId)
+    {
+        var resp = await _http.GetAsync(
+            $"users?id=eq.{Uri.EscapeDataString(userId)}&select=email");
+        if (!resp.IsSuccessStatusCode) return null;
+        var json = await resp.Content.ReadAsStringAsync();
+        using var doc = JsonDocument.Parse(json);
+        var arr = doc.RootElement;
+        if (arr.ValueKind == JsonValueKind.Array && arr.GetArrayLength() > 0)
+            return arr[0].TryGetProperty("email", out var e) ? e.GetString() : null;
+        return null;
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────
 
     private static StringContent Json(object obj) =>

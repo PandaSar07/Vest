@@ -39,6 +39,9 @@ builder.Services.AddHostedService<OrderExecutorService>();
 // Register EmailService for sending password reset emails
 builder.Services.AddScoped<EmailService>();
 
+// Register PushNotificationService (singleton — WebPushClient is thread-safe)
+builder.Services.AddSingleton<PushNotificationService>();
+
 // HttpClient for direct Supabase REST calls (signup, login)
 builder.Services.AddHttpClient("supabase", client =>
 {

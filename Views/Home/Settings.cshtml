@@ -106,16 +106,17 @@
                 <div class="card mb-4" id="notifications">
                     <div class="card-body">
                         <h3 class="card-title mb-4">Notifications</h3>
-                        <div class="form-check form-switch mb-4">
-                            <input class="form-check-input" type="checkbox" id="emailNotif" checked style="cursor: pointer;">
-                            <label class="form-check-label" for="emailNotif" style="color: var(--text-primary); font-weight: 500;">Email Notifications</label>
-                            <div class="text-secondary small mt-1">Receive daily market updates and alerts</div>
-                        </div>
                         <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="emailNotif" style="cursor: pointer;">
+                            <label class="form-check-label" for="emailNotif" style="color: var(--text-primary); font-weight: 500;">Email Notifications</label>
+                            <div class="text-secondary small mt-1">Receive an email when your limit orders are filled</div>
+                        </div>
+                        <div class="form-check form-switch mb-2">
                             <input class="form-check-input" type="checkbox" id="pushNotif" style="cursor: pointer;">
                             <label class="form-check-label" for="pushNotif" style="color: var(--text-primary); font-weight: 500;">Push Notifications</label>
-                            <div class="text-secondary small mt-1">Receive instant alerts in your browser</div>
+                            <div class="text-secondary small mt-1">Receive instant browser alerts when limit orders fill</div>
                         </div>
+                        <div id="pushStatus" class="small mt-2" style="display:none;"></div>
                     </div>
                 </div>
 
@@ -186,6 +187,128 @@
                     setTimeout(() => {
                         preferencesSavedMsg.style.display = 'none';
                     }, 3000);
+                });
+            }
+
+            // ── Notification preferences ─────────────────────────────────────
+            const emailNotif = document.getElementById('emailNotif');
+            const pushNotif  = document.getElementById('pushNotif');
+            const pushStatus = document.getElementById('pushStatus');
+
+            // Load saved email preference
+            if (emailNotif) {
+                emailNotif.checked = localStorage.getItem('emailNotifications') !== 'false';
+                emailNotif.addEventListener('change', async () => {
+                    localStorage.setItem('emailNotifications', emailNotif.checked);
+                    // Persist to server
+                    await fetch('/push/pref', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ key: 'email_notifications', value: String(emailNotif.checked) })
+                    }).catch(() => {});
+                });
+            }
+
+            // ── Push Notifications (Web Push API) ───────────────────────────
+            function showPushStatus(msg, ok = true) {
+                if (!pushStatus) return;
+                pushStatus.style.display = 'block';
+                pushStatus.style.color   = ok ? 'var(--success-color,#10b981)' : '#ef4444';
+                pushStatus.textContent   = msg;
+            }
+
+            async function urlBase64ToUint8Array(base64String) {
+                const padding = '='.repeat((4 - base64String.length % 4) % 4);
+                const base64  = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+                const raw     = atob(base64);
+                return new Uint8Array([...raw].map(c => c.charCodeAt(0)));
+            }
+
+            async function subscribePush() {
+                if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+                    showPushStatus('Push notifications are not supported in this browser.', false);
+                    pushNotif.checked = false;
+                    return;
+                }
+
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') {
+                    showPushStatus('Permission denied. Enable notifications in browser settings.', false);
+                    pushNotif.checked = false;
+                    return;
+                }
+
+                try {
+                    const reg    = await navigator.serviceWorker.register('/sw.js');
+                    const keyRes = await fetch('/push/public-key');
+                    const { publicKey } = await keyRes.json();
+
+                    const sub = await reg.pushManager.subscribe({
+                        userVisibleOnly:      true,
+                        applicationServerKey: await urlBase64ToUint8Array(publicKey)
+                    });
+
+                    const keys = sub.getKey ? {
+                        p256dh: btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh')))),
+                        auth:   btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth'))))
+                    } : {};
+
+                    await fetch('/push/subscribe', {
+                        method:  'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body:    JSON.stringify({ endpoint: sub.endpoint, ...keys })
+                    });
+
+                    localStorage.setItem('pushNotifications', 'true');
+                    showPushStatus('✅ Push notifications enabled!');
+                } catch (err) {
+                    showPushStatus('Failed to enable push: ' + err.message, false);
+                    pushNotif.checked = false;
+                }
+            }
+
+            async function unsubscribePush() {
+                try {
+                    const reg = await navigator.serviceWorker.getRegistration('/sw.js');
+                    if (reg) {
+                        const sub = await reg.pushManager.getSubscription();
+                        if (sub) {
+                            const keys = sub.getKey ? {
+                                p256dh: btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh')))),
+                                auth:   btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth'))))
+                            } : {};
+                            await fetch('/push/unsubscribe', {
+                                method:  'DELETE',
+                                headers: { 'Content-Type': 'application/json' },
+                                body:    JSON.stringify({ endpoint: sub.endpoint, ...keys })
+                            });
+                            await sub.unsubscribe();
+                        }
+                    }
+                    localStorage.setItem('pushNotifications', 'false');
+                    showPushStatus('Push notifications disabled.');
+                } catch (err) {
+                    showPushStatus('Error: ' + err.message, false);
+                }
+            }
+
+            if (pushNotif) {
+                // Restore saved state
+                pushNotif.checked = localStorage.getItem('pushNotifications') === 'true';
+
+                // Re-check actual browser subscription state
+                if ('serviceWorker' in navigator && 'PushManager' in window) {
+                    navigator.serviceWorker.getRegistration('/sw.js').then(reg => {
+                        if (reg) reg.pushManager.getSubscription().then(sub => {
+                            if (sub && !pushNotif.checked) pushNotif.checked = true;
+                            if (!sub && pushNotif.checked) pushNotif.checked = false;
+                        });
+                    });
+                }
+
+                pushNotif.addEventListener('change', () => {
+                    if (pushNotif.checked) subscribePush();
+                    else unsubscribePush();
                 });
             }
 
