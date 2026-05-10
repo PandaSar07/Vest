@@ -469,7 +469,11 @@
         font-size: 0.8rem;
         color: var(--text-secondary);
         margin-top: 0.4rem;
+        white-space: pre-line;
     }
+
+    .trade-est.preview-ok { color: var(--text-secondary); }
+    .trade-est.preview-warn { color: #fbbf24; }
 
     .trade-login-prompt {
         text-align: center;
@@ -704,7 +708,11 @@
         async function loadQuote(symbol) {
             try {
                 const r = await fetch(`/market/fullquote?symbol=${encodeURIComponent(symbol)}`);
-                if (!r.ok) return;
+                if (!r.ok) {
+                    livePriceForTrade = 0;
+                    updateEst();
+                    return;
+                }
                 const q = await r.json();
 
                 // Current price
@@ -733,8 +741,11 @@
                         <div class="stat-label">${s.label}</div>
                         <div class="stat-value">${s.value}</div>
                     </div>`).join('');
+                updateEst();
             } catch (e) {
                 console.warn('Quote fetch error', e);
+                livePriceForTrade = 0;
+                updateEst();
             }
         }
 
@@ -1019,6 +1030,14 @@
             }
         }
 
+        // ── Trade panel ───────────────────────────────────────────────────
+        let tradeMode = 'buy';
+        let livePriceForTrade = 0;
+        let userLoggedIn = false;
+        let tradeCashBalance = 0;
+        let tradeSharesOwned = 0;
+        let tradePreviewValid = false;
+
         // ── Market hours ───────────────────────────────────────────────────
         function isMarketOpen() {
             const now  = new Date();
@@ -1042,9 +1061,9 @@
             const submitBtn = document.getElementById('tradeSubmitBtn');
             const isLimitActive = document.getElementById('tabLimit')?.classList.contains('active');
             if (submitBtn && !isLimitActive) {
-                submitBtn.disabled = !open;
                 if (!open) submitBtn.title = 'Market orders are disabled while the market is closed.';
                 else submitBtn.removeAttribute('title');
+                updateEst();
             }
         }
 
@@ -1100,11 +1119,6 @@
             syncWlButton(symbol);
         }
 
-        // ── Trade panel ───────────────────────────────────────────────────
-        let tradeMode = 'buy';
-        let livePriceForTrade = 0;
-        let userLoggedIn = false;
-
         async function loadHolding(symbol) {
             try {
                 const r = await fetch(`/portfolio/holding?symbol=${encodeURIComponent(symbol)}`);
@@ -1121,9 +1135,12 @@
 
                 if (!r.ok) return;
                 const d = await r.json();
+                tradeCashBalance = Number(d.cash || 0);
+                tradeSharesOwned = Number(d.shares || 0);
                 document.getElementById('tradeCash').textContent    = currencySymbol + fmt(d.cash);
                 document.getElementById('tradeShares').textContent  = fmt(d.shares, 4);
                 document.getElementById('tradeAvgCost').textContent = d.avgCost > 0 ? currencySymbol + fmt(d.avgCost) : '—';
+                updateEst();
             } catch(e) { console.warn('loadHolding error', e); }
         }
 
@@ -1146,19 +1163,55 @@
                 btn.style.background = '';
                 btn.textContent = isBuy ? 'Buy' : 'Sell';
                 btn.className   = 'trade-submit ' + (isBuy ? 'buy-btn' : 'sell-btn');
-                btn.disabled = !isMarketOpen();
             }
             updateEst();
         }
 
         function updateEst() {
+            const est = document.getElementById('tradeEst');
+            const btn = document.getElementById('tradeSubmitBtn');
             const shares = parseFloat(document.getElementById('sharesInput').value) || 0;
-            const cost = shares * livePriceForTrade;
-            const label = tradeMode === 'buy' ? 'Est. cost' : 'Est. proceeds';
-            document.getElementById('tradeEst').textContent =
-                livePriceForTrade > 0
-                    ? `${label}: ${currencySymbol}${fmt(cost)} @@ ${currencySymbol}${fmt(livePriceForTrade)}/share`
-                    : `${label}: —`;
+            const isBuy = tradeMode === 'buy';
+            const isLimit = tradeMode === 'limit';
+            const total = shares * livePriceForTrade;
+            const cashAfter = isBuy ? tradeCashBalance - total : tradeCashBalance + total;
+            tradePreviewValid = false;
+            est.className = 'trade-est';
+
+            if (isLimit) {
+                est.textContent = livePriceForTrade > 0
+                    ? `Limit preview: ${shares > 0 ? fmt(shares, 2) : '—'} ${currentSymbol} at your limit price.`
+                    : 'Limit preview: live price unavailable.';
+                btn.disabled = false;
+                btn.removeAttribute('title');
+                return;
+            }
+
+            const previewLines = [
+                `${currentSymbol} • ${fmt(shares, 2)} shares @@ ${currencySymbol}${fmt(livePriceForTrade)}`,
+                `Estimated total: ${currencySymbol}${fmt(total)} • Cash after: ${currencySymbol}${fmt(cashAfter)}`,
+            ];
+
+            if (!livePriceForTrade || livePriceForTrade <= 0) {
+                previewLines[0] = `${currentSymbol} • live price unavailable`;
+                previewLines[1] = 'Cannot preview or submit until a live price loads.';
+            } else if (!shares || shares <= 0) {
+                previewLines.push('Enter a valid number of shares.');
+            } else if (isBuy && total > tradeCashBalance) {
+                previewLines.push(`Not enough cash. Available: ${currencySymbol}${fmt(tradeCashBalance)}.`);
+            } else if (!isBuy && shares > tradeSharesOwned) {
+                previewLines.push(`Not enough shares. You own ${fmt(tradeSharesOwned, 4)}.`);
+            } else if (!isMarketOpen()) {
+                previewLines.push('Market is closed. Buy/Sell is available 9:30 AM - 4:00 PM ET.');
+            } else {
+                tradePreviewValid = true;
+            }
+
+            est.textContent = previewLines.join('\n');
+            est.classList.add(tradePreviewValid ? 'preview-ok' : 'preview-warn');
+            btn.disabled = !tradePreviewValid;
+            if (tradePreviewValid) btn.removeAttribute('title');
+            else btn.title = 'Fix the trade preview before submitting.';
         }
 
         document.getElementById('sharesInput').addEventListener('input', updateEst);
@@ -1168,6 +1221,11 @@
             if (!shares || shares <= 0) { showToast('Enter a valid number of shares.', false); return; }
             if (Math.round(shares * 100) !== shares * 100) {
                 showToast('Shares must be in increments of 0.01.', false);
+                return;
+            }
+            updateEst();
+            if (tradeMode !== 'limit' && !tradePreviewValid) {
+                showToast('Fix the trade preview before submitting.', false);
                 return;
             }
 
@@ -1212,7 +1270,7 @@
             } catch(e) {
                 showToast('Network error. Please try again.', false);
             } finally {
-                btn.disabled = false;
+                updateEst();
             }
         }
 

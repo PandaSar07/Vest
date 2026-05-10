@@ -468,7 +468,9 @@
     .trade-submit:hover    { transform: scale(1.04); filter: brightness(1.1); }
     .trade-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-    .trade-est { font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.4rem; }
+    .trade-est { font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.4rem; white-space: pre-line; }
+    .trade-est.preview-ok { color: var(--text-secondary); }
+    .trade-est.preview-warn { color: #fbbf24; }
 
     .trade-login-prompt {
         text-align: center;
@@ -669,6 +671,9 @@
         let tradeMode = 'buy';
         let livePriceForTrade = 0;
         let userLoggedIn = false;
+        let tradeCashBalance = 0;
+        let tradeSharesOwned = 0;
+        let tradePreviewValid = false;
 
         const savedCurrency = localStorage.getItem('currencyDisplay') || 'USD';
         const currencySymbols = { 'USD': '$', 'EUR': '€', 'GBP': '£' };
@@ -758,9 +763,12 @@
                 userLoggedIn = true;
                 if (!r.ok) return;
                 const d = await r.json();
+                tradeCashBalance = Number(d.cash || 0);
+                tradeSharesOwned = Number(d.shares || 0);
                 document.getElementById('tradeCash').textContent = currencySymbol + fmt(d.cash);
                 document.getElementById('tradeShares').textContent = fmt(d.shares, 8);
                 document.getElementById('tradeAvgCost').textContent = d.avgCost > 0 ? currencySymbol + fmt(d.avgCost) : '—';
+                updateEst();
             } catch (e) { console.warn('loadHolding', e); }
         }
 
@@ -789,14 +797,49 @@
         }
 
         function updateEst() {
+            const est = document.getElementById('tradeEst');
+            const btn = document.getElementById('tradeSubmitBtn');
             const amt = parseFloat(document.getElementById('sharesInput').value) || 0;
-            const cost = amt * livePriceForTrade;
-            const label = tradeMode === 'buy' ? 'Est. cost' : 'Est. proceeds';
             const unit = resolved ? resolved.yahoo : '';
-            document.getElementById('tradeEst').textContent =
-                livePriceForTrade > 0
-                    ? `${label}: ${currencySymbol}${fmt(cost)} @@ ${currencySymbol}${fmt(livePriceForTrade)}/unit (${unit})`
-                    : `${label}: —`;
+            const isBuy = tradeMode === 'buy';
+            const isLimit = tradeMode === 'limit';
+            const total = amt * livePriceForTrade;
+            const cashAfter = isBuy ? tradeCashBalance - total : tradeCashBalance + total;
+            tradePreviewValid = false;
+            est.className = 'trade-est';
+
+            if (isLimit) {
+                est.textContent = livePriceForTrade > 0
+                    ? `Limit preview: ${amt > 0 ? fmt(amt, 8) : '—'} ${unit || 'units'} at your limit price.`
+                    : 'Limit preview: live price unavailable.';
+                btn.disabled = false;
+                btn.removeAttribute('title');
+                return;
+            }
+
+            const previewLines = [
+                `${unit || 'Crypto'} • ${fmt(amt, 8)} units @@ ${currencySymbol}${fmt(livePriceForTrade)}`,
+                `Estimated total: ${currencySymbol}${fmt(total)} • Cash after: ${currencySymbol}${fmt(cashAfter)}`,
+            ];
+
+            if (!livePriceForTrade || livePriceForTrade <= 0) {
+                previewLines[0] = `${unit || 'Crypto'} • live price unavailable`;
+                previewLines[1] = 'Cannot preview or submit until a live price loads.';
+            } else if (!amt || amt <= 0) {
+                previewLines.push('Enter a valid amount.');
+            } else if (isBuy && total > tradeCashBalance) {
+                previewLines.push(`Not enough cash. Available: ${currencySymbol}${fmt(tradeCashBalance)}.`);
+            } else if (!isBuy && amt > tradeSharesOwned) {
+                previewLines.push(`Not enough units. You hold ${fmt(tradeSharesOwned, 8)}.`);
+            } else {
+                tradePreviewValid = true;
+            }
+
+            est.textContent = previewLines.join('\n');
+            est.classList.add(tradePreviewValid ? 'preview-ok' : 'preview-warn');
+            btn.disabled = !tradePreviewValid;
+            if (tradePreviewValid) btn.removeAttribute('title');
+            else btn.title = 'Fix the trade preview before submitting.';
         }
 
         document.getElementById('sharesInput').addEventListener('input', updateEst);
@@ -815,6 +858,11 @@
             const portfolioSymbol = resolved.yahoo;
             const amt = parseFloat(document.getElementById('sharesInput').value);
             if (!amt || amt <= 0) { showToast('Enter a valid amount.', false); return; }
+            updateEst();
+            if (tradeMode !== 'limit' && !tradePreviewValid) {
+                showToast('Fix the trade preview before submitting.', false);
+                return;
+            }
 
             if (tradeMode === 'limit') {
                 const limitPrice = parseFloat(document.getElementById('limitPriceInput').value);
@@ -850,7 +898,7 @@
             } catch {
                 showToast('Network error. Please try again.', false);
             } finally {
-                btn.disabled = false;
+                updateEst();
             }
         }
 
