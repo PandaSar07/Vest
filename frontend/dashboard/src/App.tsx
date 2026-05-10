@@ -153,8 +153,8 @@ export default function App() {
         <Card title="Holdings" subtitle="Tap a symbol to research or trade." className="lg:col-span-3">
           <HoldingsTable holdings={summary.holdings} />
         </Card>
-        <Card title="Sector allocation" subtitle="Weighted by market value." className="lg:col-span-2">
-          <SectorDonut holdings={summary.holdings} />
+        <Card title="Portfolio allocation" subtitle="Cash plus holdings by sector." className="lg:col-span-2">
+          <SectorDonut summary={summary} />
         </Card>
       </div>
 
