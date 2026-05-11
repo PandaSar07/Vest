@@ -21,6 +21,7 @@ function readUsername(): string {
 export default function App() {
   const username = readUsername()
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [summary, setSummary] = useState<PortfolioSummary | null>(null)
   const [snapshots, setSnapshots] = useState<Snapshot[]>([])
   const [trades, setTrades] = useState<Trade[]>([])
@@ -28,23 +29,37 @@ export default function App() {
   const [perfRange, setPerfRange] = useState<PerfRange>('1M')
 
   const refresh = useCallback(async () => {
-    const [sum, snaps, tr, ord] = await Promise.all([
+    setLoadError(null)
+    const [sum, snaps, tr, ord] = await Promise.allSettled([
       fetchSummary(),
       fetchSnapshots(730),
       fetchTrades(15),
       fetchOrders(),
     ])
-    setSummary(sum)
-    setSnapshots(snaps)
-    setTrades(tr)
-    setOrders(ord)
+
+    setSummary(sum.status === 'fulfilled' ? sum.value : null)
+    setSnapshots(snaps.status === 'fulfilled' ? snaps.value : [])
+    setTrades(tr.status === 'fulfilled' ? tr.value : [])
+    setOrders(ord.status === 'fulfilled' ? ord.value : [])
+
+    if (
+      sum.status === 'rejected' ||
+      snaps.status === 'rejected' ||
+      tr.status === 'rejected' ||
+      ord.status === 'rejected'
+    ) {
+      setLoadError('We hit a temporary issue loading your dashboard data.')
+    }
   }, [])
 
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      await refresh()
-      if (!cancelled) setLoading(false)
+      try {
+        await refresh()
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
     })()
     return () => {
       cancelled = true
@@ -54,9 +69,13 @@ export default function App() {
   const chartPoints = normalizeSnapshots(snapshots)
 
   async function onOrderCancelled() {
-    const ord = await fetchOrders()
-    setOrders(ord)
-    await refresh()
+    try {
+      const ord = await fetchOrders()
+      setOrders(ord)
+      await refresh()
+    } catch {
+      setLoadError('The order was updated, but the dashboard could not refresh right away.')
+    }
   }
 
   if (loading) {
@@ -72,9 +91,33 @@ export default function App() {
 
   if (!summary) {
     return (
-      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-8 text-center text-[var(--text-secondary,#94a3b8)]">
-        We couldn&apos;t load your portfolio. Refresh and try again.
-      </div>
+      <Card>
+        <div className="space-y-4 text-center">
+          <div className="space-y-2">
+            <h1 className="font-[family-name:var(--font-brand)] text-2xl font-bold tracking-tight sm:text-3xl">
+              Dashboard
+            </h1>
+            <p className="text-sm text-[var(--text-secondary,#94a3b8)] sm:text-base">
+              Welcome back, <span className="font-semibold text-[var(--text-primary,#f1f5f9)]">{username}</span>.
+            </p>
+          </div>
+          <p className="text-sm text-[var(--text-secondary,#94a3b8)]">
+            {loadError ?? 'We couldn&apos;t load your portfolio. Refresh and try again.'}
+          </p>
+          <div className="flex justify-center">
+            <button
+              type="button"
+              onClick={() => {
+                setLoading(true)
+                void refresh().finally(() => setLoading(false))
+              }}
+              className="rounded-xl bg-[var(--accent-color,#00c2ff)] px-4 py-2 text-sm font-semibold text-[#0a0e1a] transition hover:brightness-110"
+            >
+              Retry dashboard
+            </button>
+          </div>
+        </div>
+      </Card>
     )
   }
 
@@ -94,6 +137,11 @@ export default function App() {
             Welcome back, <span className="font-semibold text-[var(--text-primary,#f1f5f9)]">{username}</span>.
             Your portfolio, distilled for fast decisions.
           </p>
+          {loadError && (
+            <p className="mt-3 text-sm text-amber-300">
+              {loadError}
+            </p>
+          )}
         </div>
       </header>
 

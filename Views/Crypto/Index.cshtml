@@ -238,7 +238,15 @@
         animation: fadeIn 0.6s ease-out;
     }
 
-    .range-btns { display: flex; gap: 0.4rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+    .chart-toolbar {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.25rem;
+    }
+
+    .range-btns { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 
     .range-btn {
         background: transparent;
@@ -544,12 +552,18 @@
             <div>
                 <span class="section-header" style="display:inline;">USD price history</span>
             </div>
+        </div>
+        <div class="chart-toolbar">
             <div class="range-btns" id="rangeBtns">
                 <button class="range-btn" data-range="5d" data-interval="1h">1W</button>
                 <button class="range-btn active" data-range="1mo" data-interval="1d">1M</button>
                 <button class="range-btn" data-range="3mo" data-interval="1d">3M</button>
                 <button class="range-btn" data-range="6mo" data-interval="1d">6M</button>
                 <button class="range-btn" data-range="1y" data-interval="1d">1Y</button>
+            </div>
+            <div class="range-btns" id="chartTypeBtns">
+                <button class="range-btn active" data-chart-type="line">Line</button>
+                <button class="range-btn" data-chart-type="candles">Candles</button>
             </div>
         </div>
         <div class="chart-wrap">
@@ -648,6 +662,9 @@
         let resolved = resolveCrypto('BTC');
         let currentRange = '1mo';
         let currentInterval = '1d';
+        let currentChartType = 'line';
+        let lastHistoryData = null;
+        let lastHistorySymbol = 'BTC-USD';
         let refreshInterval;
         let tradeMode = 'buy';
         let livePriceForTrade = 0;
@@ -845,6 +862,8 @@
                 const res = await fetch(url);
                 if (!res.ok) throw new Error('history ' + res.status);
                 const data = await res.json();
+                lastHistoryData = data;
+                lastHistorySymbol = r.yahoo;
                 if (!data.timestamps || data.timestamps.length === 0) {
                     showNoData('No chart data for this range.');
                     return;
@@ -870,21 +889,171 @@
             ctx.fillText(msg || 'No data.', canvas.width / 2, 100);
         }
 
-        function renderChart(labelSymbol, data, interval) {
-            const labels = data.timestamps.map(ts => {
+        function buildHistoryPoints(data, interval) {
+            const timestamps = Array.isArray(data?.timestamps) ? data.timestamps : [];
+            const opens = Array.isArray(data?.opens) ? data.opens : [];
+            const highs = Array.isArray(data?.highs) ? data.highs : [];
+            const lows = Array.isArray(data?.lows) ? data.lows : [];
+            const closes = Array.isArray(data?.closes) ? data.closes : [];
+
+            return timestamps.map((ts, i) => {
+                const close = closes[i];
+                const open = opens[i] ?? close;
+                const high = highs[i] ?? close;
+                const low = lows[i] ?? close;
+                if ([open, high, low, close].some(v => v == null)) return null;
+
                 const d = new Date(ts * 1000);
-                if (interval === '1h') return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric' });
-                return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            });
-            const closes = data.closes;
-            const valid = closes.filter(v => v != null);
-            const firstPrice = valid[0];
-            const lastPrice = valid[valid.length - 1];
+                return {
+                    ts,
+                    label: interval === '1h'
+                        ? d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric' })
+                        : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                    open: Number(open),
+                    high: Number(high),
+                    low: Number(low),
+                    close: Number(close),
+                };
+            }).filter(point =>
+                point &&
+                [point.open, point.high, point.low, point.close].every(v => Number.isFinite(v))
+            );
+        }
+
+        function createCandlestickPlugin(points) {
+            return {
+                id: 'vestCryptoCandles',
+                afterDatasetsDraw(chartInstance) {
+                    const { ctx, scales: { x, y } } = chartInstance;
+                    if (!x || !y || !points.length) return;
+
+                    const spacing = points.length > 1
+                        ? Math.abs(x.getPixelForValue(1) - x.getPixelForValue(0))
+                        : 14;
+                    const bodyWidth = Math.max(4, Math.min(14, spacing * 0.58));
+
+                    ctx.save();
+                    ctx.lineWidth = 1.5;
+
+                    points.forEach((point, index) => {
+                        const xPos = x.getPixelForValue(index);
+                        const openY = y.getPixelForValue(point.open);
+                        const closeY = y.getPixelForValue(point.close);
+                        const highY = y.getPixelForValue(point.high);
+                        const lowY = y.getPixelForValue(point.low);
+                        const rising = point.close >= point.open;
+                        const color = rising ? '#10b981' : '#ef4444';
+                        const top = Math.min(openY, closeY);
+                        const bottom = Math.max(openY, closeY);
+                        const bodyHeight = Math.max(2, bottom - top);
+
+                        ctx.strokeStyle = color;
+                        ctx.beginPath();
+                        ctx.moveTo(xPos, highY);
+                        ctx.lineTo(xPos, lowY);
+                        ctx.stroke();
+
+                        ctx.fillStyle = color;
+                        ctx.fillRect(xPos - bodyWidth / 2, top, bodyWidth, bodyHeight);
+                    });
+
+                    ctx.restore();
+                }
+            };
+        }
+
+        function buildChartOptions(points, tooltipLabel) {
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { intersect: false, mode: 'index' },
+                animation: { duration: 600, easing: 'easeInOutQuart' },
+                scales: {
+                    y: {
+                        position: 'right',
+                        beginAtZero: false,
+                        grid: { color: 'rgba(255,255,255,0.04)' },
+                        ticks: {
+                            color: '#64748b',
+                            font: { size: 11 },
+                            callback: v => currencySymbol + v.toLocaleString()
+                        },
+                        border: { display: false }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#64748b', font: { size: 11 }, maxTicksLimit: 8, maxRotation: 0 },
+                        border: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: tooltipLabel
+                }
+            };
+        }
+
+        function renderChart(labelSymbol, data, interval) {
+            const points = buildHistoryPoints(data, interval);
+            if (!points.length) {
+                showNoData('No chart data for this range.');
+                return;
+            }
+
+            if (chart) chart.destroy();
+
+            const ctx = document.getElementById('cryptoChart').getContext('2d');
+            const labels = points.map(point => point.label);
+            const closes = points.map(point => point.close);
+            const firstPrice = closes[0];
+            const lastPrice = closes[closes.length - 1];
             const isUp = lastPrice >= firstPrice;
             const lineColor = isUp ? '#10b981' : '#ef4444';
             const fillColor = isUp ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)';
-            if (chart) chart.destroy();
-            const ctx = document.getElementById('cryptoChart').getContext('2d');
+
+            if (currentChartType === 'candles') {
+                chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: labelSymbol + ' OHLC',
+                            data: closes,
+                            borderColor: 'rgba(0,0,0,0)',
+                            backgroundColor: 'rgba(0,0,0,0)',
+                            borderWidth: 0,
+                            fill: false,
+                            tension: 0,
+                            pointRadius: 0,
+                            pointHoverRadius: 0,
+                            pointHitRadius: 12,
+                        }]
+                    },
+                    options: buildChartOptions(points, {
+                        backgroundColor: 'rgba(17,25,40,0.95)',
+                        borderColor: 'rgba(56,189,248,0.2)',
+                        borderWidth: 1,
+                        titleColor: '#94a3b8',
+                        bodyColor: '#ffffff',
+                        bodyFont: { size: 13, weight: 'bold' },
+                        padding: 12,
+                        callbacks: {
+                            label: context => {
+                                const point = points[context.dataIndex];
+                                return [
+                                    ' Open  ' + currencySymbol + fmt(point.open),
+                                    ' High  ' + currencySymbol + fmt(point.high),
+                                    ' Low   ' + currencySymbol + fmt(point.low),
+                                    ' Close ' + currencySymbol + fmt(point.close),
+                                ];
+                            }
+                        }
+                    }),
+                    plugins: [createCandlestickPlugin(points)]
+                });
+                return;
+            }
+
             chart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -909,43 +1078,16 @@
                         pointHoverBorderWidth: 2,
                     }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { intersect: false, mode: 'index' },
-                    animation: { duration: 600, easing: 'easeInOutQuart' },
-                    scales: {
-                        y: {
-                            position: 'right',
-                            beginAtZero: false,
-                            grid: { color: 'rgba(255,255,255,0.04)' },
-                            ticks: {
-                                color: '#64748b',
-                                font: { size: 11 },
-                                callback: v => currencySymbol + v.toLocaleString()
-                            },
-                            border: { display: false }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: '#64748b', font: { size: 11 }, maxTicksLimit: 8, maxRotation: 0 },
-                            border: { display: false }
-                        }
-                    },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: 'rgba(17,25,40,0.95)',
-                            borderColor: 'rgba(56,189,248,0.2)',
-                            borderWidth: 1,
-                            titleColor: '#94a3b8',
-                            bodyColor: '#ffffff',
-                            bodyFont: { size: 14, weight: 'bold' },
-                            padding: 12,
-                            callbacks: { label: c => ' ' + currencySymbol + fmt(c.parsed.y) }
-                        }
-                    }
-                }
+                options: buildChartOptions(points, {
+                    backgroundColor: 'rgba(17,25,40,0.95)',
+                    borderColor: 'rgba(56,189,248,0.2)',
+                    borderWidth: 1,
+                    titleColor: '#94a3b8',
+                    bodyColor: '#ffffff',
+                    bodyFont: { size: 14, weight: 'bold' },
+                    padding: 12,
+                    callbacks: { label: c => ' ' + currencySymbol + fmt(c.parsed.y) }
+                })
             });
         }
 
@@ -1000,11 +1142,22 @@
         document.getElementById('rangeBtns').addEventListener('click', e => {
             const btn = e.target.closest('.range-btn');
             if (!btn || !resolved) return;
-            document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('#rangeBtns .range-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentRange = btn.dataset.range;
             currentInterval = btn.dataset.interval;
             loadHistory(resolved, currentRange, currentInterval);
+        });
+
+        document.getElementById('chartTypeBtns').addEventListener('click', e => {
+            const btn = e.target.closest('.range-btn');
+            if (!btn) return;
+            document.querySelectorAll('#chartTypeBtns .range-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentChartType = btn.dataset.chartType || 'line';
+            if (lastHistoryData) {
+                renderChart(lastHistorySymbol, lastHistoryData, currentInterval);
+            }
         });
 
         document.getElementById('searchBtn').addEventListener('click', () => {

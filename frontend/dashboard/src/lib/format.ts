@@ -1,4 +1,13 @@
-const savedCurrency = localStorage.getItem('currencyDisplay') || 'USD'
+function readSavedCurrency(): string {
+  if (typeof window === 'undefined') return 'USD'
+  try {
+    return window.localStorage.getItem('currencyDisplay') || 'USD'
+  } catch {
+    return 'USD'
+  }
+}
+
+const savedCurrency = readSavedCurrency()
 export const currencySymbols: Record<string, string> = { USD: '$', EUR: '€', GBP: '£' }
 export const currencySymbol = currencySymbols[savedCurrency] || '$'
 

@@ -62,7 +62,7 @@ namespace Vest.Services
         /// Historical OHLCV data via Yahoo Finance (free, no key needed).
         /// range: 1d | 5d | 1mo | 3mo | 6mo | 1y | 2y | 5y | max
         /// interval: 1m | 5m | 15m | 30m | 1h | 1d | 1wk | 1mo
-        /// Returns a normalised object: { timestamps: long[], closes: decimal[] }
+        /// Returns a normalised object: { timestamps, opens, highs, lows, closes }
         /// </summary>
         public async Task<object> GetHistoricalDataAsync(string symbol, string range, string interval)
         {
@@ -87,15 +87,27 @@ namespace Vest.Services
             var timestamps = result.GetProperty("timestamp").EnumerateArray()
                 .Select(t => t.GetInt64()).ToArray();
 
-            var closes = result
+            var quote = result
                 .GetProperty("indicators")
                 .GetProperty("quote")[0]
-                .GetProperty("close")
-                .EnumerateArray()
-                .Select(v => v.ValueKind == JsonValueKind.Null ? (decimal?)null : v.GetDecimal())
-                .ToArray();
+                .Clone();
 
-            return new { timestamps, closes };
+            static decimal?[] ReadNullableDecimalArray(JsonElement parent, string propertyName)
+            {
+                if (!parent.TryGetProperty(propertyName, out var values) || values.ValueKind != JsonValueKind.Array)
+                    return [];
+
+                return values.EnumerateArray()
+                    .Select(v => v.ValueKind == JsonValueKind.Null ? (decimal?)null : v.GetDecimal())
+                    .ToArray();
+            }
+
+            var opens = ReadNullableDecimalArray(quote, "open");
+            var highs = ReadNullableDecimalArray(quote, "high");
+            var lows = ReadNullableDecimalArray(quote, "low");
+            var closes = ReadNullableDecimalArray(quote, "close");
+
+            return new { timestamps, opens, highs, lows, closes };
         }
 
         /// <summary>General cryptocurrency market news headlines (Finnhub category=crypto).</summary>
