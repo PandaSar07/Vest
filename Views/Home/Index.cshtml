@@ -130,6 +130,101 @@
         .landing-orb, .landing-badge-dot { animation: none; }
         .reveal { opacity: 1; transform: none; transition: none; }
     }
+
+    /* ── Light-mode overrides ───────────────────────────────── */
+    [data-theme="light"] .landing-hero {
+        background:
+            radial-gradient(circle at 15% 20%, rgba(0, 144, 201, 0.1), transparent 45%),
+            radial-gradient(circle at 85% 85%, rgba(99, 102, 241, 0.08), transparent 45%),
+            rgba(255, 255, 255, 0.92);
+        border-color: rgba(0, 144, 201, 0.2);
+        box-shadow: 0 30px 80px -40px rgba(0, 144, 201, 0.15);
+    }
+    [data-theme="light"] .landing-orb-a { background: rgba(0, 194, 255, 0.18); }
+    [data-theme="light"] .landing-orb-b { background: rgba(168, 85, 247, 0.12); }
+    [data-theme="light"] .landing-orb-c { background: rgba(14, 165, 233, 0.10); }
+
+    [data-theme="light"] .landing-panel,
+    [data-theme="light"] .landing-card,
+    [data-theme="light"] .glossary-term,
+    [data-theme="light"] .landing-step,
+    [data-theme="light"] .checklist-card {
+        background: rgba(255, 255, 255, 0.93);
+        border-color: rgba(0, 0, 0, 0.09);
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    }
+    [data-theme="light"] .landing-card:hover,
+    [data-theme="light"] .glossary-term:hover,
+    [data-theme="light"] .checklist-card:hover {
+        border-color: rgba(0, 144, 201, 0.35);
+    }
+    [data-theme="light"] .landing-final-cta {
+        background: linear-gradient(145deg, rgba(0, 194, 255, 0.07), rgba(255, 255, 255, 0.92));
+        border-color: rgba(0, 144, 201, 0.18);
+    }
+
+    /* Headings on dark-background elements need explicit dark colour in light mode */
+    [data-theme="light"] .landing-title,
+    [data-theme="light"] .landing-section-title,
+    [data-theme="light"] .landing-panel h3,
+    [data-theme="light"] .landing-card h3,
+    [data-theme="light"] .glossary-term h4,
+    [data-theme="light"] .landing-step h4,
+    [data-theme="light"] .landing-final-cta h2 {
+        background: linear-gradient(to bottom right, #0f172a, #334155) !important;
+        -webkit-background-clip: text !important;
+        background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+    }
+
+    /* Body / paragraph text in cards */
+    [data-theme="light"] .landing-panel p,
+    [data-theme="light"] .landing-panel ul,
+    [data-theme="light"] .landing-card p,
+    [data-theme="light"] .landing-card p,
+    [data-theme="light"] .landing-step p,
+    [data-theme="light"] .landing-section-copy,
+    [data-theme="light"] .landing-subtitle,
+    [data-theme="light"] .landing-mini-note,
+    [data-theme="light"] .landing-list li,
+    [data-theme="light"] .glossary-term p,
+    [data-theme="light"] .checklist-text,
+    [data-theme="light"] .checklist-progress,
+    [data-theme="light"] .landing-final-cta p {
+        color: #475569 !important;
+    }
+
+    [data-theme="light"] .landing-panel h3 strong,
+    [data-theme="light"] .landing-panel ul strong {
+        color: #0f172a;
+    }
+
+    /* Badge in light mode */
+    [data-theme="light"] .landing-badge {
+        background: rgba(0, 144, 201, 0.09);
+        border-color: rgba(0, 144, 201, 0.25);
+        color: var(--accent-color);
+    }
+
+    /* Step number chip */
+    [data-theme="light"] .landing-step-num {
+        background: rgba(0, 144, 201, 0.1);
+        border-color: rgba(0, 144, 201, 0.3);
+    }
+
+    /* Glossary label */
+    [data-theme="light"] .glossary-term-label {
+        color: var(--accent-color);
+    }
+
+    /* Checklist box outline */
+    [data-theme="light"] .checklist-box {
+        border-color: rgba(71, 85, 105, 0.4);
+    }
+    [data-theme="light"] .checklist-card.checked {
+        background: rgba(16, 185, 129, 0.06);
+        border-color: rgba(16, 185, 129, 0.4);
+    }
 </style>
 
 <div id="readingProgress" role="progressbar" aria-label="Reading progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
