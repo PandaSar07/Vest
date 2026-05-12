@@ -55,21 +55,24 @@ public class HomeController : Controller
             {
                 var http = _httpClientFactory.CreateClient("supabase");
                 var resp = await http.GetAsync(
-                    $"users?id=eq.{Uri.EscapeDataString(userId)}&select=profile_updated_at");
-                var json = await resp.Content.ReadAsStringAsync();
-                using var doc = System.Text.Json.JsonDocument.Parse(json);
-                var arr  = doc.RootElement;
-                if (arr.ValueKind == System.Text.Json.JsonValueKind.Array && arr.GetArrayLength() > 0)
+                    $"profile_cooldowns?user_id=eq.{Uri.EscapeDataString(userId)}&select=updated_at");
+                if (resp.IsSuccessStatusCode)
                 {
-                    var row = arr[0];
-                    if (row.TryGetProperty("profile_updated_at", out var tsEl) &&
-                        tsEl.ValueKind != System.Text.Json.JsonValueKind.Null &&
-                        DateTime.TryParse(tsEl.GetString(), out var lastUpdated))
+                    var json = await resp.Content.ReadAsStringAsync();
+                    using var doc = System.Text.Json.JsonDocument.Parse(json);
+                    var arr  = doc.RootElement;
+                    if (arr.ValueKind == System.Text.Json.JsonValueKind.Array && arr.GetArrayLength() > 0)
                     {
-                        var cooldownEnds = lastUpdated.AddDays(30);
-                        var daysLeft     = (int)Math.Ceiling((cooldownEnds - DateTime.UtcNow).TotalDays);
-                        if (daysLeft > 0)
-                            ViewData["ProfileCooldownDays"] = daysLeft;
+                        var row = arr[0];
+                        if (row.TryGetProperty("updated_at", out var tsEl) &&
+                            tsEl.ValueKind != System.Text.Json.JsonValueKind.Null &&
+                            DateTime.TryParse(tsEl.GetString(), out var lastUpdated))
+                        {
+                            var cooldownEnds = lastUpdated.AddDays(30);
+                            var daysLeft     = (int)Math.Ceiling((cooldownEnds - DateTime.UtcNow).TotalDays);
+                            if (daysLeft > 0)
+                                ViewData["ProfileCooldownDays"] = daysLeft;
+                        }
                     }
                 }
             }
@@ -106,11 +109,11 @@ public class HomeController : Controller
         {
             var http = _httpClientFactory.CreateClient("supabase");
 
-            // ── Cooldown check: fetch profile_updated_at (graceful if column absent) ──
+            // ── Cooldown check: read from profile_cooldowns table ──────────────
             try
             {
                 var curResp = await http.GetAsync(
-                    $"users?id=eq.{Uri.EscapeDataString(userId)}&select=profile_updated_at");
+                    $"profile_cooldowns?user_id=eq.{Uri.EscapeDataString(userId)}&select=updated_at");
                 if (curResp.IsSuccessStatusCode)
                 {
                     var curJson = await curResp.Content.ReadAsStringAsync();
@@ -119,7 +122,7 @@ public class HomeController : Controller
                     if (curArr.ValueKind == System.Text.Json.JsonValueKind.Array && curArr.GetArrayLength() > 0)
                     {
                         var row = curArr[0];
-                        if (row.TryGetProperty("profile_updated_at", out var tsEl) &&
+                        if (row.TryGetProperty("updated_at", out var tsEl) &&
                             tsEl.ValueKind != System.Text.Json.JsonValueKind.Null &&
                             DateTime.TryParse(tsEl.GetString(), out var lastUpdated))
                         {
@@ -133,9 +136,8 @@ public class HomeController : Controller
                         }
                     }
                 }
-                // 400 means column doesn't exist yet — skip cooldown
             }
-            catch { /* Non-fatal — skip cooldown if anything goes wrong */ }
+            catch { /* Non-fatal — skip cooldown if table not yet created */ }
 
             // Check if username is taken by another user
             var unCheck = await http.GetAsync(
@@ -177,18 +179,22 @@ public class HomeController : Controller
                 return RedirectToAction("Settings");
             }
 
-            // Patch 2: write cooldown timestamp (silent — column may not exist yet)
+            // Upsert cooldown timestamp into profile_cooldowns
             try
             {
                 var tsPayload = System.Text.Json.JsonSerializer.Serialize(new
                 {
-                    profile_updated_at = DateTime.UtcNow.ToString("o")
+                    user_id    = userId,
+                    updated_at = DateTime.UtcNow.ToString("o")
                 });
-                await http.PatchAsync(
-                    $"users?id=eq.{Uri.EscapeDataString(userId)}",
-                    new StringContent(tsPayload, System.Text.Encoding.UTF8, "application/json"));
+                var upsertMsg = new HttpRequestMessage(HttpMethod.Post, "profile_cooldowns")
+                {
+                    Headers  = { { "Prefer", "resolution=merge-duplicates" } },
+                    Content  = new StringContent(tsPayload, System.Text.Encoding.UTF8, "application/json")
+                };
+                await http.SendAsync(upsertMsg);
             }
-            catch { /* Column may not exist yet — non-fatal */ }
+            catch { /* Non-fatal — table may not exist yet */ }
 
             // Refresh session
             HttpContext.Session.SetString("Username", newUsername);
