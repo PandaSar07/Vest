@@ -48,18 +48,63 @@
             
             @if (isLoggedIn)
             {
+                var cooldownDays = ViewData["ProfileCooldownDays"] as int?;
+                var onCooldown   = cooldownDays.HasValue;
+
                 <div class="card mb-4" id="general">
                     <div class="card-body">
-                        <h3 class="card-title mb-4">General Settings</h3>
-                        <div class="mb-3">
-                            <label class="form-label">Username</label>
-                            <input type="text" class="form-control" value="@Context.Session.GetString("Username")" readonly>
-                        </div>
-                        <div class="mb-4">
-                            <label class="form-label">Email Address</label>
-                            <input type="email" class="form-control" value="@Context.Session.GetString("UserEmail")" readonly>
-                        </div>
-                        <button class="btn btn-primary">Save Changes</button>
+                        <h3 class="card-title mb-1">General Settings</h3>
+                        <p class="text-secondary small mb-4">Update your display name and email address.</p>
+
+                        @if (TempData["ProfileSuccess"] != null)
+                        {
+                            <div class="alert alert-success alert-dismissible fade show py-2 mb-3" role="alert" style="background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.35);color:#10b981;">
+                                ✅ @TempData["ProfileSuccess"]
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                            </div>
+                        }
+                        @if (TempData["ProfileError"] != null)
+                        {
+                            <div class="alert alert-danger alert-dismissible fade show py-2 mb-3" role="alert" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.35);color:#ef4444;">
+                                ⚠️ @TempData["ProfileError"]
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                            </div>
+                        }
+
+                        @if (onCooldown)
+                        {
+                            <div class="d-flex align-items-center gap-2 mb-4 px-3 py-2" style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);border-radius:8px;">
+                                <span style="font-size:1.1rem;">🔒</span>
+                                <span class="small" style="color:#fbbf24;">
+                                    Profile changes are locked for <strong>@cooldownDays more day@(cooldownDays == 1 ? "" : "s")</strong>. You can only update your profile once every 30 days.
+                                </span>
+                            </div>
+                        }
+
+                        <form asp-action="UpdateProfile" asp-controller="Home" method="post">
+                            @Html.AntiForgeryToken()
+                            <div class="mb-3">
+                                <label class="form-label" for="newUsername">Username</label>
+                                <input type="text" class="form-control" id="newUsername" name="newUsername"
+                                       value="@Context.Session.GetString("Username")"
+                                       maxlength="30" required
+                                       placeholder="Enter new username"
+                                       @(onCooldown ? "readonly" : "")>
+                                <div class="form-text text-secondary" style="font-size:0.78rem;">Letters, numbers, and underscores only. Max 30 characters.</div>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label" for="newEmail">Email Address</label>
+                                <input type="email" class="form-control" id="newEmail" name="newEmail"
+                                       value="@Context.Session.GetString("UserEmail")"
+                                       required
+                                       placeholder="Enter new email"
+                                       @(onCooldown ? "readonly" : "")>
+                                <div class="form-text text-secondary" style="font-size:0.78rem;">Changing your email will affect your login credentials.</div>
+                            </div>
+                            <button type="submit" class="btn btn-primary px-4" @(onCooldown ? "disabled" : "")>
+                                @(onCooldown ? $"🔒 Locked ({cooldownDays}d remaining)" : "Save Changes")
+                            </button>
+                        </form>
                     </div>
                 </div>
             }

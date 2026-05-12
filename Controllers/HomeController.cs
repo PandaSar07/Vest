@@ -41,12 +41,146 @@ public class HomeController : Controller
     {
         ViewData["FluidMain"] = true;
         return View();
+
     }
 
-    public IActionResult Settings()
+    public async Task<IActionResult> Settings()
     {
         ViewData["FluidMain"] = false;
+
+        var userId = HttpContext.Session.GetString("UserId");
+        if (userId != null)
+        {
+            try
+            {
+                var http = _httpClientFactory.CreateClient("supabase");
+                var resp = await http.GetAsync(
+                    $"users?id=eq.{Uri.EscapeDataString(userId)}&select=profile_updated_at");
+                var json = await resp.Content.ReadAsStringAsync();
+                using var doc = System.Text.Json.JsonDocument.Parse(json);
+                var arr  = doc.RootElement;
+                if (arr.ValueKind == System.Text.Json.JsonValueKind.Array && arr.GetArrayLength() > 0)
+                {
+                    var row = arr[0];
+                    if (row.TryGetProperty("profile_updated_at", out var tsEl) &&
+                        tsEl.ValueKind != System.Text.Json.JsonValueKind.Null &&
+                        DateTime.TryParse(tsEl.GetString(), out var lastUpdated))
+                    {
+                        var cooldownEnds = lastUpdated.AddDays(30);
+                        var daysLeft     = (int)Math.Ceiling((cooldownEnds - DateTime.UtcNow).TotalDays);
+                        if (daysLeft > 0)
+                            ViewData["ProfileCooldownDays"] = daysLeft;
+                    }
+                }
+            }
+            catch { /* Non-fatal — just don't show cooldown */ }
+        }
+
         return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateProfile(string newUsername, string newEmail)
+    {
+        var userId = HttpContext.Session.GetString("UserId");
+        if (userId == null) return RedirectToAction("Log");
+
+        newUsername = newUsername?.Trim() ?? "";
+        newEmail    = newEmail?.Trim() ?? "";
+
+        if (string.IsNullOrEmpty(newUsername) || string.IsNullOrEmpty(newEmail))
+        {
+            TempData["ProfileError"] = "Username and email cannot be empty.";
+            return RedirectToAction("Settings");
+        }
+
+        // Basic email format check
+        if (!newEmail.Contains('@') || !newEmail.Contains('.'))
+        {
+            TempData["ProfileError"] = "Please enter a valid email address.";
+            return RedirectToAction("Settings");
+        }
+
+        try
+        {
+            var http = _httpClientFactory.CreateClient("supabase");
+
+            // ── Cooldown check: fetch profile_updated_at ──────────────────────
+            var curResp = await http.GetAsync(
+                $"users?id=eq.{Uri.EscapeDataString(userId)}&select=profile_updated_at");
+            var curJson = await curResp.Content.ReadAsStringAsync();
+            using var curDoc = System.Text.Json.JsonDocument.Parse(curJson);
+            var curArr = curDoc.RootElement;
+            if (curArr.ValueKind == System.Text.Json.JsonValueKind.Array && curArr.GetArrayLength() > 0)
+            {
+                var row = curArr[0];
+                if (row.TryGetProperty("profile_updated_at", out var tsEl) &&
+                    tsEl.ValueKind != System.Text.Json.JsonValueKind.Null &&
+                    DateTime.TryParse(tsEl.GetString(), out var lastUpdated))
+                {
+                    var cooldownEnds = lastUpdated.AddDays(30);
+                    var daysLeft     = (int)Math.Ceiling((cooldownEnds - DateTime.UtcNow).TotalDays);
+                    if (daysLeft > 0)
+                    {
+                        TempData["ProfileError"] = $"You can only change your profile once every 30 days. Try again in {daysLeft} day{(daysLeft == 1 ? "" : "s")}";
+                        return RedirectToAction("Settings");
+                    }
+                }
+            }
+
+            // Check if username is taken by another user
+            var unCheck = await http.GetAsync(
+                $"users?username=eq.{Uri.EscapeDataString(newUsername)}&id=neq.{Uri.EscapeDataString(userId)}&select=id");
+            var unJson = await unCheck.Content.ReadAsStringAsync();
+            var unRows = System.Text.Json.JsonSerializer.Deserialize<List<System.Text.Json.JsonElement>>(unJson);
+            if (unRows != null && unRows.Count > 0)
+            {
+                TempData["ProfileError"] = "That username is already taken.";
+                return RedirectToAction("Settings");
+            }
+
+            // Check if email is taken by another user
+            var emCheck = await http.GetAsync(
+                $"users?email=eq.{Uri.EscapeDataString(newEmail)}&id=neq.{Uri.EscapeDataString(userId)}&select=id");
+            var emJson = await emCheck.Content.ReadAsStringAsync();
+            var emRows = System.Text.Json.JsonSerializer.Deserialize<List<System.Text.Json.JsonElement>>(emJson);
+            if (emRows != null && emRows.Count > 0)
+            {
+                TempData["ProfileError"] = "That email address is already in use.";
+                return RedirectToAction("Settings");
+            }
+
+            // Patch the users table — write new values + updated timestamp
+            var payload = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                username           = newUsername,
+                email              = newEmail,
+                profile_updated_at = DateTime.UtcNow.ToString("o")
+            });
+            var patch = await http.PatchAsync(
+                $"users?id=eq.{Uri.EscapeDataString(userId)}",
+                new StringContent(payload, System.Text.Encoding.UTF8, "application/json"));
+
+            if (!patch.IsSuccessStatusCode)
+            {
+                TempData["ProfileError"] = "Failed to update profile. Please try again.";
+                return RedirectToAction("Settings");
+            }
+
+            // Refresh session
+            HttpContext.Session.SetString("Username", newUsername);
+            HttpContext.Session.SetString("UserEmail", newEmail);
+
+            TempData["ProfileSuccess"] = "Profile updated successfully! You can change it again in 30 days.";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "UpdateProfile failed for user {UserId}", userId);
+            TempData["ProfileError"] = "An unexpected error occurred.";
+        }
+
+        return RedirectToAction("Settings");
     }
 
     public IActionResult Contact()
