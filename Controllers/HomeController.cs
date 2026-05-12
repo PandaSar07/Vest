@@ -106,28 +106,36 @@ public class HomeController : Controller
         {
             var http = _httpClientFactory.CreateClient("supabase");
 
-            // ── Cooldown check: fetch profile_updated_at ──────────────────────
-            var curResp = await http.GetAsync(
-                $"users?id=eq.{Uri.EscapeDataString(userId)}&select=profile_updated_at");
-            var curJson = await curResp.Content.ReadAsStringAsync();
-            using var curDoc = System.Text.Json.JsonDocument.Parse(curJson);
-            var curArr = curDoc.RootElement;
-            if (curArr.ValueKind == System.Text.Json.JsonValueKind.Array && curArr.GetArrayLength() > 0)
+            // ── Cooldown check: fetch profile_updated_at (graceful if column absent) ──
+            try
             {
-                var row = curArr[0];
-                if (row.TryGetProperty("profile_updated_at", out var tsEl) &&
-                    tsEl.ValueKind != System.Text.Json.JsonValueKind.Null &&
-                    DateTime.TryParse(tsEl.GetString(), out var lastUpdated))
+                var curResp = await http.GetAsync(
+                    $"users?id=eq.{Uri.EscapeDataString(userId)}&select=profile_updated_at");
+                if (curResp.IsSuccessStatusCode)
                 {
-                    var cooldownEnds = lastUpdated.AddDays(30);
-                    var daysLeft     = (int)Math.Ceiling((cooldownEnds - DateTime.UtcNow).TotalDays);
-                    if (daysLeft > 0)
+                    var curJson = await curResp.Content.ReadAsStringAsync();
+                    using var curDoc = System.Text.Json.JsonDocument.Parse(curJson);
+                    var curArr = curDoc.RootElement;
+                    if (curArr.ValueKind == System.Text.Json.JsonValueKind.Array && curArr.GetArrayLength() > 0)
                     {
-                        TempData["ProfileError"] = $"You can only change your profile once every 30 days. Try again in {daysLeft} day{(daysLeft == 1 ? "" : "s")}";
-                        return RedirectToAction("Settings");
+                        var row = curArr[0];
+                        if (row.TryGetProperty("profile_updated_at", out var tsEl) &&
+                            tsEl.ValueKind != System.Text.Json.JsonValueKind.Null &&
+                            DateTime.TryParse(tsEl.GetString(), out var lastUpdated))
+                        {
+                            var cooldownEnds = lastUpdated.AddDays(30);
+                            var daysLeft     = (int)Math.Ceiling((cooldownEnds - DateTime.UtcNow).TotalDays);
+                            if (daysLeft > 0)
+                            {
+                                TempData["ProfileError"] = $"You can only change your profile once every 30 days. Try again in {daysLeft} day{(daysLeft == 1 ? "" : "s")}";
+                                return RedirectToAction("Settings");
+                            }
+                        }
                     }
                 }
+                // 400 means column doesn't exist yet — skip cooldown
             }
+            catch { /* Non-fatal — skip cooldown if anything goes wrong */ }
 
             // Check if username is taken by another user
             var unCheck = await http.GetAsync(
@@ -151,12 +159,11 @@ public class HomeController : Controller
                 return RedirectToAction("Settings");
             }
 
-            // Patch the users table — write new values + updated timestamp
+            // Patch 1: update username and email only
             var payload = System.Text.Json.JsonSerializer.Serialize(new
             {
-                username           = newUsername,
-                email              = newEmail,
-                profile_updated_at = DateTime.UtcNow.ToString("o")
+                username = newUsername,
+                email    = newEmail
             });
             var patch = await http.PatchAsync(
                 $"users?id=eq.{Uri.EscapeDataString(userId)}",
@@ -164,9 +171,24 @@ public class HomeController : Controller
 
             if (!patch.IsSuccessStatusCode)
             {
+                var errBody = await patch.Content.ReadAsStringAsync();
+                _logger.LogWarning("Profile patch returned {Status}: {Body}", (int)patch.StatusCode, errBody);
                 TempData["ProfileError"] = "Failed to update profile. Please try again.";
                 return RedirectToAction("Settings");
             }
+
+            // Patch 2: write cooldown timestamp (silent — column may not exist yet)
+            try
+            {
+                var tsPayload = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    profile_updated_at = DateTime.UtcNow.ToString("o")
+                });
+                await http.PatchAsync(
+                    $"users?id=eq.{Uri.EscapeDataString(userId)}",
+                    new StringContent(tsPayload, System.Text.Encoding.UTF8, "application/json"));
+            }
+            catch { /* Column may not exist yet — non-fatal */ }
 
             // Refresh session
             HttpContext.Session.SetString("Username", newUsername);
