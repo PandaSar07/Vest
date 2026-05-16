@@ -199,6 +199,37 @@
     .change-up { color: var(--success-color); }
     .change-down { color: var(--danger-color); }
 
+    .range-change-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.8rem;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        letter-spacing: 0.4px;
+        margin-left: 0.5rem;
+        transition: background 0.3s, color 0.3s, border-color 0.3s;
+    }
+
+    .range-change-badge.up {
+        background: rgba(16,185,129,0.12);
+        border: 1px solid rgba(16,185,129,0.35);
+        color: #10b981;
+    }
+
+    .range-change-badge.down {
+        background: rgba(239,68,68,0.12);
+        border: 1px solid rgba(239,68,68,0.3);
+        color: #ef4444;
+    }
+
+    .range-change-badge.loading {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid var(--border-color);
+        color: var(--text-secondary);
+    }
+
     /* ── Chart card ── */
     .chart-card {
         background: var(--glass-bg);
@@ -533,6 +564,7 @@
         <div class="d-flex align-items-baseline flex-wrap gap-2 mb-3">
             <span class="price-main" id="priceMain">—</span>
             <span class="price-change" id="priceChange">—</span>
+            <span class="range-change-badge loading" id="rangeChange">—</span>
         </div>
         <div class="stats-grid" id="statsGrid">
             <!-- JS filled -->
@@ -898,6 +930,31 @@
             };
         }
 
+        // ── Range label map ──────────────────────────────────────────────
+        const rangeLabelMap = {
+            '5d':  '1W',
+            '1mo': '1M',
+            '3mo': '3M',
+            '6mo': '6M',
+            '1y':  '1Y',
+        };
+
+        function updateRangeChangeBadge(firstPrice, lastPrice) {
+            const badge = document.getElementById('rangeChange');
+            if (!badge) return;
+            if (!firstPrice || !lastPrice) {
+                badge.textContent = '—';
+                badge.className = 'range-change-badge loading';
+                return;
+            }
+            const pctChange = ((lastPrice - firstPrice) / firstPrice) * 100;
+            const isUp = pctChange >= 0;
+            const arrow = isUp ? '▲' : '▼';
+            const label = rangeLabelMap[currentRange] || currentRange;
+            badge.textContent = `${arrow} ${Math.abs(pctChange).toFixed(2)}%  ${label}`;
+            badge.className = 'range-change-badge ' + (isUp ? 'up' : 'down');
+        }
+
         function renderChart(symbol, data, interval) {
             const points = buildHistoryPoints(data, interval);
             if (!points.length) {
@@ -915,6 +972,8 @@
             const isUp = lastPrice >= firstPrice;
             const lineColor = isUp ? '#10b981' : '#ef4444';
             const fillColor = isUp ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)';
+
+            updateRangeChangeBadge(firstPrice, lastPrice);
 
             if (currentChartType === 'candles') {
                 chart = new Chart(ctx, {
