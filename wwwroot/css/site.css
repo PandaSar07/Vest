@@ -182,12 +182,12 @@ header.navbar .navbar-collapse.collapse {
   font-weight: 800;
   font-size: 1.35rem;
   letter-spacing: 0.12em;
-  color: #ffffff !important;
   text-transform: uppercase;
-}
-
-[data-theme="light"] .vest-brand-label {
-  color: var(--text-primary) !important;
+  background: linear-gradient(90deg, #00c2ff, #c084fc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
 .navbar-logo {

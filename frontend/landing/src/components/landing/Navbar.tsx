@@ -30,7 +30,10 @@ export function Navbar() {
                 className="h-[22px] w-[23px] object-contain drop-shadow-[0_0_10px_rgba(0,194,255,0.35)]"
               />
             </div>
-            <span className="text-[1.35rem] font-extrabold tracking-[0.12em] text-white uppercase" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
+            <span
+              className="text-[1.35rem] font-extrabold tracking-[0.12em] uppercase bg-gradient-to-r from-[#00c2ff] to-[#c084fc] bg-clip-text text-transparent"
+              style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
+            >
               VEST
             </span>
           </a>
