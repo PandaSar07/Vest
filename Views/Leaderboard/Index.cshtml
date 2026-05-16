@@ -1,0 +1,197 @@
+@model Vest.Services.LeaderboardPage
+@{
+    ViewData["Title"] = "Leaderboard";
+    var isLoggedIn = Context.Session.GetString("UserId") != null;
+}
+
+@section Head {
+    <style>
+        .lb-hero {
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding: 3rem 1rem 2.5rem;
+            text-align: center;
+        }
+        .lb-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 80% 55% at 50% -15%, rgba(0,194,255,0.18), transparent);
+            pointer-events: none;
+        }
+        .lb-updated {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        .lb-table-wrap {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 1.5rem 1rem 3rem;
+        }
+        .lb-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 0.5rem;
+        }
+        .lb-table th {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+            padding: 0.5rem 1rem;
+            border: none;
+            background: transparent;
+        }
+        .lb-row {
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .lb-row td {
+            background: rgba(15, 23, 42, 0.55);
+            border: 1px solid rgba(255,255,255,0.06);
+            padding: 0.9rem 1rem;
+            vertical-align: middle;
+        }
+        .lb-row td:first-child { border-radius: 12px 0 0 12px; }
+        .lb-row td:last-child  { border-radius: 0 12px 12px 0; }
+        .lb-row:hover td {
+            border-color: rgba(0, 194, 255, 0.35);
+            background: rgba(0, 194, 255, 0.06);
+        }
+        .lb-rank {
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: var(--accent-color);
+            width: 3rem;
+        }
+        .lb-rank.gold   { color: #fbbf24; }
+        .lb-rank.silver { color: #94a3b8; }
+        .lb-rank.bronze { color: #d97706; }
+        .lb-user { font-weight: 600; color: var(--text-primary); }
+        .lb-sub  { font-size: 0.78rem; color: var(--text-secondary); }
+        .lb-value { font-weight: 700; font-variant-numeric: tabular-nums; }
+        .lb-pct.positive { color: #10b981; }
+        .lb-pct.negative { color: #ef4444; }
+        .lb-me-banner {
+            max-width: 920px;
+            margin: 1rem auto 0;
+            padding: 0 1rem;
+        }
+        .lb-me-card {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 1rem 1.25rem;
+            border-radius: 14px;
+            border: 1px solid rgba(0, 194, 255, 0.25);
+            background: rgba(0, 194, 255, 0.06);
+        }
+        .lb-empty {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-secondary);
+        }
+        .lb-load-more {
+            display: block;
+            width: 100%;
+            max-width: 280px;
+            margin: 1.5rem auto 0;
+        }
+        #lbSentinel { height: 1px; }
+        @@media (max-width: 640px) {
+            .lb-hide-sm { display: none; }
+            .lb-table th, .lb-table td { padding: 0.65rem 0.5rem; font-size: 0.85rem; }
+        }
+    </style>
+}
+
+<section class="lb-hero">
+    <div class="position-relative">
+        <p class="text-uppercase small fw-semibold mb-2" style="letter-spacing:0.3em;color:rgba(0,194,255,0.9);">Paper trading</p>
+        <h1 class="mb-2" style="font-family:var(--font-family);font-size:clamp(2rem,5vw,2.75rem);color:#fff;-webkit-text-fill-color:#fff;background:none;">Global Leaderboard</h1>
+        <p class="text-secondary mx-auto mb-3" style="max-width:32rem;">
+            Compare portfolio value with other public traders. Rankings refresh every few minutes.
+        </p>
+        <p class="lb-updated" id="lbUpdatedLabel">
+            @if (Model.UpdatedAt > DateTime.MinValue)
+            {
+                <span>Last updated @Model.UpdatedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt")</span>
+            }
+            else
+            {
+                <span>Loading rankings…</span>
+            }
+        </p>
+    </div>
+</section>
+
+@if (isLoggedIn)
+{
+    <div class="lb-me-banner" id="lbMeBanner" style="display:none;">
+        <div class="lb-me-card">
+            <div>
+                <span class="text-secondary small">Your rank</span>
+                <div class="fw-bold text-white" id="lbMeRank">—</div>
+            </div>
+            <div class="text-end">
+                <span class="text-secondary small">Portfolio value</span>
+                <div class="fw-bold text-white" id="lbMeValue">—</div>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="lb-table-wrap">
+    <table class="lb-table" aria-label="Trading leaderboard">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Trader</th>
+                <th scope="col" class="text-end">Portfolio</th>
+                <th scope="col" class="text-end lb-hide-sm">Return</th>
+                <th scope="col" class="text-end lb-hide-sm">Trades</th>
+            </tr>
+        </thead>
+        <tbody id="lbTableBody">
+            @foreach (var e in Model.Entries)
+            {
+                var rankClass = e.Rank == 1 ? "gold" : e.Rank == 2 ? "silver" : e.Rank == 3 ? "bronze" : "";
+                var pctClass = e.ReturnPct >= 0 ? "positive" : "negative";
+                <tr class="lb-row" data-href="@Url.Action("Profile", "Leaderboard", new { username = e.Username })">
+                    <td class="lb-rank @rankClass">@e.Rank</td>
+                    <td>
+                        <div class="lb-user">@e.Username</div>
+                        @if (!string.IsNullOrEmpty(e.DisplayName))
+                        {
+                            <div class="lb-sub d-block">@e.DisplayName</div>
+                        }
+                    </td>
+                    <td class="text-end lb-value">$@e.TotalValue.ToString("N2")</td>
+                    <td class="text-end lb-pct @pctClass lb-hide-sm">@(e.ReturnPct >= 0 ? "+" : "")@e.ReturnPct.ToString("N2")%</td>
+                    <td class="text-end lb-hide-sm text-secondary">@e.TradeCount</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (Model.TotalCount == 0)
+    {
+        <div class="lb-empty" id="lbEmptyState">
+            <p class="mb-2">No public traders on the board yet.</p>
+            @if (isLoggedIn)
+            {
+                <p class="small">Enable <a asp-controller="Home" asp-action="Settings" class="text-decoration-none" style="color:var(--accent-color);">public profile</a> in Settings to appear here.</p>
+            }
+        </div>
+    }
+
+    <div id="lbSentinel" aria-hidden="true"></div>
+    <button type="button" class="btn btn-outline lb-load-more" id="lbLoadMore" style="display:none;">Load more</button>
+</div>
+
+@section Scripts {
+    <script src="~/js/leaderboard.js" asp-append-version="true"></script>
+}

@@ -140,8 +140,8 @@
                         </div>
                         <div class="form-check form-switch mb-3">
                             <input class="form-check-input" type="checkbox" id="publicProfile" style="cursor: pointer;">
-                            <label class="form-check-label" for="publicProfile" style="color: var(--text-primary); font-weight: 500;">Public Profile Visibility</label>
-                            <div class="text-secondary small mt-1">Allow other users to view your public trades and watchlist</div>
+                            <label class="form-check-label" for="publicProfile" style="color: var(--text-primary); font-weight: 500;">Public profile &amp; leaderboard</label>
+                            <div class="text-secondary small mt-1">Show your portfolio on the global leaderboard and let others view your public trading profile</div>
                         </div>
                         <button class="btn btn-outline btn-sm px-4 mt-2" id="savePreferencesBtn">Save Preferences</button>
                         <span id="preferencesSavedMsg" class="text-success small ms-2" style="display: none;">Preferences saved!</span>
@@ -271,14 +271,33 @@
                 const savedCurrency = localStorage.getItem('currencyDisplay') || 'USD';
                 currencyDisplay.value = savedCurrency;
                 
-                const savedVisibility = localStorage.getItem('publicProfileVisibility') === 'true';
-                publicProfile.checked = savedVisibility;
+                async function loadPublicProfilePref() {
+                    try {
+                        const r = await fetch('/api/leaderboard/privacy');
+                        if (r.ok) {
+                            const data = await r.json();
+                            publicProfile.checked = !!data.isPublic;
+                            localStorage.setItem('publicProfileVisibility', publicProfile.checked);
+                            return;
+                        }
+                    } catch { /* fallback below */ }
+                    publicProfile.checked = localStorage.getItem('publicProfileVisibility') === 'true';
+                }
+                loadPublicProfilePref();
 
                 // Save on click
-                savePreferencesBtn.addEventListener('click', () => {
+                savePreferencesBtn.addEventListener('click', async () => {
                     localStorage.setItem('currencyDisplay', currencyDisplay.value);
                     localStorage.setItem('publicProfileVisibility', publicProfile.checked);
-                    
+
+                    try {
+                        await fetch('/api/leaderboard/privacy', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ isPublic: publicProfile.checked })
+                        });
+                    } catch { /* still show saved for local prefs */ }
+
                     preferencesSavedMsg.style.display = 'inline';
                     setTimeout(() => {
                         preferencesSavedMsg.style.display = 'none';

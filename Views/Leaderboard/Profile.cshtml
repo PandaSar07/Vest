@@ -1,0 +1,172 @@
+@model Vest.Services.PublicProfileDto
+@{
+    ViewData["Title"] = Model.Username + " — Profile";
+    var pctClass = Model.ReturnPct >= 0 ? "positive" : "negative";
+}
+
+@section Head {
+    <style>
+        .pf-hero {
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding: 2.5rem 1rem 2rem;
+        }
+        .pf-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 70% 60% at 20% 0%, rgba(0,194,255,0.12), transparent);
+            pointer-events: none;
+        }
+        .pf-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 1.5rem 1rem;
+        }
+        .pf-stat {
+            padding: 1.1rem 1.25rem;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(15, 23, 42, 0.55);
+        }
+        .pf-stat label {
+            display: block;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-secondary);
+            margin-bottom: 0.35rem;
+        }
+        .pf-stat .val {
+            font-size: 1.35rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: var(--text-primary);
+        }
+        .pf-pct.positive { color: #10b981; }
+        .pf-pct.negative { color: #ef4444; }
+        .pf-trades {
+            max-width: 920px;
+            margin: 0 auto 3rem;
+            padding: 0 1rem;
+        }
+        .pf-trades h2 {
+            font-family: var(--font-family);
+            font-size: 1.15rem;
+            color: #fff;
+            -webkit-text-fill-color: #fff;
+            background: none;
+            margin-bottom: 1rem;
+        }
+        .pf-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.25rem 0.65rem;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            border: 1px solid rgba(0,194,255,0.35);
+            color: var(--accent-color);
+            background: rgba(0,194,255,0.08);
+        }
+        .trade-buy { color: #10b981; font-weight: 600; }
+        .trade-sell { color: #ef4444; font-weight: 600; }
+    </style>
+}
+
+<section class="pf-hero">
+    <div class="position-relative mx-auto" style="max-width:920px;padding:0 1rem;">
+        <a asp-controller="Leaderboard" asp-action="Index" class="text-secondary small text-decoration-none mb-3 d-inline-block">← Leaderboard</a>
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+            <h1 class="mb-0" style="font-family:var(--font-family);color:#fff;-webkit-text-fill-color:#fff;background:none;">@Model.Username</h1>
+            @if (Model.IsPublic)
+            {
+                <span class="pf-badge">Public profile</span>
+            }
+            @if (Model.LeaderboardRank.HasValue)
+            {
+                <span class="pf-badge">Rank #@Model.LeaderboardRank</span>
+            }
+        </div>
+        @if (!string.IsNullOrEmpty(Model.DisplayName))
+        {
+            <p class="text-secondary mb-0">@Model.DisplayName</p>
+        }
+        @if (Model.IsOwner && !Model.IsPublic)
+        {
+            <p class="small text-secondary mt-2 mb-0">Only you can see this page. Turn on public profile in <a asp-controller="Home" asp-action="Settings" style="color:var(--accent-color);">Settings</a> to appear on the leaderboard.</p>
+        }
+    </div>
+</section>
+
+<div class="pf-stat-grid">
+    <div class="pf-stat">
+        <label>Portfolio value</label>
+        <div class="val">$@Model.TotalValue.ToString("N2")</div>
+    </div>
+    <div class="pf-stat">
+        <label>Total return</label>
+        <div class="val pf-pct @pctClass">@(Model.ReturnPct >= 0 ? "+" : "")@Model.ReturnPct.ToString("N2")%</div>
+    </div>
+    <div class="pf-stat">
+        <label>Cash</label>
+        <div class="val">$@Model.Cash.ToString("N2")</div>
+    </div>
+    <div class="pf-stat">
+        <label>Invested (holdings)</label>
+        <div class="val">$@Model.StockValue.ToString("N2")</div>
+    </div>
+    <div class="pf-stat">
+        <label>Open positions</label>
+        <div class="val">@Model.HoldingCount</div>
+    </div>
+    <div class="pf-stat">
+        <label>Trades</label>
+        <div class="val">@Model.TradeCount</div>
+    </div>
+</div>
+
+<section class="pf-trades">
+    <h2>Recent trading history</h2>
+    @if (Model.RecentTrades.Count == 0)
+    {
+        <p class="text-secondary">No trades recorded yet.</p>
+    }
+    else
+    {
+        <div class="table-responsive glass-panel" style="padding:0;overflow:hidden;">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Symbol</th>
+                        <th>Side</th>
+                        <th class="text-end">Shares</th>
+                        <th class="text-end">Price</th>
+                        <th class="text-end">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var t in Model.RecentTrades)
+                    {
+                        var sideClass = t.Action == "BUY" ? "trade-buy" : "trade-sell";
+                        <tr>
+                            <td class="text-secondary small">@t.TradedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt")</td>
+                            <td class="fw-semibold">@t.Symbol</td>
+                            <td class="@sideClass">@t.Action</td>
+                            <td class="text-end">@t.Shares.ToString("N2")</td>
+                            <td class="text-end">$@t.Price.ToString("N2")</td>
+                            <td class="text-end">$@t.Total.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <p class="text-secondary small mt-2 mb-0">Showing up to @Model.RecentTrades.Count most recent trades. Educational paper trading only — not financial advice.</p>
+    }
+</section>
