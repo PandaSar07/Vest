@@ -71,6 +71,9 @@ public class PortfolioController : ControllerBase
                 catch { }
             }));
 
+            var riskRules = await _portfolio.GetRiskRulesForUserAsync(userId);
+            var riskBySymbol = riskRules.ToDictionary(r => r.Symbol, StringComparer.OrdinalIgnoreCase);
+
             var holdingDtos = equityRows.Select(h =>
             {
                 var livePrice   = priceMap.GetValueOrDefault(h.Symbol, h.AvgCost);
@@ -78,6 +81,7 @@ public class PortfolioController : ControllerBase
                 var costBasis   = Math.Round(h.Shares * h.AvgCost, 2);
                 var gainLoss    = Math.Round(mktValue - costBasis, 2);
                 var gainLossPct = costBasis == 0 ? 0 : Math.Round(gainLoss / costBasis * 100, 2);
+                riskBySymbol.TryGetValue(h.Symbol, out var risk);
                 return new
                 {
                     h.Symbol, h.Shares, h.AvgCost,
@@ -86,6 +90,7 @@ public class PortfolioController : ControllerBase
                     GainLoss    = gainLoss,
                     GainLossPct = gainLossPct,
                     Sector      = sectorMap.GetValueOrDefault(h.Symbol, "Other"),
+                    Risk        = risk == null ? null : MapRiskDto(risk),
                 };
             }).ToList();
 
@@ -139,8 +144,15 @@ public class PortfolioController : ControllerBase
         {
             var portfolio = await _portfolio.GetOrCreatePortfolioAsync(userId);
             var sym = symbol.Trim().ToUpperInvariant();
-            var holding   = await _portfolio.GetHoldingAsync(userId, sym);
-            return Ok(new { Cash = portfolio.Cash, Shares = holding?.Shares ?? 0m, AvgCost = holding?.AvgCost ?? 0m });
+            var holding = await _portfolio.GetHoldingAsync(userId, sym);
+            var risk    = await _portfolio.GetRiskRuleAsync(userId, sym);
+            return Ok(new
+            {
+                Cash = portfolio.Cash,
+                Shares = holding?.Shares ?? 0m,
+                AvgCost = holding?.AvgCost ?? 0m,
+                Risk = risk == null ? null : MapRiskDto(risk),
+            });
         }
         catch (Exception ex) { return StatusCode(500, new { error = ex.Message }); }
     }
@@ -168,8 +180,30 @@ public class PortfolioController : ControllerBase
             var price = pEl.GetDecimal();
             var (ok, error) = await _portfolio.ExecuteBuyAsync(userId, sym, req.Shares, price);
             if (!ok) return BadRequest(new { error });
+
+            string? riskWarning = null;
+            object? risk = null;
+            if (HasRiskParams(req))
+            {
+                var holding = await _portfolio.GetHoldingAsync(userId, sym);
+                var entry   = holding?.AvgCost ?? price;
+                var (rok, rerr, rule) = await _portfolio.UpsertRiskRuleAsync(
+                    userId, sym, entry,
+                    req.StopLossPrice, req.StopLossPct,
+                    req.TakeProfitPrice, req.TakeProfitPct);
+                if (!rok) riskWarning = rerr;
+                else if (rule != null) risk = MapRiskDto(rule);
+            }
+
             var p = await _portfolio.GetOrCreatePortfolioAsync(userId);
-            return Ok(new { message = $"Bought {req.Shares} \u00d7 {sym} @ ${price:N2}", newCash = p.Cash, price });
+            return Ok(new
+            {
+                message = $"Bought {req.Shares} \u00d7 {sym} @ ${price:N2}",
+                newCash = p.Cash,
+                price,
+                riskWarning,
+                risk,
+            });
         }
         catch (Exception ex) { return StatusCode(500, new { error = ex.Message }); }
     }
@@ -252,7 +286,101 @@ public class PortfolioController : ControllerBase
         }
         catch (Exception ex) { return StatusCode(500, new { error = ex.Message }); }
     }
+
+    // ── Risk rules (stop-loss / take-profit) ────────────────────────────────
+
+    [HttpGet("risk")]
+    public async Task<IActionResult> GetRisk([FromQuery] string symbol)
+    {
+        var userId = CurrentUserId;
+        if (userId == null) return Unauthorized(new { error = "Not logged in." });
+        if (string.IsNullOrWhiteSpace(symbol))
+            return BadRequest(new { error = "Symbol is required." });
+        try
+        {
+            var sym  = symbol.Trim().ToUpperInvariant();
+            var rule = await _portfolio.GetRiskRuleAsync(userId, sym);
+            return Ok(rule == null ? null : MapRiskDto(rule));
+        }
+        catch (Exception ex) { return StatusCode(500, new { error = ex.Message }); }
+    }
+
+    [HttpPut("risk")]
+    public async Task<IActionResult> UpsertRisk([FromBody] RiskRuleRequest req)
+    {
+        var userId = CurrentUserId;
+        if (userId == null) return Unauthorized(new { error = "Not logged in." });
+        if (string.IsNullOrWhiteSpace(req.Symbol))
+            return BadRequest(new { error = "Symbol is required." });
+
+        try
+        {
+            var sym     = req.Symbol.Trim().ToUpperInvariant();
+            var holding = await _portfolio.GetHoldingAsync(userId, sym);
+            if (holding == null || holding.Shares <= 0)
+                return BadRequest(new { error = "You need an open position to set risk rules." });
+
+            var entry = req.EntryPrice > 0 ? req.EntryPrice : holding.AvgCost;
+            var (ok, error, rule) = await _portfolio.UpsertRiskRuleAsync(
+                userId, sym, entry,
+                req.StopLossPrice, req.StopLossPct,
+                req.TakeProfitPrice, req.TakeProfitPct);
+            if (!ok) return BadRequest(new { error });
+            return Ok(MapRiskDto(rule!));
+        }
+        catch (Exception ex) { return StatusCode(500, new { error = ex.Message }); }
+    }
+
+    [HttpDelete("risk")]
+    public async Task<IActionResult> DeleteRisk([FromQuery] string symbol)
+    {
+        var userId = CurrentUserId;
+        if (userId == null) return Unauthorized(new { error = "Not logged in." });
+        if (string.IsNullOrWhiteSpace(symbol))
+            return BadRequest(new { error = "Symbol is required." });
+        try
+        {
+            var sym = symbol.Trim().ToUpperInvariant();
+            await _portfolio.CancelRiskRuleAsync(userId, sym);
+            return Ok(new { message = "Risk rules removed." });
+        }
+        catch (Exception ex) { return StatusCode(500, new { error = ex.Message }); }
+    }
+
+    private static bool HasRiskParams(TradeRequest req) =>
+        req.StopLossPrice.HasValue || req.StopLossPct.HasValue ||
+        req.TakeProfitPrice.HasValue || req.TakeProfitPct.HasValue;
+
+    private static object MapRiskDto(PositionRiskRuleRow rule) => new
+    {
+        rule.Symbol,
+        rule.EntryPrice,
+        stopLossPrice   = rule.StopLossPrice,
+        takeProfitPrice = rule.TakeProfitPrice,
+        stopLossPct     = rule.StopLossPct,
+        takeProfitPct   = rule.TakeProfitPct,
+        rule.Status,
+    };
 }
 
-public class TradeRequest      { public string Symbol { get; set; } = ""; public decimal Shares { get; set; } }
+public class TradeRequest
+{
+    public string Symbol { get; set; } = "";
+    public decimal Shares { get; set; }
+    public decimal? StopLossPrice { get; set; }
+    public decimal? StopLossPct { get; set; }
+    public decimal? TakeProfitPrice { get; set; }
+    public decimal? TakeProfitPct { get; set; }
+}
+
+public class RiskRuleRequest
+{
+    public string Symbol { get; set; } = "";
+    public decimal EntryPrice { get; set; }
+    public decimal? StopLossPrice { get; set; }
+    public decimal? StopLossPct { get; set; }
+    public decimal? TakeProfitPrice { get; set; }
+    public decimal? TakeProfitPct { get; set; }
+}
+
 public class LimitOrderRequest { public string? Action { get; set; } public string Symbol { get; set; } = ""; public decimal Shares { get; set; } public decimal LimitPrice { get; set; } }

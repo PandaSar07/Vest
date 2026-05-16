@@ -9,7 +9,7 @@ namespace Vest.Services;
 /// Wraps all Supabase REST calls for the paper-trading portfolio system.
 /// Tables: portfolios, holdings, trades
 /// </summary>
-public class PortfolioService
+public partial class PortfolioService
 {
     private readonly HttpClient _http;
     private static readonly JsonSerializerOptions _json = new() { PropertyNameCaseInsensitive = true };
@@ -148,7 +148,7 @@ public class PortfolioService
         if (order.Action == "BUY")
             await ExecuteBuyAsync(order.UserId, order.Symbol, order.Shares, order.LimitPrice);
         else
-            await ExecuteSellAsync(order.UserId, order.Symbol, order.Shares, order.LimitPrice);
+            await ExecuteSellAsync(order.UserId, order.Symbol, order.Shares, order.LimitPrice, TradeExitReason.LimitFill);
 
         await _http.PatchAsync(
             $"limit_orders?id=eq.{order.Id}",
@@ -192,8 +192,7 @@ public class PortfolioService
         }
 
         // 3. Record trade
-        await _http.PostAsync("trades",
-            Json(new { user_id = userId, symbol, action = "BUY", shares, price, total }));
+        await RecordTradeAsync(userId, symbol, "BUY", shares, price, total);
 
         return (true, string.Empty);
     }
@@ -201,13 +200,14 @@ public class PortfolioService
     // ── Execute SELL ─────────────────────────────────────────────────────────
 
     public async Task<(bool ok, string error)> ExecuteSellAsync(
-        string userId, string symbol, decimal shares, decimal price)
+        string userId, string symbol, decimal shares, decimal price,
+        string exitReason = TradeExitReason.Manual)
     {
         var holding = await GetHoldingAsync(userId, symbol);
         if (holding == null || holding.Shares < shares)
             return (false, $"You only own {holding?.Shares ?? 0:N4} shares of {symbol}.");
 
-        var total    = Math.Round(shares * price, 2);
+        var total     = Math.Round(shares * price, 2);
         var newShares = holding.Shares - shares;
         var portfolio = await GetOrCreatePortfolioAsync(userId);
 
@@ -224,11 +224,28 @@ public class PortfolioService
             Json(new { cash = newCash }));
         if (!updC.IsSuccessStatusCode) return (false, "Failed to update cash balance.");
 
-        // 3. Record trade
-        await _http.PostAsync("trades",
-            Json(new { user_id = userId, symbol, action = "SELL", shares, price, total }));
+        // 3. Record trade with exit reason
+        await RecordTradeAsync(userId, symbol, "SELL", shares, price, total, exitReason);
+
+        if (exitReason == TradeExitReason.Manual && newShares <= 0)
+            await CancelRiskRuleAsync(userId, symbol);
 
         return (true, string.Empty);
+    }
+
+    private async Task RecordTradeAsync(
+        string userId, string symbol, string action,
+        decimal shares, decimal price, decimal total, string? exitReason = null)
+    {
+        if (exitReason != null && action == "SELL")
+        {
+            await _http.PostAsync("trades",
+                Json(new { user_id = userId, symbol, action, shares, price, total, exit_reason = exitReason }));
+            return;
+        }
+
+        await _http.PostAsync("trades",
+            Json(new { user_id = userId, symbol, action, shares, price, total }));
     }
 
     // ── User helpers ──────────────────────────────────────────────────────────
@@ -281,6 +298,7 @@ public class TradeRow
     [JsonPropertyName("price")]      public decimal  Price     { get; set; }
     [JsonPropertyName("total")]      public decimal  Total     { get; set; }
     [JsonPropertyName("traded_at")]  public DateTime TradedAt  { get; set; }
+    [JsonPropertyName("exit_reason")] public string? ExitReason { get; set; }
 }
 
 public class SnapshotRow

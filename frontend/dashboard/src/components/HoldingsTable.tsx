@@ -25,6 +25,7 @@ export function HoldingsTable({ holdings }: { holdings: Holding[] }) {
             <th className="px-4 py-3 font-semibold">Shares</th>
             <th className="px-4 py-3 font-semibold">Avg price</th>
             <th className="px-4 py-3 font-semibold">Current</th>
+            <th className="px-4 py-3 font-semibold">Risk</th>
             <th className="px-4 py-3 text-right font-semibold">P/L</th>
           </tr>
         </thead>
@@ -32,6 +33,15 @@ export function HoldingsTable({ holdings }: { holdings: Holding[] }) {
           {holdings.map((h, i) => {
             const sym = displaySymbol(h.symbol)
             const positive = h.gainLoss >= 0
+            const risk = h.risk
+            const riskText = risk
+              ? [
+                  risk.stopLossPrice != null ? `SL $${Number(risk.stopLossPrice).toFixed(2)}` : risk.stopLossPct != null ? `SL −${risk.stopLossPct}%` : null,
+                  risk.takeProfitPrice != null ? `TP $${Number(risk.takeProfitPrice).toFixed(2)}` : risk.takeProfitPct != null ? `TP +${risk.takeProfitPct}%` : null,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')
+              : '—'
             return (
               <motion.tr
                 key={h.symbol}
@@ -53,6 +63,7 @@ export function HoldingsTable({ holdings }: { holdings: Holding[] }) {
                 </td>
                 <td className="px-4 py-3 tabular-nums">{currencySymbol}{fmtMoney(h.avgCost)}</td>
                 <td className="px-4 py-3 tabular-nums">{currencySymbol}{fmtMoney(h.livePrice)}</td>
+                <td className="px-4 py-3 text-xs text-[var(--text-secondary,#94a3b8)]">{riskText}</td>
                 <td
                   className={cn(
                     'px-4 py-3 text-right font-semibold tabular-nums',

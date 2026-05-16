@@ -58,7 +58,8 @@ public class EmailService
 
     public async Task SendOrderFilledAsync(
         string toEmail, string symbol, string action,
-        decimal shares, decimal price, decimal total)
+        decimal shares, decimal price, decimal total,
+        string? fillContext = null)
     {
         var smtp        = _config["Email:SmtpHost"]!;
         var port        = int.Parse(_config["Email:SmtpPort"]!);
@@ -75,14 +76,15 @@ public class EmailService
         var message = new MimeMessage();
         message.From.Add(new MailboxAddress(fromName, fromAddress));
         message.To.Add(new MailboxAddress(toEmail, toEmail));
-        message.Subject = $"{emoji} Limit order filled — {actionWord} {shares:N4} {symbol} @ ${price:N2}";
+        var context = fillContext ?? "Limit order filled";
+        message.Subject = $"{emoji} {context} — {actionWord} {shares:N4} {symbol} @ ${price:N2}";
 
         message.Body = new TextPart("html")
         {
             Text = $"""
             <div style="font-family:Inter,sans-serif;background:#0a0e1a;color:#fff;padding:40px;max-width:520px;margin:auto;border-radius:16px;border:1px solid rgba(255,255,255,0.1);">
-              <h2 style="font-size:1.4rem;margin-bottom:4px;color:{accentColor};">{emoji} Limit Order Filled</h2>
-              <p style="color:#94a3b8;margin-bottom:24px;font-size:0.9rem;">Your limit order has been executed on Vest.</p>
+              <h2 style="font-size:1.4rem;margin-bottom:4px;color:{accentColor};">{emoji} {context}</h2>
+              <p style="color:#94a3b8;margin-bottom:24px;font-size:0.9rem;">Your paper trade was executed on Vest.</p>
               <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
                 <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
                   <td style="padding:10px 0;color:#94a3b8;font-size:0.85rem;">Symbol</td>

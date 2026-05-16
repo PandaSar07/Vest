@@ -1,3 +1,13 @@
+export type PositionRisk = {
+  symbol: string
+  entryPrice: number
+  stopLossPrice?: number | null
+  takeProfitPrice?: number | null
+  stopLossPct?: number | null
+  takeProfitPct?: number | null
+  status?: string
+}
+
 export type Holding = {
   symbol: string
   shares: number
@@ -7,6 +17,7 @@ export type Holding = {
   gainLoss: number
   gainLossPct: number
   sector: string
+  risk?: PositionRisk | null
 }
 
 export type PortfolioSummary = {
@@ -29,6 +40,7 @@ export type Trade = {
   price: number
   total: number
   tradedAt: string
+  exitReason?: string | null
 }
 
 export type LimitOrder = {

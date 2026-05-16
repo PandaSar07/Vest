@@ -37,6 +37,7 @@ builder.Services.AddScoped<PortfolioValuationService>();
 builder.Services.AddScoped<LeaderboardBuilder>();
 builder.Services.AddSingleton<LeaderboardService>();
 builder.Services.AddHostedService<LeaderboardRefreshHostedService>();
+builder.Services.AddHostedService<RiskMonitorService>();
 
 // Background worker: polls limit orders every 60 s and fills them
 builder.Services.AddHostedService<OrderExecutorService>();

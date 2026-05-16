@@ -42,6 +42,7 @@ export async function fetchTrades(limit: number): Promise<Trade[]> {
       price: Number(row.price ?? 0),
       total: Number(row.total ?? 0),
       tradedAt: String(row.tradedAt ?? row.traded_at ?? ''),
+      exitReason: row.exitReason != null ? String(row.exitReason) : row.exit_reason != null ? String(row.exit_reason) : null,
     }
   })
 }

@@ -19,12 +19,23 @@ export function TradesTable({ trades }: { trades: Trade[] }) {
             <th className="px-4 py-3 font-semibold">Symbol</th>
             <th className="px-4 py-3 font-semibold">Side</th>
             <th className="px-4 py-3 font-semibold">Price</th>
+            <th className="px-4 py-3 font-semibold">Exit</th>
             <th className="px-4 py-3 font-semibold">Date</th>
           </tr>
         </thead>
         <tbody>
           {trades.map((t) => {
             const buy = t.action === 'BUY'
+            const exitLabel =
+              t.exitReason === 'STOP_LOSS'
+                ? 'Stop-loss'
+                : t.exitReason === 'TAKE_PROFIT'
+                  ? 'Take-profit'
+                  : t.exitReason === 'LIMIT_FILL'
+                    ? 'Limit'
+                    : t.exitReason === 'MANUAL'
+                      ? 'Manual'
+                      : '—'
             const date = new Date(t.tradedAt).toLocaleString('en-US', {
               month: 'short',
               day: 'numeric',
@@ -58,6 +69,9 @@ export function TradesTable({ trades }: { trades: Trade[] }) {
                   </span>
                 </td>
                 <td className="px-4 py-3 tabular-nums">{currencySymbol}{fmtMoney(t.price)}</td>
+                <td className="px-4 py-3 text-[var(--text-secondary,#94a3b8)]">
+                  {!buy ? exitLabel : '—'}
+                </td>
                 <td className="px-4 py-3 text-[var(--text-secondary,#94a3b8)]">{date}</td>
               </tr>
             )
