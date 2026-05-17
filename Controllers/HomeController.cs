@@ -211,6 +211,84 @@ public class HomeController : Controller
         return RedirectToAction("Settings");
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ChangePassword(string currentPassword, string newPassword, string confirmPassword)
+    {
+        var userId = HttpContext.Session.GetString("UserId");
+        if (userId == null) return RedirectToAction("Log");
+
+        // Basic validation
+        if (string.IsNullOrWhiteSpace(currentPassword) ||
+            string.IsNullOrWhiteSpace(newPassword) ||
+            string.IsNullOrWhiteSpace(confirmPassword))
+        {
+            TempData["PasswordError"] = "All password fields are required.";
+            return RedirectToAction("Settings");
+        }
+
+        if (newPassword != confirmPassword)
+        {
+            TempData["PasswordError"] = "New passwords do not match.";
+            return RedirectToAction("Settings");
+        }
+
+        if (newPassword.Length < 8)
+        {
+            TempData["PasswordError"] = "New password must be at least 8 characters.";
+            return RedirectToAction("Settings");
+        }
+
+        try
+        {
+            var http = _httpClientFactory.CreateClient("supabase");
+
+            // Fetch current password_hash for this user
+            var resp = await http.GetAsync(
+                $"users?id=eq.{Uri.EscapeDataString(userId)}&select=password_hash");
+            var json = await resp.Content.ReadAsStringAsync();
+            var rows = JsonSerializer.Deserialize<List<JsonElement>>(json,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (rows == null || rows.Count == 0)
+            {
+                TempData["PasswordError"] = "User not found.";
+                return RedirectToAction("Settings");
+            }
+
+            var storedHash = rows[0].GetProperty("password_hash").GetString() ?? "";
+
+            // Verify current password
+            if (!BCrypt.Net.BCrypt.Verify(currentPassword, storedHash))
+            {
+                TempData["PasswordError"] = "Current password is incorrect.";
+                return RedirectToAction("Settings");
+            }
+
+            // Hash and save the new password
+            var newHash    = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            var payload    = JsonSerializer.Serialize(new { password_hash = newHash });
+            var patch      = await http.PatchAsync(
+                $"users?id=eq.{Uri.EscapeDataString(userId)}",
+                new StringContent(payload, System.Text.Encoding.UTF8, "application/json"));
+
+            if (!patch.IsSuccessStatusCode)
+            {
+                TempData["PasswordError"] = "Failed to update password. Please try again.";
+                return RedirectToAction("Settings");
+            }
+
+            TempData["PasswordSuccess"] = "Password changed successfully!";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "ChangePassword failed for user {UserId}", userId);
+            TempData["PasswordError"] = "An unexpected error occurred.";
+        }
+
+        return RedirectToAction("Settings");
+    }
+
     public IActionResult Contact()
     {
         ViewData["FluidMain"] = true;
