@@ -8,7 +8,7 @@
     <div class="auth-card">
         <div class="auth-header text-center">
             <h1 class="auth-title">Almost There!</h1>
-            <p class="auth-subtitle">Hello @Model.FullName, please pick a username to complete your registration.</p>
+            <p class="auth-subtitle">Welcome, @Model.FullName! One last step — choose a username to set up your Vest account.</p>
         </div>
 
         <form asp-action="CompleteGoogleSignup" method="post">
@@ -20,6 +20,7 @@
                 <label asp-for="Username">Username</label>
                 <input asp-for="Username" class="form-control mt-1" placeholder="Choose a username" />
                 <span asp-validation-for="Username" class="text-danger small"></span>
+                <small class="text-secondary" style="font-size:0.78rem;margin-top:0.35rem;display:block;">3–20 characters. Letters, numbers, and underscores only.</small>
             </div>
 
             <input type="hidden" asp-for="Email" />
