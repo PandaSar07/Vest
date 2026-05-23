@@ -29,6 +29,12 @@ export function PerformanceChart({ points, range, onRangeChange }: PerformanceCh
   const stroke = up ? 'var(--success-color,#10b981)' : 'var(--danger-color,#ef4444)'
   const fillId = up ? 'perfPos' : 'perfNeg'
 
+  const startValue = data.length >= 2 ? data[0].value : 0
+  const endValue = data.length >= 2 ? data[data.length - 1].value : 0
+  const absReturn = endValue - startValue
+  const pctReturn = startValue !== 0 ? (absReturn / startValue) * 100 : 0
+  const pctClass = pctReturn >= 0 ? 'text-[var(--success-color,#10b981)]' : 'text-[var(--danger-color,#ef4444)]'
+
   return (
     <div>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
@@ -39,6 +45,34 @@ export function PerformanceChart({ points, range, onRangeChange }: PerformanceCh
           <p className="mt-1 text-sm text-[var(--text-secondary,#94a3b8)]">
             Smooth historical curve from your snapshots.
           </p>
+          {data.length >= 2 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-secondary,#94a3b8)]">
+                  Total return
+                </p>
+                <p
+                  className={cn(
+                    'mt-1 text-sm font-bold tabular-nums',
+                    pctReturn >= 0 ? 'text-[var(--success-color,#10b981)]' : 'text-[var(--danger-color,#ef4444)]',
+                  )}
+                >
+                  {pctReturn >= 0 ? '+' : '-'}
+                  {currencySymbol}
+                  {fmtMoney(Math.abs(absReturn), 2)}
+                </p>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-secondary,#94a3b8)]">
+                  Gain / Loss
+                </p>
+                <p className={cn('mt-1 text-sm font-bold tabular-nums', pctClass)}>
+                  {pctReturn >= 0 ? '+' : ''}
+                  {fmtMoney(pctReturn, 2)}%
+                </p>
+              </div>
+            </div>
+          )}
         </div>
         <div className="flex flex-wrap gap-1 rounded-xl border border-white/10 bg-black/20 p-1">
           {FILTERS.map((r) => (
