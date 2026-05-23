@@ -249,6 +249,29 @@
             }
         }
 
+        @@media (max-width: 575.98px) {
+            /* AI chat panel — fit small screens */
+            #vest-ai-chat {
+                width: calc(100vw - 20px) !important;
+                right: 10px !important;
+                left: 10px !important;
+                bottom: 86px !important;
+                max-height: 72vh !important;
+                border-radius: 16px !important;
+            }
+            /* FAB — smaller and tucked in */
+            #vest-ai-fab {
+                bottom: 16px !important;
+                right: 16px !important;
+                width: 50px !important;
+                height: 50px !important;
+            }
+            #vest-ai-fab img {
+                width: 32px !important;
+                height: 32px !important;
+            }
+        }
+
         /* Remove default Bootstrap dropdown arrow */
         .nav-profile-toggle.dropdown-toggle::after { display: none; }
     </style>

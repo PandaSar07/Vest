@@ -725,3 +725,174 @@ label {
   font-family: inherit;
   letter-spacing: inherit;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   MOBILE RESPONSIVE — global fixes for all pages
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Tablet & small desktop (≤ 991px) ──────────────────── */
+@media (max-width: 991.98px) {
+  /* Navbar search stretches full width in collapsed menu */
+  .nav-search-wrap {
+    max-width: none;
+    margin: 0.5rem 0;
+  }
+
+  /* Settings sidebar: remove sticky so it doesn't block content */
+  .list-group[style*="sticky"] {
+    position: relative !important;
+    top: auto !important;
+  }
+}
+
+/* ── Mobile (≤ 767px) ───────────────────────────────────── */
+@media (max-width: 767.98px) {
+
+  /* Hero section */
+  .hero-section {
+    padding: 5rem 1.25rem 3rem;
+  }
+
+  .hero-title {
+    font-size: clamp(1.9rem, 8vw, 2.8rem);
+    letter-spacing: -0.5px;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .hero-badge {
+    font-size: 0.78rem;
+    padding: 0.4rem 0.8rem;
+  }
+
+  /* General sections */
+  .section {
+    padding: 3rem 1rem;
+  }
+
+  .section-title {
+    font-size: 1.7rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .cta-section {
+    padding: 3rem 1rem;
+  }
+
+  /* Cards — disable hover lift on touch devices */
+  .card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Dashboard grid — single column */
+  .dashboard-container {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 1.25rem 0;
+  }
+
+  /* Tables — tighter padding so rows don't bleed */
+  th {
+    padding: 0.75rem 0.75rem !important;
+    font-size: 0.72rem;
+  }
+
+  td {
+    padding: 0.75rem 0.75rem !important;
+    font-size: 0.85rem;
+  }
+
+  /* Auth card */
+  .auth-card {
+    padding: 1.75rem 1.25rem;
+  }
+
+  /* Footer stack */
+  footer {
+    padding: 2rem 0 1.25rem;
+    text-align: center;
+  }
+
+  /* Settings sidebar → horizontal scrollable pill strip on mobile */
+  .settings-sidebar-nav {
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto;
+    gap: 0.4rem;
+    padding: 0.5rem;
+    white-space: nowrap;
+    position: relative !important;
+    top: auto !important;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .settings-sidebar-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .settings-sidebar-nav .list-group-item {
+    flex-shrink: 0;
+    border-radius: 9999px !important;
+    padding: 0.4rem 1rem;
+    font-size: 0.82rem;
+    margin-bottom: 0 !important;
+  }
+
+  /* Buttons — full width on mobile for forms */
+  .btn-mobile-full {
+    width: 100%;
+  }
+
+  /* Prevent overflow from long email or content strings */
+  .nav-dropdown-email {
+    max-width: 180px;
+  }
+}
+
+/* ── Small phones (≤ 575px) ─────────────────────────────── */
+@media (max-width: 575.98px) {
+
+  /* Hero even smaller */
+  .hero-title {
+    font-size: clamp(1.6rem, 7vw, 2rem);
+  }
+
+  .hero-subtitle {
+    font-size: 0.92rem;
+  }
+
+  /* Hide nav search bar on tiny screens — toggler menu is too cramped */
+  .nav-search-wrap {
+    display: none !important;
+  }
+
+  /* Shrink navbar brand label slightly */
+  .vest-brand-label {
+    font-size: 1.1rem;
+  }
+
+  .navbar-logo {
+    height: 40px;
+  }
+
+  /* Tables — allow horizontal scroll (already in .table-responsive) */
+  .table-responsive {
+    font-size: 0.82rem;
+  }
+
+  /* Tighter card padding on tiny screens */
+  .card {
+    padding: 1.25rem !important;
+  }
+
+  /* Auth card full width */
+  .auth-card {
+    padding: 1.5rem 1rem;
+    border-radius: var(--radius-md);
+  }
+}
