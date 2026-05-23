@@ -69,6 +69,17 @@
         .lb-rank.silver { color: #94a3b8; }
         .lb-rank.bronze { color: #d97706; }
         .lb-user { font-weight: 600; color: var(--text-primary); }
+        .lb-user-cell { display: flex; align-items: center; gap: 0.65rem; }
+        .lb-avatar {
+            width: 36px; height: 36px; border-radius: 50%; object-fit: cover;
+            border: 1px solid rgba(0,194,255,0.25); flex-shrink: 0;
+        }
+        .lb-avatar-fallback {
+            width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+            background: linear-gradient(135deg, var(--accent-color) 0%, #7c3aed 100%);
+            color: #0a0e1a; font-weight: 800; font-size: 0.85rem;
+            display: flex; align-items: center; justify-content: center;
+        }
         .lb-sub  { font-size: 0.78rem; color: var(--text-secondary); }
         .lb-value { font-weight: 700; font-variant-numeric: tabular-nums; }
         .lb-pct.positive { color: #10b981; }
@@ -169,11 +180,23 @@
                 <tr class="lb-row" data-href="@Url.Action("Profile", "Leaderboard", new { username = e.Username })">
                     <td class="lb-rank @rankClass">@e.Rank</td>
                     <td>
-                        <div class="lb-user">@e.Username</div>
-                        @if (!string.IsNullOrEmpty(e.DisplayName))
-                        {
-                            <div class="lb-sub d-block">@e.DisplayName</div>
-                        }
+                        <div class="lb-user-cell">
+                            @if (!string.IsNullOrWhiteSpace(e.AvatarUrl))
+                            {
+                                <img src="@e.AvatarUrl" alt="" class="lb-avatar" loading="lazy" />
+                            }
+                            else
+                            {
+                                <div class="lb-avatar-fallback" aria-hidden="true">@(e.Username.Length > 0 ? e.Username.Substring(0, 1).ToUpper() : "?")</div>
+                            }
+                            <div>
+                                <div class="lb-user">@e.Username</div>
+                                @if (!string.IsNullOrEmpty(e.DisplayName))
+                                {
+                                    <div class="lb-sub d-block">@e.DisplayName</div>
+                                }
+                            </div>
+                        </div>
                     </td>
                     <td class="text-end lb-value">$@e.TotalValue.ToString("N2")</td>
                     <td class="text-end lb-pct @pctClass lb-hide-sm">@(e.ReturnPct >= 0 ? "+" : "")@e.ReturnPct.ToString("N2")%</td>

@@ -57,6 +57,7 @@ public class LeaderboardBuilder
                 r.User.Id,
                 r.User.Username,
                 string.IsNullOrWhiteSpace(r.User.FullName) ? null : r.User.FullName.Trim(),
+                string.IsNullOrWhiteSpace(r.User.AvatarUrl) ? null : r.User.AvatarUrl.Trim(),
                 r.Total,
                 r.ReturnPct,
                 r.Trades))
@@ -69,7 +70,7 @@ public class LeaderboardBuilder
     {
         if (!IsValidUsername(username)) return null;
         var resp = await _http.GetAsync(
-            $"users?username=eq.{Uri.EscapeDataString(username)}&select=id,username,full_name");
+            $"users?username=eq.{Uri.EscapeDataString(username)}&select=id,username,full_name,avatar_url");
         if (!resp.IsSuccessStatusCode) return null;
         var rows = JsonSerializer.Deserialize<List<UserPublicRow>>(
             await resp.Content.ReadAsStringAsync(), _json);
@@ -98,6 +99,7 @@ public class LeaderboardBuilder
         return new PublicProfileDto(
             user.Username,
             string.IsNullOrWhiteSpace(user.FullName) ? null : user.FullName.Trim(),
+            string.IsNullOrWhiteSpace(user.AvatarUrl) ? null : user.AvatarUrl.Trim(),
             isPublic,
             isOwner,
             val.Cash,
@@ -117,7 +119,7 @@ public class LeaderboardBuilder
         if (idList.Count == 0) return [];
 
         var filter = string.Join(",", idList.Select(Uri.EscapeDataString));
-        var resp = await _http.GetAsync($"users?id=in.({filter})&select=id,username,full_name");
+        var resp = await _http.GetAsync($"users?id=in.({filter})&select=id,username,full_name,avatar_url");
         if (!resp.IsSuccessStatusCode) return [];
         return JsonSerializer.Deserialize<List<UserPublicRow>>(
             await resp.Content.ReadAsStringAsync(), _json) ?? [];
@@ -144,11 +146,13 @@ public class UserPublicRow
     [JsonPropertyName("id")] public string Id { get; set; } = "";
     [JsonPropertyName("username")] public string Username { get; set; } = "";
     [JsonPropertyName("full_name")] public string? FullName { get; set; }
+    [JsonPropertyName("avatar_url")] public string? AvatarUrl { get; set; }
 }
 
 public record PublicProfileDto(
     string Username,
     string? DisplayName,
+    string? AvatarUrl,
     bool IsPublic,
     bool IsOwner,
     decimal Cash,

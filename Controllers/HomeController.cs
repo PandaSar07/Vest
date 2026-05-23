@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using System.Security.Claims;
 using Vest.Models;
+using Vest.Services;
 
 namespace Vest.Controllers;
 
@@ -79,6 +80,7 @@ public class HomeController : Controller
             catch { /* Non-fatal — just don't show cooldown */ }
         }
 
+        ViewData["AvatarUrl"] = HttpContext.Session.GetString("AvatarUrl");
         return View();
     }
 
@@ -392,18 +394,36 @@ public class HomeController : Controller
             var http = _httpClientFactory.CreateClient("supabase");
 
             // Fetch user by email
-            var response = await http.GetAsync($"users?email=eq.{Uri.EscapeDataString(model.Email)}&select=id,email,username,password_hash");
+            var emailEsc = Uri.EscapeDataString(model.Email);
+            var urlWithAvatar =
+                $"users?email=eq.{emailEsc}&select=id,email,username,password_hash,avatar_url";
+            var urlWithoutAvatar =
+                $"users?email=eq.{emailEsc}&select=id,email,username,password_hash";
+
+            var response = await http.GetAsync(urlWithAvatar);
+            if (!response.IsSuccessStatusCode)
+                response = await http.GetAsync(urlWithoutAvatar);
+
             var json = await response.Content.ReadAsStringAsync();
-            var users = JsonSerializer.Deserialize<List<StoredUser>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            List<StoredUser>? users = null;
+            try
+            {
+                users = JsonSerializer.Deserialize<List<StoredUser>>(
+                    json,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            }
+            catch
+            {
+                users = null;
+            }
 
             if (users != null && users.Count > 0)
             {
                 var user = users[0];
                 if (BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash))
                 {
-                    HttpContext.Session.SetString("UserId", user.Id);
-                    HttpContext.Session.SetString("UserEmail", user.Email);
-                    HttpContext.Session.SetString("Username", user.Username);
+                    UserSessionHelper.SetUserSession(
+                        HttpContext.Session, user.Id, user.Email, user.Username, user.AvatarUrl);
                     return RedirectToAction("Index", "Dashboard");
                 }
             }
@@ -648,17 +668,35 @@ public class HomeController : Controller
         try
         {
             var http = _httpClientFactory.CreateClient("supabase");
-            var response = await http.GetAsync($"users?email=eq.{Uri.EscapeDataString(email)}&select=id,email,username,password_hash");
+            var emailEsc = Uri.EscapeDataString(email);
+            var urlWithAvatar =
+                $"users?email=eq.{emailEsc}&select=id,email,username,password_hash,avatar_url";
+            var urlWithoutAvatar =
+                $"users?email=eq.{emailEsc}&select=id,email,username,password_hash";
+
+            var response = await http.GetAsync(urlWithAvatar);
+            if (!response.IsSuccessStatusCode)
+                response = await http.GetAsync(urlWithoutAvatar);
+
             var json = await response.Content.ReadAsStringAsync();
-            var users = JsonSerializer.Deserialize<List<StoredUser>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            List<StoredUser>? users = null;
+            try
+            {
+                users = JsonSerializer.Deserialize<List<StoredUser>>(
+                    json,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            }
+            catch
+            {
+                users = null;
+            }
 
             if (users != null && users.Count > 0)
             {
                 // User exists, log them in
                 var user = users[0];
-                HttpContext.Session.SetString("UserId", user.Id);
-                HttpContext.Session.SetString("UserEmail", user.Email);
-                HttpContext.Session.SetString("Username", user.Username);
+                UserSessionHelper.SetUserSession(
+                    HttpContext.Session, user.Id, user.Email, user.Username, user.AvatarUrl);
 
                 await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
                 return RedirectToAction("Index", "Dashboard");
@@ -744,17 +782,29 @@ public class HomeController : Controller
             if (response.IsSuccessStatusCode)
             {
                 // Fetch the newly created user to get the ID
-                var fetchRes = await http.GetAsync($"users?email=eq.{Uri.EscapeDataString(email)}&select=id,email,username");
+                var emailEsc = Uri.EscapeDataString(email);
+                var fetchRes = await http.GetAsync($"users?email=eq.{emailEsc}&select=id,email,username,avatar_url");
+                if (!fetchRes.IsSuccessStatusCode)
+                    fetchRes = await http.GetAsync($"users?email=eq.{emailEsc}&select=id,email,username");
                 if (fetchRes.IsSuccessStatusCode)
                 {
                     var fetchJson = await fetchRes.Content.ReadAsStringAsync();
-                    var users = JsonSerializer.Deserialize<List<StoredUser>>(fetchJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    List<StoredUser>? users = null;
+                    try
+                    {
+                        users = JsonSerializer.Deserialize<List<StoredUser>>(
+                            fetchJson,
+                            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    }
+                    catch
+                    {
+                        users = null;
+                    }
                     if (users != null && users.Count > 0)
                     {
                         var user = users[0];
-                        HttpContext.Session.SetString("UserId", user.Id);
-                        HttpContext.Session.SetString("UserEmail", user.Email);
-                        HttpContext.Session.SetString("Username", user.Username);
+                        UserSessionHelper.SetUserSession(
+                            HttpContext.Session, user.Id, user.Email, user.Username, user.AvatarUrl);
 
                         TempData.Remove("GoogleEmail");
                         TempData.Remove("GoogleName");
@@ -799,6 +849,9 @@ file class StoredUser
 
     [System.Text.Json.Serialization.JsonPropertyName("password_hash")]
     public string PasswordHash { get; set; } = string.Empty;
+
+    [System.Text.Json.Serialization.JsonPropertyName("avatar_url")]
+    public string? AvatarUrl { get; set; }
 
     [System.Text.Json.Serialization.JsonPropertyName("reset_token_expiry")]
     public string? ResetTokenExpiry { get; set; }

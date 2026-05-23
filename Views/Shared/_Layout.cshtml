@@ -45,6 +45,12 @@
             font-size: 1rem;
         }
 
+        .nav-avatar-img,
+        .user-avatar-img {
+            object-fit: cover;
+            padding: 0;
+        }
+
         .nav-profile-toggle {
             gap: 0.5rem;
             cursor: pointer;
@@ -357,11 +363,19 @@
                             </li>
                             var username = Context.Session.GetString("Username") ?? "Account";
                             var email    = Context.Session.GetString("UserEmail") ?? "";
+                            var avatarUrl = Context.Session.GetString("AvatarUrl");
                             var initials = username.Length > 0 ? username.Substring(0, 1).ToUpper() : "?";
                             <li class="nav-item dropdown">
                                 <a class="nav-link nav-profile-toggle dropdown-toggle d-flex align-items-center gap-2"
                                    href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <div class="nav-avatar">@initials</div>
+                                    @if (!string.IsNullOrWhiteSpace(avatarUrl))
+                                    {
+                                        <img src="@avatarUrl" alt="" class="nav-avatar nav-avatar-img" />
+                                    }
+                                    else
+                                    {
+                                        <div class="nav-avatar">@initials</div>
+                                    }
                                     <span class="nav-username d-none d-md-inline">@username</span>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16" style="opacity:.45;margin-left:-2px;">
                                         <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
@@ -369,7 +383,14 @@
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end nav-dropdown">
                                     <li class="nav-dropdown-header">
-                                        <div class="nav-avatar nav-avatar-lg">@initials</div>
+                                        @if (!string.IsNullOrWhiteSpace(avatarUrl))
+                                        {
+                                            <img src="@avatarUrl" alt="" class="nav-avatar nav-avatar-lg nav-avatar-img" />
+                                        }
+                                        else
+                                        {
+                                            <div class="nav-avatar nav-avatar-lg">@initials</div>
+                                        }
                                         <div style="min-width:0;">
                                             <div class="nav-dropdown-name">@username</div>
                                             <div class="nav-dropdown-email">@email</div>

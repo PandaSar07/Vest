@@ -13,13 +13,39 @@ import { TradesTable } from '@/components/TradesTable'
 import { PendingOrders } from '@/components/PendingOrders'
 import { InsightsStrip } from '@/components/InsightsStrip'
 
-function readUsername(): string {
+function readDashboardMeta() {
   const el = document.getElementById('dashboard-root')
-  return el?.dataset.username?.trim() || 'Trader'
+  return {
+    username: el?.dataset.username?.trim() || 'Trader',
+    avatarUrl: el?.dataset.avatarUrl?.trim() || '',
+    avatarInitials: el?.dataset.avatarInitials?.trim() || '?',
+  }
+}
+
+function UserAvatar({
+  url,
+  initials,
+  className,
+}: {
+  url: string
+  initials: string
+  className: string
+}) {
+  if (url) {
+    return <img src={url} alt="" className={`${className} object-cover`} />
+  }
+  return (
+    <span
+      className={`${className} inline-flex items-center justify-center bg-gradient-to-br from-[var(--accent-color,#00c2ff)] to-[#7c3aed] font-extrabold text-[#0a0e1a]`}
+      aria-hidden
+    >
+      {initials}
+    </span>
+  )
 }
 
 export default function App() {
-  const username = readUsername()
+  const { username, avatarUrl, avatarInitials } = readDashboardMeta()
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [summary, setSummary] = useState<PortfolioSummary | null>(null)
@@ -129,19 +155,26 @@ export default function App() {
       className="space-y-6 py-2"
     >
       <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="font-[family-name:var(--font-brand)] text-3xl font-bold tracking-tight sm:text-4xl">
-            Dashboard
-          </h1>
-          <p className="mt-2 max-w-xl text-sm text-[var(--text-secondary,#94a3b8)] sm:text-base">
-            Welcome back, <span className="font-semibold text-[var(--text-primary,#f1f5f9)]">{username}</span>.
-            Your portfolio, distilled for fast decisions.
-          </p>
-          {loadError && (
-            <p className="mt-3 text-sm text-amber-300">
-              {loadError}
+        <div className="flex items-start gap-4">
+          <UserAvatar
+            url={avatarUrl}
+            initials={avatarInitials}
+            className="h-14 w-14 shrink-0 rounded-full border-2 border-[var(--accent-color,#00c2ff)]/35 shadow-[0_0_24px_rgba(0,194,255,0.2)]"
+          />
+          <div>
+            <h1 className="font-[family-name:var(--font-brand)] text-3xl font-bold tracking-tight sm:text-4xl">
+              Dashboard
+            </h1>
+            <p className="mt-2 max-w-xl text-sm text-[var(--text-secondary,#94a3b8)] sm:text-base">
+              Welcome back, <span className="font-semibold text-[var(--text-primary,#f1f5f9)]">{username}</span>.
+              Your portfolio, distilled for fast decisions.
             </p>
-          )}
+            {loadError && (
+              <p className="mt-3 text-sm text-amber-300">
+                {loadError}
+              </p>
+            )}
+          </div>
         </div>
       </header>
 

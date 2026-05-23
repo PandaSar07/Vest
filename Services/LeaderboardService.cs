@@ -5,6 +5,7 @@ public record LeaderboardEntry(
     string UserId,
     string Username,
     string? DisplayName,
+    string? AvatarUrl,
     decimal TotalValue,
     decimal ReturnPct,
     int TradeCount);

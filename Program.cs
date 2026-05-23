@@ -44,6 +44,7 @@ builder.Services.AddHostedService<OrderExecutorService>();
 
 // Register EmailService for sending password reset emails
 builder.Services.AddScoped<EmailService>();
+builder.Services.AddScoped<AvatarService>();
 
 // Register PushNotificationService (singleton — WebPushClient is thread-safe)
 builder.Services.AddSingleton<PushNotificationService>();

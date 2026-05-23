@@ -1,6 +1,8 @@
 @{
     ViewData["Title"] = "Dashboard";
     var dashUsername = ViewContext.HttpContext.Session.GetString("Username") ?? "Trader";
+    var dashAvatarUrl = ViewContext.HttpContext.Session.GetString("AvatarUrl");
+    var dashInitials = dashUsername.Length > 0 ? dashUsername.Substring(0, 1).ToUpper() : "?";
 }
 
 @section Head {
@@ -8,7 +10,10 @@
 }
 
 <div class="py-2">
-    <div id="dashboard-root" data-username="@dashUsername"></div>
+    <div id="dashboard-root"
+         data-username="@dashUsername"
+         data-avatar-url="@(dashAvatarUrl ?? "")"
+         data-avatar-initials="@dashInitials"></div>
 </div>
 
 @section Scripts {

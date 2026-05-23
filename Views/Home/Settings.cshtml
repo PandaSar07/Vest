@@ -23,6 +23,7 @@
         border: 1px solid rgba(239, 68, 68, 0.3) !important;
     }
     /* Account overview avatar */
+    .settings-avatar-wrap { display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; }
     .settings-avatar {
         width: 64px; height: 64px; border-radius: 50%;
         background: linear-gradient(135deg, var(--accent-color) 0%, #7c3aed 100%);
@@ -31,6 +32,14 @@
         flex-shrink: 0;
         box-shadow: 0 0 24px rgba(0,194,255,0.25);
     }
+    .settings-avatar-img {
+        width: 64px; height: 64px; border-radius: 50%; object-fit: cover;
+        flex-shrink: 0; border: 2px solid rgba(0,194,255,0.35);
+        box-shadow: 0 0 24px rgba(0,194,255,0.2);
+    }
+    .avatar-actions { display: flex; flex-direction: column; gap: 0.5rem; }
+    .avatar-actions .btn { font-size: 0.82rem; padding: 0.35rem 0.85rem; }
+    #avatarError { display: none; color: #f87171; margin-top: 0.35rem; }
     /* Risk level pills */
     .risk-btn { border: 1px solid var(--border-color); background: transparent;
         color: var(--text-secondary); border-radius: 9999px;
@@ -79,12 +88,31 @@
                 var uname = Context.Session.GetString("Username") ?? "User";
                 var uemail = Context.Session.GetString("UserEmail") ?? "";
                 var uinitial = uname.Length > 0 ? uname.Substring(0,1).ToUpper() : "?";
+                var avatarUrl = ViewData["AvatarUrl"] as string;
 
                 @* ── Account Overview ── *@
                 <div class="card mb-4" id="overview">
                     <div class="card-body">
                         <div class="d-flex align-items-center gap-4 flex-wrap">
-                            <div class="settings-avatar">@uinitial</div>
+                            <div class="settings-avatar-wrap">
+                                @if (!string.IsNullOrWhiteSpace(avatarUrl))
+                                {
+                                    <img id="settingsAvatarImg" src="@avatarUrl" alt="" class="settings-avatar-img" />
+                                    <div id="settingsAvatarInitials" class="settings-avatar" style="display:none;">@uinitial</div>
+                                }
+                                else
+                                {
+                                    <img id="settingsAvatarImg" alt="" class="settings-avatar-img" style="display:none;" />
+                                    <div id="settingsAvatarInitials" class="settings-avatar">@uinitial</div>
+                                }
+                                <div class="avatar-actions">
+                                    <input type="file" id="avatarFile" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" hidden />
+                                    <button type="button" class="btn btn-sm btn-outline" id="avatarUploadBtn">Upload photo</button>
+                                    <button type="button" class="btn btn-sm btn-outline text-secondary" id="avatarRemoveBtn" style="@(string.IsNullOrWhiteSpace(avatarUrl) ? "display:none;" : "")">Remove photo</button>
+                                    <div id="avatarError" class="small"></div>
+                                    <p class="text-secondary small mb-0">JPG, PNG, or WEBP · max 5 MB</p>
+                                </div>
+                            </div>
                             <div>
                                 <div style="font-size:1.15rem;font-weight:700;color:var(--text-primary);">@uname</div>
                                 <div class="text-secondary small mb-2">@uemail</div>
@@ -706,4 +734,5 @@
             });
         });
     </script>
+    <script src="~/js/avatar-upload.js" asp-append-version="true"></script>
 }

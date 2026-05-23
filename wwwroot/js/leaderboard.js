@@ -34,13 +34,18 @@
             const sub = e.displayName
                 ? '<span class="lb-sub d-block">' + escapeHtml(e.displayName) + '</span>'
                 : '';
+            const initial = e.username ? escapeHtml(e.username.charAt(0).toUpperCase()) : '?';
+            const avatar = e.avatarUrl
+                ? '<img src="' + escapeHtml(e.avatarUrl) + '" alt="" class="lb-avatar" loading="lazy" />'
+                : '<div class="lb-avatar-fallback" aria-hidden="true">' + initial + '</div>';
             const href = e.profileUrl || ('/Leaderboard/Profile/' + encodeURIComponent(e.username));
             const tr = document.createElement('tr');
             tr.className = 'lb-row';
             tr.dataset.href = href;
             tr.innerHTML =
                 '<td class="lb-rank ' + rankClass(e.rank) + '">' + e.rank + '</td>' +
-                '<td><span class="lb-user">' + escapeHtml(e.username) + '</span>' + sub + '</td>' +
+                '<td><div class="lb-user-cell">' + avatar +
+                '<div><span class="lb-user">' + escapeHtml(e.username) + '</span>' + sub + '</div></div></td>' +
                 '<td class="text-end lb-value">$' + Number(e.totalValue).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</td>' +
                 '<td class="text-end lb-pct ' + pctClass + ' lb-hide-sm">' + sign + Number(e.returnPct).toFixed(2) + '%</td>' +
                 '<td class="text-end lb-hide-sm text-secondary">' + e.tradeCount + '</td>';

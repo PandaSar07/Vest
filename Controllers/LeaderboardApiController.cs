@@ -43,6 +43,7 @@ public class LeaderboardApiController : ControllerBase
                 e.Rank,
                 e.Username,
                 displayName = e.DisplayName,
+                avatarUrl = e.AvatarUrl,
                 e.TotalValue,
                 e.ReturnPct,
                 e.TradeCount,

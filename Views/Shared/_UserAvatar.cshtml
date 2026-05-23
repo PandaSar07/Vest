@@ -1,0 +1,14 @@
+@{
+    var url = ViewData["AvatarUrl"] as string;
+    var initials = ViewData["AvatarInitials"] as string ?? "?";
+    var cssClass = ViewData["AvatarCssClass"] as string ?? "user-avatar";
+    var imgClass = ViewData["AvatarImgCssClass"] as string ?? cssClass;
+}
+@if (!string.IsNullOrWhiteSpace(url))
+{
+    <img src="@url" alt="" class="@imgClass user-avatar-img" loading="lazy" />
+}
+else
+{
+    <div class="@cssClass" aria-hidden="true">@initials</div>
+}
