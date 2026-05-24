@@ -123,6 +123,9 @@
             banner.style.display = 'block';
             const rankEl = document.getElementById('lbMeRank');
             const valEl = document.getElementById('lbMeValue');
+            const valBox = document.getElementById('lbMeValueBox');
+            const enableBox = document.getElementById('lbEnableProfileBox');
+
             if (me.onLeaderboard && me.rank) {
                 rankEl.textContent = '#' + me.rank;
             } else if (me.isPublic) {
@@ -130,12 +133,46 @@
             } else {
                 rankEl.textContent = 'Private';
             }
-            if (me.totalValue != null) {
-                valEl.textContent = '$' + Number(me.totalValue).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            if (me.isPublic) {
+                if (enableBox) enableBox.style.display = 'none';
+                if (valBox) valBox.style.display = 'block';
+                if (me.totalValue != null) {
+                    valEl.textContent = '$' + Number(me.totalValue).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                } else {
+                    valEl.textContent = '—';
+                }
             } else {
-                valEl.textContent = me.isPublic ? '—' : 'Enable public profile';
+                if (valBox) valBox.style.display = 'none';
+                if (enableBox) enableBox.style.display = 'block';
             }
         } catch { /* optional */ }
+    }
+
+    const enableBtn = document.getElementById('btnEnablePublicProfile');
+    if (enableBtn) {
+        enableBtn.addEventListener('click', async function () {
+            enableBtn.disabled = true;
+            enableBtn.textContent = 'Enabling...';
+            try {
+                const r = await fetch('/api/leaderboard/privacy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ isPublic: true })
+                });
+                if (r.ok) {
+                    window.location.reload();
+                } else {
+                    console.warn('Failed to enable public profile: server returned ' + r.status);
+                    alert('Could not enable public profile. The database table (user_prefs) might be missing.');
+                }
+            } catch (err) {
+                console.warn('Failed to enable public profile', err);
+            } finally {
+                enableBtn.disabled = false;
+                enableBtn.textContent = 'Enable Public Profile';
+            }
+        });
     }
 
     loadMe();
