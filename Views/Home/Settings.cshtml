@@ -19,10 +19,35 @@
         color: var(--accent-color) !important;
         font-weight: 600;
     }
-    
     .danger-zone {
         border: 1px solid rgba(239, 68, 68, 0.3) !important;
     }
+    /* Account overview avatar */
+    .settings-avatar {
+        width: 64px; height: 64px; border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent-color) 0%, #7c3aed 100%);
+        color: #0a0e1a; font-weight: 800; font-size: 1.6rem;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+        box-shadow: 0 0 24px rgba(0,194,255,0.25);
+    }
+    /* Risk level pills */
+    .risk-btn { border: 1px solid var(--border-color); background: transparent;
+        color: var(--text-secondary); border-radius: 9999px;
+        padding: 0.35rem 1rem; font-size: 0.82rem; cursor: pointer;
+        transition: all 0.18s; }
+    .risk-btn:hover { border-color: var(--accent-color); color: var(--text-primary); }
+    .risk-btn.active-risk { font-weight: 700; }
+    .risk-btn[data-risk="conservative"].active-risk  { background: rgba(16,185,129,0.15); border-color:#10b981; color:#10b981; }
+    .risk-btn[data-risk="moderate"].active-risk      { background: rgba(251,191,36,0.15); border-color:#fbbf24; color:#fbbf24; }
+    .risk-btn[data-risk="aggressive"].active-risk    { background: rgba(239,68,68,0.15);  border-color:#ef4444; color:#ef4444; }
+    /* Font size preview chips */
+    .font-size-btn { border: 1px solid var(--border-color); background: transparent;
+        color: var(--text-secondary); border-radius: 8px;
+        padding: 0.4rem 1rem; cursor: pointer; transition: all 0.18s; }
+    .font-size-btn:hover { border-color: var(--accent-color); color: var(--text-primary); }
+    .font-size-btn.active-size { background: rgba(0,194,255,0.12);
+        border-color: var(--accent-color); color: var(--accent-color); font-weight: 600; }
 </style>
 
 <div class="container py-5">
@@ -40,7 +65,8 @@
                 {
                     <a href="#preferences" class="list-group-item list-group-item-action settings-nav-link" style="border: none; border-radius: 8px; margin-bottom: 4px;">Account Preferences</a>
                     <a href="#notifications" class="list-group-item list-group-item-action settings-nav-link" style="border: none; border-radius: 8px; margin-bottom: 4px;">Notifications</a>
-                    <a href="#security" class="list-group-item list-group-item-action settings-nav-link" style="border: none; border-radius: 8px;">Security</a>
+                    <a href="#security" class="list-group-item list-group-item-action settings-nav-link" style="border: none; border-radius: 8px; margin-bottom: 4px;">Security</a>
+                    <a href="#privacy" class="list-group-item list-group-item-action settings-nav-link" style="border: none; border-radius: 8px;">Data &amp; Privacy</a>
                 }
             </div>
         </div>
@@ -50,6 +76,33 @@
             {
                 var cooldownDays = ViewData["ProfileCooldownDays"] as int?;
                 var onCooldown   = cooldownDays.HasValue;
+                var uname = Context.Session.GetString("Username") ?? "User";
+                var uemail = Context.Session.GetString("UserEmail") ?? "";
+                var uinitial = uname.Length > 0 ? uname.Substring(0,1).ToUpper() : "?";
+
+                @* ── Account Overview ── *@
+                <div class="card mb-4" id="overview">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center gap-4 flex-wrap">
+                            <div class="settings-avatar">@uinitial</div>
+                            <div>
+                                <div style="font-size:1.15rem;font-weight:700;color:var(--text-primary);">@uname</div>
+                                <div class="text-secondary small mb-2">@uemail</div>
+                                <div class="d-flex gap-2 flex-wrap" id="overviewStats">
+                                    <span class="badge" style="background:rgba(0,194,255,0.1);border:1px solid rgba(0,194,255,0.2);color:var(--accent-color);font-size:0.75rem;">
+                                        💰 Balance: <span id="overviewBalance">Loading…</span>
+                                    </span>
+                                    <span class="badge" style="background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.25);color:#a78bfa;font-size:0.75rem;">
+                                        📋 Watchlist: <span id="overviewWatchlist">—</span>
+                                    </span>
+                                    <span class="badge" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);color:#10b981;font-size:0.75rem;">
+                                        🔄 Trades: <span id="overviewTrades">—</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="card mb-4" id="general">
                     <div class="card-body">
@@ -112,7 +165,7 @@
             <div class="card mb-4" id="appearance">
                 <div class="card-body">
                     <h3 class="card-title mb-4">Appearance</h3>
-                    <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
                         <div>
                             <h5 class="mb-1" style="color: var(--text-primary);">Theme</h5>
                             <p class="text-secondary mb-0" style="font-size: 0.9rem;">Switch between light and dark mode</p>
@@ -120,6 +173,23 @@
                         <div class="form-check form-switch" style="font-size: 1.5rem;">
                             <input class="form-check-input" type="checkbox" id="themeToggle" style="cursor: pointer;">
                         </div>
+                    </div>
+
+                    <hr class="my-3" style="border-color:var(--border-color);" />
+                    <h5 class="mb-1" style="color:var(--text-primary);font-size:0.95rem;">Accessibility</h5>
+                    <p class="text-secondary small mb-3">Adjust display settings for comfort.</p>
+                    <div class="mb-3">
+                        <label class="form-label">Font Size</label>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="font-size-btn" data-size="14" style="font-size:0.78rem;">Compact</button>
+                            <button type="button" class="font-size-btn" data-size="16" style="font-size:0.9rem;">Default</button>
+                            <button type="button" class="font-size-btn" data-size="18" style="font-size:1rem;">Large</button>
+                        </div>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="reduceMotion" style="cursor:pointer;">
+                        <label class="form-check-label" for="reduceMotion" style="color:var(--text-primary);font-weight:500;">Reduce Animations</label>
+                        <div class="text-secondary small mt-1">Minimises transitions and hover effects across the site</div>
                     </div>
                 </div>
             </div>
@@ -138,11 +208,38 @@
                                 <option value="GBP">GBP - British Pound (£)</option>
                             </select>
                         </div>
-                        <div class="form-check form-switch mb-3">
+                        <div class="form-check form-switch mb-4">
                             <input class="form-check-input" type="checkbox" id="publicProfile" style="cursor: pointer;">
                             <label class="form-check-label" for="publicProfile" style="color: var(--text-primary); font-weight: 500;">Public profile &amp; leaderboard</label>
                             <div class="text-secondary small mt-1">Show your portfolio on the global leaderboard and let others view your public trading profile</div>
                         </div>
+
+                        <hr class="my-3" style="border-color:var(--border-color);" />
+                        <h5 class="mb-1" style="color:var(--text-primary);font-size:0.95rem;">Trading Defaults</h5>
+                        <p class="text-secondary small mb-3">These values pre-fill the order forms on Stocks &amp; Crypto pages.</p>
+                        <div class="row g-3 mb-3">
+                            <div class="col-sm-6">
+                                <label class="form-label" for="defaultOrderType">Default Order Type</label>
+                                <select class="form-control" id="defaultOrderType" style="cursor:pointer;">
+                                    <option value="market">Market Order</option>
+                                    <option value="limit">Limit Order</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label" for="defaultQty">Default Quantity (shares)</label>
+                                <input type="number" class="form-control" id="defaultQty" min="1" max="1000" step="1" placeholder="e.g. 1">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Risk Tolerance</label>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button type="button" class="risk-btn" data-risk="conservative">🟢 Conservative</button>
+                                <button type="button" class="risk-btn" data-risk="moderate">🟡 Moderate</button>
+                                <button type="button" class="risk-btn" data-risk="aggressive">🔴 Aggressive</button>
+                            </div>
+                            <div class="text-secondary" style="font-size:0.77rem;margin-top:5px;">Saved locally — for your reference only.</div>
+                        </div>
+
                         <button class="btn btn-outline btn-sm px-4 mt-2" id="savePreferencesBtn">Save Preferences</button>
                         <span id="preferencesSavedMsg" class="text-success small ms-2" style="display: none;">Preferences saved!</span>
                     </div>
@@ -233,16 +330,157 @@
                         </button>
                     </div>
                 </div>
+
+                @* ── Data & Privacy ── *@
+                <div class="card mb-4 danger-zone" id="privacy">
+                    <div class="card-body">
+                        <h3 class="card-title mb-1">Data &amp; Privacy</h3>
+                        <p class="text-secondary small mb-4">Manage your data and paper-trading portfolio.</p>
+
+                        @if (TempData["PrivacySuccess"] != null)
+                        {
+                            <div class="alert alert-success alert-dismissible fade show py-2 mb-3" role="alert"
+                                 style="background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.35);color:#10b981;">
+                                ✅ @TempData["PrivacySuccess"]
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                            </div>
+                        }
+                        @if (TempData["PrivacyError"] != null)
+                        {
+                            <div class="alert alert-danger alert-dismissible fade show py-2 mb-3" role="alert"
+                                 style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.35);color:#ef4444;">
+                                ⚠️ @TempData["PrivacyError"]
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                            </div>
+                        }
+
+                        <div class="mb-4">
+                            <h5 class="mb-1" style="color:var(--text-primary);font-size:0.95rem;">📥 Export Trade History</h5>
+                            <p class="text-secondary small">Download all your paper trades as a CSV file.</p>
+                            <a href="/Home/ExportTrades" class="btn btn-outline btn-sm px-4">Download CSV</a>
+                        </div>
+
+                        <hr class="my-3" style="border-color:rgba(239,68,68,0.2);" />
+
+                        <h5 class="mb-1" style="color:#ef4444;font-size:0.95rem;">⚠️ Reset Portfolio</h5>
+                        <p class="text-secondary small">Wipes all your current holdings and resets your cash balance back to <strong>$100,000</strong>. Trade history is kept.</p>
+
+                        <button type="button" class="btn btn-outline-danger btn-sm px-4"
+                                data-bs-toggle="modal" data-bs-target="#resetPortfolioModal">
+                            Reset Portfolio
+                        </button>
+                    </div>
+                </div>
             }
         </div>
     </div>
 </div>
 
+@* ── Reset Portfolio confirmation modal ── *@
+@if (isLoggedIn)
+{
+    <div class="modal fade" id="resetPortfolioModal" tabindex="-1" aria-labelledby="resetModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background:rgba(10,14,26,0.97);border:1px solid rgba(239,68,68,0.3);border-radius:16px;">
+                <div class="modal-header" style="border-color:rgba(239,68,68,0.15);">
+                    <h5 class="modal-title" id="resetModalLabel" style="color:#ef4444;">⚠️ Reset Portfolio</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="color:var(--text-secondary);">
+                    <p>This will <strong style="color:var(--text-primary);">permanently delete all your current holdings</strong> and restore your cash to <strong style="color:var(--text-primary);">$100,000</strong>.</p>
+                    <p class="mb-0 small">Your trade history will be preserved. This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer" style="border-color:rgba(239,68,68,0.15);">
+                    <button type="button" class="btn btn-outline btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <form asp-action="ResetPortfolio" asp-controller="Home" method="post" style="display:inline;">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger btn-sm px-4">Yes, Reset My Portfolio</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // ── Account Overview stats ────────────────────────────────────────
+            (async () => {
+                try {
+                    const [portRes, wlRes, tradeRes] = await Promise.all([
+                        fetch('/portfolio/summary'),
+                        fetch('/api/watchlist'),
+                        fetch('/portfolio/trades?limit=9999')
+                    ]);
+                    if (portRes.ok) {
+                        const p = await portRes.json();
+                        const bal = document.getElementById('overviewBalance');
+                        if (bal) bal.textContent = '$' + Number(p.totalValue ?? p.TotalValue ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    }
+                    if (wlRes.ok) {
+                        const wl = await wlRes.json();
+                        const el = document.getElementById('overviewWatchlist');
+                        if (el) el.textContent = wl.length + ' stocks';
+                    }
+                    if (tradeRes.ok) {
+                        const tr = await tradeRes.json();
+                        const el = document.getElementById('overviewTrades');
+                        if (el) el.textContent = tr.length + ' trades';
+                    }
+                } catch { }
+            })();
+
+            // ── Font Size ─────────────────────────────────────────────────────
+            const savedSize = localStorage.getItem('fontSize') || '16';
+            document.documentElement.style.fontSize = savedSize + 'px';
+            document.querySelectorAll('.font-size-btn').forEach(btn => {
+                if (btn.dataset.size === savedSize) btn.classList.add('active-size');
+                btn.addEventListener('click', () => {
+                    const sz = btn.dataset.size;
+                    document.documentElement.style.fontSize = sz + 'px';
+                    localStorage.setItem('fontSize', sz);
+                    document.querySelectorAll('.font-size-btn').forEach(b => b.classList.remove('active-size'));
+                    btn.classList.add('active-size');
+                });
+            });
+
+            // ── Reduce Animations ─────────────────────────────────────────────
+            const reduceMotion = document.getElementById('reduceMotion');
+            if (reduceMotion) {
+                const saved = localStorage.getItem('reduceMotion') === 'true';
+                reduceMotion.checked = saved;
+                if (saved) document.documentElement.setAttribute('data-reduce-motion', '');
+                reduceMotion.addEventListener('change', () => {
+                    if (reduceMotion.checked) {
+                        document.documentElement.setAttribute('data-reduce-motion', '');
+                        localStorage.setItem('reduceMotion', 'true');
+                    } else {
+                        document.documentElement.removeAttribute('data-reduce-motion');
+                        localStorage.setItem('reduceMotion', 'false');
+                    }
+                });
+            }
+
+            // ── Trading Defaults ──────────────────────────────────────────────
+            const defaultOrderType = document.getElementById('defaultOrderType');
+            const defaultQty       = document.getElementById('defaultQty');
+            if (defaultOrderType) defaultOrderType.value = localStorage.getItem('defaultOrderType') || 'market';
+            if (defaultQty)       defaultQty.value       = localStorage.getItem('defaultQty') || '1';
+
+            // Risk tolerance pills
+            const savedRisk = localStorage.getItem('riskTolerance') || 'moderate';
+            document.querySelectorAll('.risk-btn').forEach(btn => {
+                if (btn.dataset.risk === savedRisk) btn.classList.add('active-risk');
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.risk-btn').forEach(b => b.classList.remove('active-risk'));
+                    btn.classList.add('active-risk');
+                    localStorage.setItem('riskTolerance', btn.dataset.risk);
+                });
+            });
+
             const themeToggle = document.getElementById('themeToggle');
-            
+
             // Initial check
             const currentTheme = localStorage.getItem('theme') || 'dark';
             if (currentTheme === 'light') {
@@ -289,6 +527,9 @@
                 savePreferencesBtn.addEventListener('click', async () => {
                     localStorage.setItem('currencyDisplay', currencyDisplay.value);
                     localStorage.setItem('publicProfileVisibility', publicProfile.checked);
+                    // Save trading defaults
+                    if (defaultOrderType) localStorage.setItem('defaultOrderType', defaultOrderType.value);
+                    if (defaultQty && defaultQty.value) localStorage.setItem('defaultQty', defaultQty.value);
 
                     try {
                         await fetch('/api/leaderboard/privacy', {

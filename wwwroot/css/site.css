@@ -444,6 +444,14 @@ main {
   }
 }
 
+/* Respect the in-app Reduce Animations toggle */
+[data-reduce-motion] main       { animation: none !important; }
+[data-reduce-motion] .card      { transition: none !important; }
+[data-reduce-motion] .card:hover { transform: none !important; box-shadow: none !important; }
+[data-reduce-motion] .btn       { transition: none !important; }
+[data-reduce-motion] .btn:hover { transform: none !important; }
+[data-reduce-motion] *          { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+
 /* Utilities */
 .text-gradient {
   background: linear-gradient(90deg, #00c2ff, #c084fc);

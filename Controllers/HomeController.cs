@@ -297,6 +297,84 @@ public class HomeController : Controller
         return View();
     }
 
+    // POST: /Home/ResetPortfolio
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResetPortfolio()
+    {
+        var userId = HttpContext.Session.GetString("UserId");
+        if (userId == null) return RedirectToAction("Log");
+
+        try
+        {
+            var http = _httpClientFactory.CreateClient("supabase");
+
+            // 1. Delete all holdings for this user
+            await http.DeleteAsync($"holdings?user_id=eq.{Uri.EscapeDataString(userId)}");
+
+            // 2. Reset cash balance to $100,000 (upsert)
+            var payload = JsonSerializer.Serialize(new { user_id = userId, cash = 100000.00m });
+            var upsert  = new HttpRequestMessage(HttpMethod.Post, "portfolios")
+            {
+                Headers  = { { "Prefer", "resolution=merge-duplicates" } },
+                Content  = new StringContent(payload, System.Text.Encoding.UTF8, "application/json")
+            };
+            await http.SendAsync(upsert);
+
+            TempData["PrivacySuccess"] = "Portfolio reset! Your cash has been restored to $100,000.";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "ResetPortfolio failed for user {UserId}", userId);
+            TempData["PrivacyError"] = "Failed to reset portfolio. Please try again.";
+        }
+
+        return RedirectToAction("Settings");
+    }
+
+    // GET: /Home/ExportTrades
+    public async Task<IActionResult> ExportTrades()
+    {
+        var userId = HttpContext.Session.GetString("UserId");
+        if (userId == null) return RedirectToAction("Log");
+
+        try
+        {
+            var http = _httpClientFactory.CreateClient("supabase");
+            var resp = await http.GetAsync(
+                $"trades?user_id=eq.{Uri.EscapeDataString(userId)}&order=traded_at.desc&limit=10000&select=*");
+            resp.EnsureSuccessStatusCode();
+
+            var json  = await resp.Content.ReadAsStringAsync();
+            var trades = JsonSerializer.Deserialize<List<JsonElement>>(json,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
+
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("Date,Action,Symbol,Shares,Price,Total");
+            foreach (var t in trades)
+            {
+                var date   = t.TryGetProperty("traded_at",  out var d) ? d.GetString() ?? "" : "";
+                var action = t.TryGetProperty("action",     out var a) ? a.GetString() ?? "" : "";
+                var symbol = t.TryGetProperty("symbol",     out var s) ? s.GetString() ?? "" : "";
+                var shares = t.TryGetProperty("shares",     out var sh) ? sh.GetDecimal() : 0m;
+                var price  = t.TryGetProperty("price",      out var p)  ? p.GetDecimal()  : 0m;
+                var total  = Math.Round(shares * price, 2);
+                sb.AppendLine($"{date},{action},{symbol},{shares},{price},{total}");
+            }
+
+            var bytes    = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
+            var username = HttpContext.Session.GetString("Username") ?? "user";
+            var filename = $"vest-trades-{username}-{DateTime.UtcNow:yyyy-MM-dd}.csv";
+            return File(bytes, "text/csv", filename);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "ExportTrades failed for user {UserId}", userId);
+            TempData["PrivacyError"] = "Failed to export trade history. Please try again.";
+            return RedirectToAction("Settings");
+        }
+    }
+
     // GET: /Home/Log
     [HttpGet]
     public IActionResult Log() => View(new LoginViewModel());
