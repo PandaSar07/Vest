@@ -560,6 +560,39 @@
     #tradeToast.show { transform: translateY(0); }
     #tradeToast.toast-ok   { border-left: 3px solid #10b981; }
     #tradeToast.toast-err  { border-left: 3px solid #ef4444; }
+
+    #backToTop {
+        position: fixed;
+        bottom: 2rem;
+        left: 2rem;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: rgba(56, 189, 248, 0.15);
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        color: var(--accent-color);
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease, background 0.3s ease;
+        z-index: 999;
+        backdrop-filter: blur(8px);
+    }
+
+    #backToTop.visible {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    #backToTop:hover {
+        background: rgba(56, 189, 248, 0.3);
+        transform: translateY(-3px);
+        box-shadow: 0 4px 16px rgba(56, 189, 248, 0.25);
+    }
 </style>
 
 <div class="container crypto-hero">
@@ -721,6 +754,8 @@
 </div>
 
 <div id="tradeToast"></div>
+
+<button id="backToTop" title="Back to top" aria-label="Scroll back to top">↑</button>
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
@@ -1373,5 +1408,14 @@
         VestTradeRisk.onTabSwitch(tradeMode);
         loadAll(start);
         loadCryptoNews();
+
+        // Back to top button
+        const backToTopBtn = document.getElementById('backToTop');
+        window.addEventListener('scroll', () => {
+            backToTopBtn.classList.toggle('visible', window.scrollY > 400);
+        });
+        backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
     </script>
 }
