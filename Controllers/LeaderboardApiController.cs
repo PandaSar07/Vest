@@ -28,9 +28,9 @@ public class LeaderboardApiController : ControllerBase
 
     /// <summary>Paginated global leaderboard (public profiles only).</summary>
     [HttpGet]
-    public IActionResult List([FromQuery] int page = 1, [FromQuery] int pageSize = 25)
+    public IActionResult List([FromQuery] int page = 1, [FromQuery] int pageSize = 25, [FromQuery] string? search = null)
     {
-        var result = _leaderboard.GetPage(page, pageSize);
+        var result = _leaderboard.GetPage(page, pageSize, search);
         return Ok(new
         {
             updatedAt = result.UpdatedAt,

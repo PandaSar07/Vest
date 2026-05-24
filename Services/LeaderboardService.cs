@@ -39,13 +39,22 @@ public class LeaderboardService
         lock (_lock) _snapshot = snapshot;
     }
 
-    public LeaderboardPage GetPage(int page, int pageSize)
+    public LeaderboardPage GetPage(int page, int pageSize, string? search = null)
     {
         var snap = GetSnapshot();
-        var total = snap.Entries.Count;
+        
+        var query = snap.Entries.AsEnumerable();
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query = query.Where(e => 
+                (e.Username != null && e.Username.Contains(search, StringComparison.OrdinalIgnoreCase)) ||
+                (e.DisplayName != null && e.DisplayName.Contains(search, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        var total = query.Count();
         var safePage = Math.Max(1, page);
         var safeSize = Math.Clamp(pageSize, 1, 50);
-        var items = snap.Entries
+        var items = query
             .Skip((safePage - 1) * safeSize)
             .Take(safeSize)
             .ToList();

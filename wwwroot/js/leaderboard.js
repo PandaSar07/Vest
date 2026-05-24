@@ -6,6 +6,7 @@
     let currentPage = 1;
     let loading = false;
     let hasMore = true;
+    let currentSearch = '';
     const initialRows = tbody.querySelectorAll('tr').length;
     if (initialRows >= pageSize) currentPage = 2;
     else if (initialRows > 0) hasMore = false;
@@ -59,7 +60,9 @@
         if (loadBtn) loadBtn.disabled = true;
 
         try {
-            const r = await fetch('/api/leaderboard?page=' + page + '&pageSize=' + pageSize);
+            let url = '/api/leaderboard?page=' + page + '&pageSize=' + pageSize;
+            if (currentSearch) url += '&search=' + encodeURIComponent(currentSearch);
+            const r = await fetch(url);
             if (!r.ok) return;
             const data = await r.json();
 
@@ -111,6 +114,21 @@
             }
         }, { rootMargin: '120px' });
         obs.observe(sentinel);
+    }
+
+    const searchInput = document.getElementById('lbSearchInput');
+    let searchTimeout = null;
+    if (searchInput) {
+        searchInput.addEventListener('input', function (e) {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function () {
+                currentSearch = e.target.value.trim();
+                tbody.innerHTML = ''; // clear table
+                hasMore = true;
+                currentPage = 1;
+                loadPage(1);
+            }, 300);
+        });
     }
 
     async function loadMe() {
