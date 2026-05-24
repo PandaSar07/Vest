@@ -79,10 +79,21 @@
 
             if (page === 1 && data.entries.length === 0 && tbody.children.length === 0) {
                 const empty = document.getElementById('lbEmptyState');
-                if (empty) empty.style.display = 'block';
+                if (empty) {
+                    empty.style.display = 'block';
+                    // Update text if searching
+                    const p = empty.querySelector('p');
+                    if (p) p.textContent = currentSearch ? 'No users found matching "' + escapeHtml(currentSearch) + '".' : 'No public traders on the board yet.';
+                }
+            } else {
+                const empty = document.getElementById('lbEmptyState');
+                if (empty) empty.style.display = 'none';
             }
 
-            if (page > 1 || (page === 1 && initialRows === 0)) {
+            if (page > 1 || (page === 1 && (initialRows === 0 || currentSearch !== ''))) {
+                appendRows(data.entries);
+            } else if (page === 1 && currentSearch === '' && tbody.children.length === 0) {
+                // If they clear the search and there are initial rows but we just cleared tbody, we should append them
                 appendRows(data.entries);
             }
 
