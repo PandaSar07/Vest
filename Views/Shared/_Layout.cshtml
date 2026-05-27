@@ -144,7 +144,8 @@
             position: relative;
             width: 100%;
             max-width: 390px;
-            margin: 0 1rem;
+            min-width: 240px;
+            margin: 0;
         }
 
         .nav-search-input {
@@ -252,6 +253,7 @@
             .nav-search-wrap {
                 margin: 0.6rem 0;
                 max-width: none;
+                min-width: 0;
             }
         }
 
@@ -342,7 +344,7 @@
                             }
                         </ul>
                     </div>
-                    <ul class="navbar-nav align-items-sm-center gap-sm-1">
+                    <ul class="navbar-nav align-items-sm-center gap-3">
                         @if (isLoggedIn)
                         {
                             <li class="nav-item">
@@ -365,7 +367,7 @@
                             var email    = Context.Session.GetString("UserEmail") ?? "";
                             var avatarUrl = Context.Session.GetString("AvatarUrl");
                             var initials = username.Length > 0 ? username.Substring(0, 1).ToUpper() : "?";
-                            <li class="nav-item dropdown">
+                            <li class="nav-item dropdown flex-shrink-0">
                                 <a class="nav-link nav-profile-toggle dropdown-toggle d-flex align-items-center gap-2"
                                    href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     @if (!string.IsNullOrWhiteSpace(avatarUrl))
