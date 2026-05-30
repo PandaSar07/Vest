@@ -8,6 +8,7 @@ builder.Services.AddControllersWithViews();
 
 // Session support
 builder.Services.AddDistributedMemoryCache();
+builder.Services.AddMemoryCache();
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromHours(2);

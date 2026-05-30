@@ -1,6 +1,7 @@
 using System.Net.Http;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Vest.Services
 {
@@ -8,12 +9,14 @@ namespace Vest.Services
     {
         private readonly HttpClient _httpClient;
         private readonly string _apiKey;
+        private readonly IMemoryCache _cache;
 
-        public FinnhubService(HttpClient httpClient, IConfiguration configuration)
+        public FinnhubService(HttpClient httpClient, IConfiguration configuration, IMemoryCache cache)
         {
             _httpClient = httpClient;
             _apiKey = configuration["Finnhub:ApiKey"]
                       ?? throw new Exception("Finnhub API key not found");
+            _cache = cache;
         }
 
         /// <summary>Full real-time quote: c, d, dp, h, l, o, pc, t</summary>
@@ -30,16 +33,23 @@ namespace Vest.Services
             return doc.RootElement.Clone();
         }
 
-        /// <summary>Company profile: name, logo, exchange, industry, currency, market cap, etc.</summary>
+        /// <summary>Company profile: name, logo, exchange, industry, currency, market cap, etc. Cached for 1 hour.</summary>
         public async Task<JsonElement?> GetCompanyProfileAsync(string symbol)
         {
+            var cacheKey = $"profile:{symbol}";
+            if (_cache.TryGetValue(cacheKey, out JsonElement cached))
+                return cached;
+
             var url = $"https://finnhub.io/api/v1/stock/profile2?symbol={Uri.EscapeDataString(symbol)}&token={_apiKey}";
             var response = await _httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
 
             var json = await response.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(json);
-            return doc.RootElement.Clone();
+            var result = doc.RootElement.Clone();
+
+            _cache.Set(cacheKey, result, TimeSpan.FromHours(1));
+            return result;
         }
 
         /// <summary>Latest company/market news headlines.</summary>
@@ -122,16 +132,23 @@ namespace Vest.Services
             return doc.RootElement.Clone();
         }
 
-        /// <summary>Symbol search autocomplete from Finnhub.</summary>
+        /// <summary>Symbol search autocomplete from Finnhub. Cached for 2 minutes.</summary>
         public async Task<JsonElement?> SearchSymbolsAsync(string query)
         {
+            var cacheKey = $"search:{query.ToUpperInvariant()}";
+            if (_cache.TryGetValue(cacheKey, out JsonElement cached))
+                return cached;
+
             var url = $"https://finnhub.io/api/v1/search?q={Uri.EscapeDataString(query)}&token={_apiKey}";
             var response = await _httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
 
             var json = await response.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(json);
-            return doc.RootElement.Clone();
+            var result = doc.RootElement.Clone();
+
+            _cache.Set(cacheKey, result, TimeSpan.FromMinutes(2));
+            return result;
         }
     }
 }
