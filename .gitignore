@@ -34,3 +34,6 @@ packages/
 
 ## Publish output
 publish/
+
+## Cursor IDE (local agent config)
+.cursor/
