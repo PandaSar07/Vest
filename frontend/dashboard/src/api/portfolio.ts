@@ -43,8 +43,22 @@ export async function fetchTrades(limit: number): Promise<Trade[]> {
       total: Number(row.total ?? 0),
       tradedAt: String(row.tradedAt ?? row.traded_at ?? ''),
       exitReason: row.exitReason != null ? String(row.exitReason) : row.exit_reason != null ? String(row.exit_reason) : null,
+      note: row.note != null ? String(row.note) : null,
     }
   })
+}
+
+export async function updateTradeNote(tradeId: number, note: string | null): Promise<{ ok: boolean; error?: string; note?: string | null }> {
+  const r = await fetch(`/portfolio/trades/${tradeId}/note`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'same-origin',
+    body: JSON.stringify({ note: note ?? '' }),
+  })
+  handleUnauthorized(r)
+  const data = (await r.json().catch(() => ({}))) as { error?: string; note?: string | null }
+  if (!r.ok) return { ok: false, error: data.error || 'Could not save note.' }
+  return { ok: true, note: data.note ?? null }
 }
 
 export async function fetchOrders(): Promise<LimitOrder[]> {

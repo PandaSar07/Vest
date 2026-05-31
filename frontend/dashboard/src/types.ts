@@ -41,6 +41,7 @@ export type Trade = {
   total: number
   tradedAt: string
   exitReason?: string | null
+  note?: string | null
 }
 
 export type LimitOrder = {

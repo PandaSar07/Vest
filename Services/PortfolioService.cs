@@ -71,6 +71,30 @@ public partial class PortfolioService
             await resp.Content.ReadAsStringAsync(), _json) ?? [];
     }
 
+    public async Task<(bool ok, string error)> UpdateTradeNoteAsync(string userId, long tradeId, string? note)
+    {
+        note = string.IsNullOrWhiteSpace(note) ? null : note.Trim();
+        if (note != null && note.Length > 500)
+            return (false, "Note must be 500 characters or fewer.");
+
+        var check = await _http.GetAsync(
+            $"trades?id=eq.{tradeId}&user_id=eq.{Uri.EscapeDataString(userId)}&select=id");
+        if (!check.IsSuccessStatusCode)
+            return (false, "Trade not found.");
+
+        using var doc = JsonDocument.Parse(await check.Content.ReadAsStringAsync());
+        if (doc.RootElement.ValueKind != JsonValueKind.Array || doc.RootElement.GetArrayLength() == 0)
+            return (false, "Trade not found.");
+
+        var patch = await _http.PatchAsync(
+            $"trades?id=eq.{tradeId}&user_id=eq.{Uri.EscapeDataString(userId)}",
+            Json(new { note }));
+        if (!patch.IsSuccessStatusCode)
+            return (false, "Could not save note. Please try again.");
+
+        return (true, string.Empty);
+    }
+
     // ── Portfolio snapshots ────────────────────────────────────────────────
 
     public async Task TakeSnapshotAsync(string userId, decimal totalValue)
@@ -299,6 +323,7 @@ public class TradeRow
     [JsonPropertyName("total")]      public decimal  Total     { get; set; }
     [JsonPropertyName("traded_at")]  public DateTime TradedAt  { get; set; }
     [JsonPropertyName("exit_reason")] public string? ExitReason { get; set; }
+    [JsonPropertyName("note")]        public string? Note       { get; set; }
 }
 
 public class SnapshotRow

@@ -122,6 +122,20 @@ public class PortfolioController : ControllerBase
         catch (Exception ex) { return StatusCode(500, new { error = ex.Message }); }
     }
 
+    [HttpPut("trades/{id:long}/note")]
+    public async Task<IActionResult> UpdateTradeNote(long id, [FromBody] TradeNoteRequest req)
+    {
+        var userId = CurrentUserId;
+        if (userId == null) return Unauthorized(new { error = "Not logged in." });
+        try
+        {
+            var (ok, error) = await _portfolio.UpdateTradeNoteAsync(userId, id, req.Note);
+            if (!ok) return BadRequest(new { error });
+            return Ok(new { message = "Note saved.", note = string.IsNullOrWhiteSpace(req.Note) ? null : req.Note.Trim() });
+        }
+        catch (Exception ex) { return StatusCode(500, new { error = ex.Message }); }
+    }
+
     // ── GET /portfolio/snapshots ────────────────────────────────────────────
 
     [HttpGet("snapshots")]
@@ -384,3 +398,5 @@ public class RiskRuleRequest
 }
 
 public class LimitOrderRequest { public string? Action { get; set; } public string Symbol { get; set; } = ""; public decimal Shares { get; set; } public decimal LimitPrice { get; set; } }
+
+public class TradeNoteRequest { public string? Note { get; set; } }

@@ -201,8 +201,13 @@ export default function App() {
         </Card>
       )}
 
-      <Card title="Past trades" subtitle="Latest executions across your account.">
-        <TradesTable trades={trades} />
+      <Card title="Past trades" subtitle="Add notes to remember why you traded or when you plan to exit.">
+        <TradesTable
+          trades={trades}
+          onNoteUpdated={(tradeId, note) => {
+            setTrades((prev) => prev.map((t) => (t.id === tradeId ? { ...t, note } : t)))
+          }}
+        />
       </Card>
     </motion.div>
   )
