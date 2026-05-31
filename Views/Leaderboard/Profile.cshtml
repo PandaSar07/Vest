@@ -2,200 +2,397 @@
 @{
     ViewData["Title"] = Model.Username + " — Profile";
     var pctClass = Model.ReturnPct >= 0 ? "positive" : "negative";
+    var initial = Model.Username.Length > 0 ? Model.Username.Substring(0, 1).ToUpper() : "?";
 }
 
 @section Head {
     <style>
-        .pf-hero {
+        .pf-page {
+            max-width: 880px;
+            margin: 0 auto;
+            padding: 0 1rem 3rem;
+        }
+        .pf-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            margin: 1.25rem 0 1rem;
+            transition: color 0.15s;
+        }
+        .pf-back:hover { color: var(--accent-color); }
+
+        .pf-header {
             position: relative;
             overflow: hidden;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-            padding: 2.5rem 1rem 2rem;
+            border-radius: 18px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(15, 23, 42, 0.45);
+            padding: 1.5rem 1.35rem;
         }
-        .pf-hero::before {
+        .pf-header::before {
             content: '';
             position: absolute;
             inset: 0;
-            background: radial-gradient(ellipse 70% 60% at 20% 0%, rgba(0,194,255,0.12), transparent);
+            background: radial-gradient(ellipse 80% 100% at 0% 0%, rgba(0,194,255,0.14), transparent 55%);
             pointer-events: none;
         }
-        .pf-stat-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 1rem;
-            max-width: 920px;
-            margin: 0 auto;
-            padding: 1.5rem 1rem;
-        }
-        .pf-stat {
-            padding: 1.1rem 1.25rem;
-            border-radius: 14px;
-            border: 1px solid rgba(255,255,255,0.08);
-            background: rgba(15, 23, 42, 0.55);
-        }
-        .pf-stat label {
-            display: block;
-            font-size: 0.72rem;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            color: var(--text-secondary);
-            margin-bottom: 0.35rem;
-        }
-        .pf-stat .val {
-            font-size: 1.35rem;
-            font-weight: 700;
-            font-variant-numeric: tabular-nums;
-            color: var(--text-primary);
-        }
-        .pf-pct.positive { color: #10b981; }
-        .pf-pct.negative { color: #ef4444; }
-        .pf-trades {
-            max-width: 920px;
-            margin: 0 auto 3rem;
-            padding: 0 1rem;
-        }
-        .pf-trades h2 {
-            font-family: var(--font-family);
-            font-size: 1.15rem;
-            color: #fff;
-            -webkit-text-fill-color: #fff;
-            background: none;
-            margin-bottom: 1rem;
+        .pf-identity {
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            gap: 1.1rem;
         }
         .pf-avatar {
-            width: 72px;
-            height: 72px;
+            width: 64px;
+            height: 64px;
             border-radius: 50%;
             object-fit: cover;
-            border: 2px solid rgba(0,194,255,0.35);
+            border: 2px solid rgba(0,194,255,0.3);
             flex-shrink: 0;
         }
         .pf-avatar-fallback {
-            width: 72px;
-            height: 72px;
+            width: 64px;
+            height: 64px;
             border-radius: 50%;
             background: linear-gradient(135deg, var(--accent-color) 0%, #7c3aed 100%);
             color: #0a0e1a;
             font-weight: 800;
-            font-size: 1.75rem;
+            font-size: 1.5rem;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
         }
+        .pf-name {
+            font-family: var(--font-family);
+            font-size: 1.45rem;
+            font-weight: 700;
+            color: #fff;
+            -webkit-text-fill-color: #fff;
+            background: none;
+            margin: 0;
+            line-height: 1.2;
+        }
+        .pf-display-name {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin: 0.2rem 0 0;
+        }
+        .pf-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-top: 0.65rem;
+        }
         .pf-badge {
             display: inline-flex;
             align-items: center;
-            gap: 0.35rem;
-            padding: 0.25rem 0.65rem;
+            padding: 0.2rem 0.55rem;
             border-radius: 999px;
-            font-size: 0.72rem;
+            font-size: 0.68rem;
             font-weight: 600;
-            border: 1px solid rgba(0,194,255,0.35);
+            letter-spacing: 0.02em;
+            border: 1px solid rgba(0,194,255,0.28);
             color: var(--accent-color);
-            background: rgba(0,194,255,0.08);
+            background: rgba(0,194,255,0.07);
         }
-        .trade-buy { color: #10b981; font-weight: 600; }
-        .trade-sell { color: #ef4444; font-weight: 600; }
+        .pf-badge.rank {
+            border-color: rgba(251,191,36,0.35);
+            color: #fbbf24;
+            background: rgba(251,191,36,0.08);
+        }
+        .pf-privacy {
+            position: relative;
+            margin-top: 1rem;
+            padding: 0.65rem 0.85rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.06);
+            background: rgba(0,0,0,0.2);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        .pf-privacy a { color: var(--accent-color); }
+
+        .pf-highlight {
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-top: 1.25rem;
+        }
+        @@media (max-width: 480px) {
+            .pf-highlight { grid-template-columns: 1fr; }
+        }
+        .pf-highlight-card {
+            padding: 1rem 1.1rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.07);
+            background: rgba(0,0,0,0.22);
+        }
+        .pf-highlight-card label {
+            display: block;
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--text-secondary);
+            margin-bottom: 0.3rem;
+        }
+        .pf-highlight-card .val {
+            font-size: 1.5rem;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            color: var(--text-primary);
+            line-height: 1.1;
+        }
+        .pf-pct.positive { color: #10b981; }
+        .pf-pct.negative { color: #ef4444; }
+
+        .pf-metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.65rem;
+            margin-top: 1rem;
+        }
+        @@media (max-width: 640px) {
+            .pf-metrics { grid-template-columns: repeat(2, 1fr); }
+        }
+        .pf-metric {
+            text-align: center;
+            padding: 0.75rem 0.5rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.05);
+            background: rgba(255,255,255,0.02);
+        }
+        .pf-metric label {
+            display: block;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+        .pf-metric .val {
+            font-size: 0.95rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: var(--text-primary);
+        }
+
+        .pf-section {
+            margin-top: 2rem;
+        }
+        .pf-section-head {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 0.85rem;
+        }
+        .pf-section-head h2 {
+            font-family: var(--font-family);
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+            -webkit-text-fill-color: #fff;
+            background: none;
+            margin: 0;
+        }
+        .pf-section-head span {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .pf-trades-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 0.4rem;
+        }
+        .pf-trades-table th {
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--text-secondary);
+            font-weight: 600;
+            padding: 0 0.85rem 0.35rem;
+            border: none;
+        }
+        .pf-trades-table td {
+            padding: 0.75rem 0.85rem;
+            background: rgba(15, 23, 42, 0.5);
+            border-top: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            vertical-align: middle;
+            font-size: 0.88rem;
+        }
+        .pf-trades-table td:first-child {
+            border-left: 1px solid rgba(255,255,255,0.05);
+            border-radius: 10px 0 0 10px;
+        }
+        .pf-trades-table td:last-child {
+            border-right: 1px solid rgba(255,255,255,0.05);
+            border-radius: 0 10px 10px 0;
+        }
+        .pf-trades-table tbody tr:hover td {
+            background: rgba(0, 194, 255, 0.05);
+            border-color: rgba(0, 194, 255, 0.15);
+        }
+        .pf-side {
+            display: inline-block;
+            padding: 0.15rem 0.45rem;
+            border-radius: 6px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+        .pf-side.buy {
+            color: #10b981;
+            background: rgba(16,185,129,0.12);
+        }
+        .pf-side.sell {
+            color: #ef4444;
+            background: rgba(239,68,68,0.12);
+        }
+        .pf-symbol { font-weight: 600; color: var(--text-primary); }
+        .pf-empty {
+            text-align: center;
+            padding: 2.5rem 1rem;
+            border-radius: 12px;
+            border: 1px dashed rgba(255,255,255,0.1);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        .pf-footnote {
+            margin-top: 0.75rem;
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            opacity: 0.85;
+        }
+        @@media (max-width: 640px) {
+            .pf-hide-sm { display: none; }
+        }
     </style>
 }
 
-<section class="pf-hero">
-    <div class="position-relative mx-auto" style="max-width:920px;padding:0 1rem;">
-        <a asp-controller="Leaderboard" asp-action="Index" class="text-secondary small text-decoration-none mb-3 d-inline-block">← Leaderboard</a>
-        <div class="d-flex flex-wrap align-items-center gap-3 mb-1">
+<div class="pf-page">
+    <a asp-controller="Leaderboard" asp-action="Index" class="pf-back">← Back to leaderboard</a>
+
+    <header class="pf-header">
+        <div class="pf-identity">
             @if (!string.IsNullOrWhiteSpace(Model.AvatarUrl))
             {
                 <img src="@Model.AvatarUrl" alt="" class="pf-avatar" />
             }
             else
             {
-                <div class="pf-avatar-fallback" aria-hidden="true">@(Model.Username.Length > 0 ? Model.Username.Substring(0, 1).ToUpper() : "?")</div>
+                <div class="pf-avatar-fallback" aria-hidden="true">@initial</div>
             }
-            <h1 class="mb-0" style="font-family:var(--font-family);color:#fff;-webkit-text-fill-color:#fff;background:none;">@Model.Username</h1>
-            @if (Model.IsPublic)
-            {
-                <span class="pf-badge">Public profile</span>
-            }
-            @if (Model.LeaderboardRank.HasValue)
-            {
-                <span class="pf-badge">Rank #@Model.LeaderboardRank</span>
-            }
+            <div class="flex-grow-1 min-w-0">
+                <h1 class="pf-name">@Model.Username</h1>
+                @if (!string.IsNullOrEmpty(Model.DisplayName))
+                {
+                    <p class="pf-display-name">@Model.DisplayName</p>
+                }
+                <div class="pf-badges">
+                    @if (Model.IsPublic)
+                    {
+                        <span class="pf-badge">Public</span>
+                    }
+                    @if (Model.LeaderboardRank.HasValue)
+                    {
+                        <span class="pf-badge rank">Rank #@Model.LeaderboardRank</span>
+                    }
+                </div>
+            </div>
         </div>
-        @if (!string.IsNullOrEmpty(Model.DisplayName))
-        {
-            <p class="text-secondary mb-0">@Model.DisplayName</p>
-        }
+
         @if (Model.IsOwner && !Model.IsPublic)
         {
-            <p class="small text-secondary mt-2 mb-0">Only you can see this page. Turn on public profile in <a asp-controller="Home" asp-action="Settings" style="color:var(--accent-color);">Settings</a> to appear on the leaderboard.</p>
+            <p class="pf-privacy mb-0">
+                Only you can see this page. Enable a public profile in
+                <a asp-controller="Home" asp-action="Settings">Settings</a> to appear on the leaderboard.
+            </p>
         }
-    </div>
-</section>
 
-<div class="pf-stat-grid">
-    <div class="pf-stat">
-        <label>Portfolio value</label>
-        <div class="val">$@Model.TotalValue.ToString("N2")</div>
-    </div>
-    <div class="pf-stat">
-        <label>Total return</label>
-        <div class="val pf-pct @pctClass">@(Model.ReturnPct >= 0 ? "+" : "")@Model.ReturnPct.ToString("N2")%</div>
-    </div>
-    <div class="pf-stat">
-        <label>Cash</label>
-        <div class="val">$@Model.Cash.ToString("N2")</div>
-    </div>
-    <div class="pf-stat">
-        <label>Invested (holdings)</label>
-        <div class="val">$@Model.StockValue.ToString("N2")</div>
-    </div>
-    <div class="pf-stat">
-        <label>Open positions</label>
-        <div class="val">@Model.HoldingCount</div>
-    </div>
-    <div class="pf-stat">
-        <label>Trades</label>
-        <div class="val">@Model.TradeCount</div>
-    </div>
-</div>
-
-<section class="pf-trades">
-    <h2>Recent trading history</h2>
-    @if (Model.RecentTrades.Count == 0)
-    {
-        <p class="text-secondary">No trades recorded yet.</p>
-    }
-    else
-    {
-        <div class="table-responsive glass-panel" style="padding:0;overflow:hidden;">
-            <table class="table mb-0">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Symbol</th>
-                        <th>Side</th>
-                        <th class="text-end">Shares</th>
-                        <th class="text-end">Price</th>
-                        <th class="text-end">Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var t in Model.RecentTrades)
-                    {
-                        var sideClass = t.Action == "BUY" ? "trade-buy" : "trade-sell";
-                        <tr>
-                            <td class="text-secondary small">@t.TradedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt")</td>
-                            <td class="fw-semibold">@t.Symbol</td>
-                            <td class="@sideClass">@t.Action</td>
-                            <td class="text-end">@t.Shares.ToString("N2")</td>
-                            <td class="text-end">$@t.Price.ToString("N2")</td>
-                            <td class="text-end">$@t.Total.ToString("N2")</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+        <div class="pf-highlight">
+            <div class="pf-highlight-card">
+                <label>Portfolio value</label>
+                <div class="val">$@Model.TotalValue.ToString("N2")</div>
+            </div>
+            <div class="pf-highlight-card">
+                <label>Total return</label>
+                <div class="val pf-pct @pctClass">@(Model.ReturnPct >= 0 ? "+" : "")@Model.ReturnPct.ToString("N2")%</div>
+            </div>
         </div>
-        <p class="text-secondary small mt-2 mb-0">Showing up to @Model.RecentTrades.Count most recent trades. Educational paper trading only — not financial advice.</p>
-    }
-</section>
+
+        <div class="pf-metrics">
+            <div class="pf-metric">
+                <label>Cash</label>
+                <div class="val">$@Model.Cash.ToString("N0")</div>
+            </div>
+            <div class="pf-metric">
+                <label>Invested</label>
+                <div class="val">$@Model.StockValue.ToString("N0")</div>
+            </div>
+            <div class="pf-metric">
+                <label>Positions</label>
+                <div class="val">@Model.HoldingCount</div>
+            </div>
+            <div class="pf-metric">
+                <label>Trades</label>
+                <div class="val">@Model.TradeCount</div>
+            </div>
+        </div>
+    </header>
+
+    <section class="pf-section">
+        <div class="pf-section-head">
+            <h2>Recent trades</h2>
+            @if (Model.RecentTrades.Count > 0)
+            {
+                <span>Last @Model.RecentTrades.Count</span>
+            }
+        </div>
+
+        @if (Model.RecentTrades.Count == 0)
+        {
+            <div class="pf-empty">No trades recorded yet.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="pf-trades-table">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Side</th>
+                            <th class="pf-hide-sm">Date</th>
+                            <th class="text-end pf-hide-sm">Shares</th>
+                            <th class="text-end">Price</th>
+                            <th class="text-end">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var t in Model.RecentTrades)
+                        {
+                            var isBuy = t.Action == "BUY";
+                            <tr>
+                                <td class="pf-symbol">@t.Symbol</td>
+                                <td>
+                                    <span class="pf-side @(isBuy ? "buy" : "sell")">@t.Action</span>
+                                </td>
+                                <td class="text-secondary small pf-hide-sm">@t.TradedAt.ToLocalTime().ToString("MMM d, h:mm tt")</td>
+                                <td class="text-end pf-hide-sm">@t.Shares.ToString("N2")</td>
+                                <td class="text-end">$@t.Price.ToString("N2")</td>
+                                <td class="text-end fw-semibold">$@t.Total.ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <p class="pf-footnote mb-0">Paper trading for education only — not financial advice.</p>
+        }
+    </section>
+</div>
