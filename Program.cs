@@ -8,6 +8,16 @@ var port = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrEmpty(port))
     builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
+var resolvedHosts = ConfigurationValidator.ResolveProductionAllowedHosts(
+    builder.Configuration, builder.Environment.IsDevelopment());
+if (resolvedHosts is not null)
+{
+    builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+    {
+        ["AllowedHosts"] = resolvedHosts
+    });
+}
+
 ConfigurationValidator.ValidateForProduction(builder.Configuration, builder.Environment);
 
 var isDev = builder.Environment.IsDevelopment();
@@ -17,6 +27,8 @@ builder.Services.AddControllersWithViews();
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
 });
 
 builder.Services.AddDistributedMemoryCache();
