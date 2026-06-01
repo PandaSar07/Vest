@@ -2,6 +2,8 @@
 
 Vest is a stock market web application built using ASP.NET Core MVC. The platform uses Supabase for database management, Finnhub for real-time market data, and Google OAuth for user authentication.
 
+https://vest-1.onrender.com/Dashboard
+
 ## Minimum Requirements
 
 To build and run this project locally, you will need the following tools and credentials:
