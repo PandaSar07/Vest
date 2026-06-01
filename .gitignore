@@ -39,5 +39,8 @@ packages/
 ## Publish output
 publish/
 
+## Node
+**/node_modules/
+
 ## Cursor IDE (local agent config)
 .cursor/
