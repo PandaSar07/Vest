@@ -2,7 +2,8 @@
 FROM node:20-bookworm-slim AS dashboard
 WORKDIR /src/frontend/dashboard
 COPY frontend/dashboard/package.json frontend/dashboard/package-lock.json ./
-RUN npm ci
+# npm install is more tolerant than npm ci when lockfile/package.json drift on a branch
+RUN npm install --no-audit --no-fund
 COPY frontend/dashboard/ ./
 RUN npm run build
 
