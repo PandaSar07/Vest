@@ -30,11 +30,53 @@ The application depends on multiple external services to function correctly. You
 
 ## Configuration
 
-Before running the application, make sure your configuration keys are populated. The project reads settings from `appsettings.json`, environment variables, or secret managers. 
+Secrets must **not** be committed. The repo ships a safe `appsettings.json` with empty placeholders.
 
-For local development, it is highly recommended to use the [Secret Manager](https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets), environment variables, or a `.env.local` file to avoid committing sensitive keys to version control.
+**Local development:** copy your keys into `appsettings.Development.json` (gitignored). That file is loaded automatically when `ASPNETCORE_ENVIRONMENT=Development`.
 
-### Required Configuration Structure
+**Production:** set environment variables on your host. See [`.env.example`](.env.example) for the full list and naming format (`Section__Key`).
+
+### Required keys
+
+| Config key | Environment variable |
+|---|---|
+| `Finnhub:ApiKey` | `Finnhub__ApiKey` |
+| `Supabase:Url` | `Supabase__Url` |
+| `Supabase:ServiceRoleKey` | `Supabase__ServiceRoleKey` |
+| `Authentication:Google:ClientId` | `Authentication__Google__ClientId` |
+| `Authentication:Google:ClientSecret` | `Authentication__Google__ClientSecret` |
+| `Email:*` | `Email__SmtpHost`, `Email__Password`, etc. |
+| `Vapid:*` | `Vapid__PublicKey`, `Vapid__PrivateKey`, etc. |
+| `AllowedHosts` | `AllowedHosts=yourdomain.com;www.yourdomain.com` |
+
+## Deployment
+
+### Recommended platforms
+
+Vest is an ASP.NET Core 8 app with **background workers** (limit-order executor, risk monitor, leaderboard refresh). Use an **always-on** host:
+
+- **Railway**, **Render**, **Fly.io**, or **Azure App Service** — recommended
+- **Vercel** — not recommended (serverless; background services will not run reliably)
+
+### Vercel environment variables
+
+Vercel does **not** use a file upload for env vars. Use one of these:
+
+1. **Dashboard:** Project → Settings → Environment Variables → add each name/value from [`.env.example`](.env.example)
+2. **CLI:** `vercel env add Finnhub__ApiKey` (repeat for each variable)
+
+The reference file to copy variable **names** from is **`.env.example`** in the project root.
+
+Before going live:
+
+1. **Rotate all API keys** that were previously committed to git (Supabase, Google, Gmail, Vapid, Finnhub).
+2. Apply Supabase migrations in `supabase/migrations/`.
+3. Add your production URL to Google OAuth redirect URIs: `https://yourdomain.com/signin-google`.
+4. Set `AllowedHosts` to your domain (required in production — `*` is rejected at startup).
+5. Build the dashboard: `cd frontend/dashboard && npm run build`
+6. Publish: `dotnet publish -c Release -o ./publish`
+
+### Required Configuration Structure (local)
 ```json
 {
   "Finnhub": {
@@ -103,7 +145,7 @@ If you encounter issues while running Vest, refer to the following common error 
 
 ### 3. Supabase "Unauthorized" or "Invalid API Key"
 * **Cause**: The `Supabase:AnonKey` or `Supabase:ServiceRoleKey` in your configuration is incorrect or expired.
-* **Solution**: Double-check your Supabase project settings (Project Settings -> API) and ensure the keys exactly match what is in your `appsettings.json`.
+* **Solution**: Double-check your Supabase project settings (Project Settings -> API) and ensure the keys match your `appsettings.Development.json` (local) or host environment variables (production).
 
 ### 4. Market Data Not Loading (Finnhub)
 * **Cause**: You may have hit the Finnhub free-tier API rate limits, or your `Finnhub:ApiKey` is missing.

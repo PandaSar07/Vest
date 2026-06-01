@@ -1,37 +1,52 @@
+using Microsoft.AspNetCore.HttpOverrides;
 using Vest.Services;
-using Supabase;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+ConfigurationValidator.ValidateForProduction(builder.Configuration, builder.Environment);
+
+var isDev = builder.Environment.IsDevelopment();
+
 builder.Services.AddControllersWithViews();
 
-// Session support
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+});
+
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddMemoryCache();
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromHours(2);
+    options.Cookie.Name = ".Vest.Session";
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = isDev ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
 });
 
-// Authentication for Google OAuth
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme;
 })
-.AddCookie()
+.AddCookie(options =>
+{
+    options.Cookie.Name = ".Vest.Auth";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = isDev ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
+})
 .AddGoogle(options =>
 {
-    options.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? "YOUR_GOOGLE_CLIENT_ID";
-    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? "YOUR_GOOGLE_CLIENT_SECRET";
+    options.ClientId = builder.Configuration["Authentication:Google:ClientId"]
+        ?? throw new InvalidOperationException("Authentication:Google:ClientId is not configured.");
+    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]
+        ?? throw new InvalidOperationException("Authentication:Google:ClientSecret is not configured.");
 });
 
-// Register FinnhubService with HttpClient
 builder.Services.AddHttpClient<FinnhubService>();
 
-// Register PortfolioService (uses the named "supabase" client)
 builder.Services.AddScoped<PortfolioService>();
 builder.Services.AddScoped<UserPrefsService>();
 builder.Services.AddScoped<PortfolioValuationService>();
@@ -39,23 +54,19 @@ builder.Services.AddScoped<LeaderboardBuilder>();
 builder.Services.AddSingleton<LeaderboardService>();
 builder.Services.AddHostedService<LeaderboardRefreshHostedService>();
 builder.Services.AddHostedService<RiskMonitorService>();
-
-// Background worker: polls limit orders every 60 s and fills them
 builder.Services.AddHostedService<OrderExecutorService>();
 
-// Register EmailService for sending password reset emails
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<AvatarService>();
-
-// Register PushNotificationService (singleton — WebPushClient is thread-safe)
 builder.Services.AddSingleton<PushNotificationService>();
 
-// HttpClient for direct Supabase REST calls (signup, login)
 builder.Services.AddHttpClient("supabase", client =>
 {
-    var url      = builder.Configuration["Supabase:Url"]!;
-    var adminKey = builder.Configuration["Supabase:ServiceRoleKey"]!;
-    client.BaseAddress = new Uri(url + "/rest/v1/");
+    var url      = builder.Configuration["Supabase:Url"]
+        ?? throw new InvalidOperationException("Supabase:Url is not configured.");
+    var adminKey = builder.Configuration["Supabase:ServiceRoleKey"]
+        ?? throw new InvalidOperationException("Supabase:ServiceRoleKey is not configured.");
+    client.BaseAddress = new Uri(url.TrimEnd('/') + "/rest/v1/");
     client.DefaultRequestHeaders.Add("apikey", adminKey);
     client.DefaultRequestHeaders.Add("Authorization", "Bearer " + adminKey);
     client.DefaultRequestHeaders.Add("Prefer", "return=minimal");
@@ -63,7 +74,8 @@ builder.Services.AddHttpClient("supabase", client =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+app.UseForwardedHeaders();
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -72,7 +84,6 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.MapGet("/test", () => "Hello Vest!");
 app.UseRouting();
 
 app.UseSession();
@@ -81,7 +92,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Default MVC route
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
