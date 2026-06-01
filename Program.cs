@@ -3,6 +3,11 @@ using Vest.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Render/Railway/Fly inject PORT; bind Kestrel when not using launchSettings.
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(port))
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
 ConfigurationValidator.ValidateForProduction(builder.Configuration, builder.Environment);
 
 var isDev = builder.Environment.IsDevelopment();

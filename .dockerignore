@@ -1,0 +1,13 @@
+**/bin/
+**/obj/
+**/.vs/
+**/.idea/
+**/node_modules/
+.git/
+.env
+.env.local
+appsettings.Development.json
+publish/
+frontend/landing/node_modules/
+*.md
+!README.md

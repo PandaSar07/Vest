@@ -58,6 +58,18 @@ Vest is an ASP.NET Core 8 app with **background workers** (limit-order executor,
 - **Railway**, **Render**, **Fly.io**, or **Azure App Service** — recommended
 - **Vercel** — not recommended (serverless; background services will not run reliably)
 
+### Render (full site)
+
+Render does **not** offer .NET as a native runtime (only Node, Python, Ruby, Go, Rust, Elixir). Use **Docker** instead.
+
+1. Create a **Web Service** (not Static Site), connect `PandaSar07/Vest`.
+2. **Language / Environment:** **Docker** (not Node).
+3. **Dockerfile path:** `./Dockerfile` (repo root). Leave build/start commands empty — the Dockerfile defines them.
+4. **Environment:** add all variables from [`.env.example`](.env.example) in the Render dashboard.
+5. Deploy. Optional: use the repo [`render.yaml`](render.yaml) Blueprint.
+
+If you see `ENOENT ... package.json` at `/src/package.json`, you picked **Node** instead of **Docker**, or left a custom `npm run build` at the repo root.
+
 ### Vercel environment variables
 
 Vercel does **not** use a file upload for env vars. Use one of these:

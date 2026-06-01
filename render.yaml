@@ -1,0 +1,12 @@
+# Render Blueprint — Vest via Docker (.NET is not a native Render runtime)
+services:
+  - type: web
+    name: vest
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+    # Add secrets in the Render dashboard from .env.example (Finnhub__, Supabase__, etc.)
